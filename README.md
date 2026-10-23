@@ -23,12 +23,6 @@ Sculpted Particles
 
 The opening scene is the whole **6f state with m = +1**. The cloud remains stationary while tracers illustrate circulating probability current. These are illustrative samples of a wavefunction, not solid electrons or measured electron trajectories.
 
-## Completely local
-
-The ready-to-use `index.html` contains the interface, renderer, mathematics, styles, and font data. It works from a local file without an internet connection, an earlier visit, a browser cache, a server, or an installation step. All computation takes place on your own device. The interactive scene requires WebGL 2 and graphics acceleration.
-
-There are no passwords, API keys, account integrations, telemetry, remote compute calls, external font requests, or CDN dependencies in the exported website. Links to references and the hosted website open only when selected.
-
 ## Repository contents
 
 | Path | Contents |
