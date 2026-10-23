@@ -1,0 +1,89 @@
+<p class="math-intro">A hydrogen orbital is a wavefunction, not a path around the nucleus. The cloud shows where a position measurement is more likely; the moving tracers reveal the flow of probability.</p>
+
+<details class="math-section" open>
+  <summary><span>01</span> Three numbers, one state</summary>
+  <div class="math-section-body">
+    <p>\(n\) sets the energy and radial structure. \(\ell\) sets the orbital family and angular momentum. \(m\) sets its projection on the \(z\) axis in the complex basis.</p>
+    <div class="equation">\[n=1,2,\ldots;\qquad \ell=0,\ldots,n-1;\qquad m=-\ell,\ldots,\ell\]</div>
+    <table><thead><tr><th>Family</th><th>s</th><th>p</th><th>d</th><th>f</th><th>g</th><th>h</th></tr></thead><tbody><tr><th>\(\ell\)</th><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td></tr><tr><th>States</th><td>1</td><td>3</td><td>5</td><td>7</td><td>9</td><td>11</td></tr></tbody></table>
+    <p>The spherical harmonics are eigenfunctions of squared angular momentum and its axial component:</p>
+    <div class="equation">\[\begin{aligned}\hat{\mathbf L}^{\,2}Y_\ell^m&=\hbar^2\ell(\ell+1)Y_\ell^m,\\[0.4em]\hat L_zY_\ell^m&=m\hbar Y_\ell^m.\end{aligned}\]</div>
+    <p class="math-note">The atlas covers \(n=1\) through \(6\): 91 spatial states in either basis. Spin is not included. <a href="https://dlmf.nist.gov/14.30#iv" target="_blank" rel="noopener noreferrer">Angular momentum reference ↗</a></p>
+  </div>
+</details>
+
+<details class="math-section">
+  <summary><span>02</span> The equation behind the cloud</summary>
+  <div class="math-section-body">
+    <p>These are bound-state solutions for one electron in the Coulomb field of a fixed proton. Relativity, spin, external fields and interactions with other electrons are omitted.</p>
+    <div class="equation">\[\mathrm i\hbar\frac{\partial\Psi}{\partial t}=\left[-\frac{\hbar^2}{2m_e}\nabla^2-\frac{e^2}{4\pi\varepsilon_0r}\right]\Psi\]</div>
+    <div class="equation">\[E_n=-\frac{\hbar^2}{2m_ea_0^2n^2}\approx-\frac{13.606\;\mathrm{eV}}{n^2}\]</div>
+    <div class="equation">\[a_0=\frac{4\pi\varepsilon_0\hbar^2}{m_ee^2}\approx0.0529\;\mathrm{nm}\]</div>
+    <p>Here \(\hbar\) is the reduced Planck constant, \(m_e\) the electron mass, \(e\) the positive elementary charge and \(\varepsilon_0\) the vacuum permittivity. The Bohr radius \(a_0\) is the unit of distance.</p>
+    <p class="math-note"><a href="https://ocw.mit.edu/courses/8-04-quantum-physics-i-spring-2016/e34ceed6a6ec944a3c761fcbbf48be5f_MIT8_04S16_LecNotes22.pdf" target="_blank" rel="noopener noreferrer">MIT · Hydrogen atom and spectrum ↗</a></p>
+  </div>
+</details>
+
+<details class="math-section">
+  <summary><span>03</span> Radial shells and nodes</summary>
+  <div class="math-section-body">
+    <p>Separation in spherical coordinates splits the wavefunction into radial, angular and time factors. \(\theta\) is measured from \(+z\); \(\varphi\) turns around \(z\) from \(+x\) toward \(+y\).</p>
+    <div class="equation">\[\Psi_{n\ell m}(r,\theta,\varphi,t)=R_{n\ell}(r)Y_\ell^m(\theta,\varphi)\,\mathrm e^{-\mathrm i E_nt/\hbar}\]</div>
+    <div class="equation">\[R_{n\ell}(r)=\sqrt{\left(\frac{2}{na_0}\right)^3\frac{(n-\ell-1)!}{2n(n+\ell)!}}\;\mathrm e^{-u/2}u^\ell L_{n-\ell-1}^{\,2\ell+1}(u)\]</div>
+    <div class="equation">\[\begin{aligned}u&=\frac{2r}{na_0},\\[0.5em]L_k^\alpha(u)&=\sum_{j=0}^{k}(-1)^j\frac{(k+\alpha)!}{(k-j)!(\alpha+j)!j!}\,u^j.\end{aligned}\]</div>
+    <p>\(L_k^\alpha\) is a generalized Laguerre polynomial; here \(k=n-\ell-1\) and \(\alpha=2\ell+1\) are nonnegative integers. Its roots create <strong>\(n-\ell-1\) radial nodes</strong>: spherical surfaces with zero density. Increasing \(n\) generally extends the cloud; the characteristic radius grows like \(n^2a_0\).</p>
+    <p class="math-note"><a href="https://dlmf.nist.gov/18.39#ii" target="_blank" rel="noopener noreferrer">NIST DLMF · Hydrogen radial functions ↗</a></p>
+  </div>
+</details>
+
+<details class="math-section">
+  <summary><span>04</span> Spherical harmonics, phase and basis</summary>
+  <div class="math-section-body">
+    <p>For \(0\le q\le\ell\), the normalized complex angular function is</p>
+    <div class="equation">\[Y_\ell^q(\theta,\varphi)=\sqrt{\frac{(2\ell+1)(\ell-q)!}{4\pi(\ell+q)!}}\;P_\ell^q(\cos\theta)\,\mathrm e^{\mathrm i q\varphi}\]</div>
+    <div class="equation">\[Y_\ell^{-q}=(-1)^q\bigl(Y_\ell^q\bigr)^*\]</div>
+    <p>\(P_\ell^q\) is the associated Legendre function on \([-1,1]\), including the Condon–Shortley sign:</p>
+    <div class="equation">\[P_\ell^q(x)=\frac{(-1)^q}{2^\ell\ell!}(1-x^2)^{q/2}\frac{\mathrm d^{\ell+q}}{\mathrm dx^{\ell+q}}(x^2-1)^\ell\]</div>
+    <p><strong>Complex basis:</strong> phase winds \(m\) times around \(z\). Opposite \(m\) values have identical densities and opposite current. The global time phase changes no probabilities.</p>
+    <p><strong>Real basis:</strong> combine \(\pm q\) to make the familiar directional lobes. The signed index selects cosine \((+)\) or sine \((- )\), rather than a definite \(L_z\).</p>
+    <div class="equation">\[Y_{\ell,m}^{\mathrm{real}}=\begin{cases}Y_\ell^0,&m=0,\\[0.5em]\sqrt{2}\,\operatorname{Re}Y_\ell^m,&m>0,\\[0.5em]\sqrt{2}\,\operatorname{Im}Y_\ell^{|m|},&m<0.\end{cases}\]</div>
+    <p class="math-note">Real orbitals have \(\ell\) angular nodal surfaces. Complex orbitals have \(\ell-|m|\) polar nodal surfaces, with an additional zero on the \(z\) axis when \(|m|>0\). <a href="https://dlmf.nist.gov/14.30" target="_blank" rel="noopener noreferrer">NIST DLMF · Spherical harmonics ↗</a></p>
+  </div>
+</details>
+
+<details class="math-section">
+  <summary><span>05</span> Probability: volume versus radius</summary>
+  <div class="math-section-body">
+    <p>The Born rule turns a complex amplitude into probability density. A probability comes from integrating over a volume, not from reading the value at one point.</p>
+    <div class="equation">\[\rho=|\Psi|^2,\qquad P(V)=\int_V\rho\,\mathrm d^3\mathbf r,\qquad\int_{\mathbb R^3}\rho\,\mathrm d^3\mathbf r=1\]</div>
+    <div class="equation">\[\mathrm dP=\bigl|R_{n\ell}(r)\bigr|^2\bigl|Y_\ell^m(\theta,\varphi)\bigr|^2r^2\sin\theta\;\mathrm dr\,\mathrm d\theta\,\mathrm d\varphi\]</div>
+    <div class="equation">\[P_r(r)=r^2\bigl|R_{n\ell}(r)\bigr|^2,\qquad\int_0^\infty P_r(r)\,\mathrm dr=1\]</div>
+    <p>The factor \(r^2\) accounts for the increasing area of spherical shells. For 1s, local density is greatest at the nucleus, while the radial probability peaks at \(a_0\).</p>
+    <p class="math-note"><a href="https://ocw.mit.edu/courses/5-111sc-principles-of-chemical-science-fall-2014/pages/unit-i-the-atom/lecture-6-hydrogen-atom-wavefunctions-orbitals/" target="_blank" rel="noopener noreferrer">MIT · Orbitals and radial probability ↗</a></p>
+  </div>
+</details>
+
+<details class="math-section">
+  <summary><span>06</span> What the moving particles mean</summary>
+  <div class="math-section-body">
+    <p>Probability current measures probability flowing through an area per unit time. It depends on the spatial gradient of phase, not only brightness.</p>
+    <div class="equation">\[\mathbf j=\frac{\hbar}{m_e}\operatorname{Im}\!\left(\Psi^*\nabla\Psi\right),\qquad\frac{\partial\rho}{\partial t}+\nabla\!\cdot\mathbf j=0\]</div>
+    <p>For a complex hydrogen eigenstate, the phase factor \(\mathrm e^{\mathrm i m\varphi}\) gives an azimuthal current. Away from nodes, its flow field is</p>
+    <div class="equation">\[\mathbf v=\frac{\mathbf j}{\rho}=\frac{\hbar m}{m_er\sin\theta}\,\hat{\mathbf e}_\varphi\]</div>
+    <div class="equation">\[\frac{\mathrm d\varphi}{\mathrm dt}=\frac{\hbar m}{m_er^2\sin^2\theta},\qquad\frac{\mathrm dr}{\mathrm dt}=\frac{\mathrm d\theta}{\mathrm dt}=0\]</div>
+    <p>Changing the sign of \(m\) reverses circulation. For \(m=0\), or a stationary real orbital, the current is zero. A stationary cloud can therefore have a circulating current while its density stays constant.</p>
+    <p class="math-note">Tracers illustrate this flow field; they are not measured electron trajectories. Animation time is rescaled for visibility and is not a laboratory clock. At a node, \(\mathbf j/\rho\) is undefined. <a href="https://ocw.mit.edu/courses/8-04-quantum-physics-i-spring-2016/d87c768c4e1181fde8d4366112169719_MIT8_04S16_LecNotes6.pdf" target="_blank" rel="noopener noreferrer">MIT · Probability current and conservation ↗</a></p>
+  </div>
+</details>
+
+<details class="math-section">
+  <summary><span>07</span> From mathematics to the screen</summary>
+  <div class="math-section-body">
+    <p>The renderer evaluates the analytic orbital in three dimensions, then accumulates samples along viewing rays. Density mode uses brightness to expose structure; phase mode colors the complex angle \(\arg\Psi\). Both use the same blue-to-white palette. In phase mode the palette runs from \(-\pi\) to \(+\pi\): a bright color means a phase angle, not a high probability. The visible seam marks where the angle wraps; those endpoints describe the same phase.</p>
+    <p><strong>Shading is a visual mapping.</strong> State-dependent exposure and nonlinear brightness reveal faint outer lobes. Display brightness is not an absolute probability scale, and equal brightness across different orbitals does not imply equal density.</p>
+    <p><strong>Sculpted particles add depth.</strong> Each probability sample is drawn as a shaded spherical surface, with darker blue at low density and pale blue or white at high density. Surface lighting and bright centers illustrate the distribution; they are not light emitted by the atom, and the spheres are not solid electrons. Ultra adds finer volume sampling, more sculpted particles, layered highlights and luminous rims. This stylized lighting is computed locally on the GPU. Adaptive quality monitors frame rate, steps down under sustained load and cautiously adds detail when there is room.</p>
+    <p><strong>Cutaways reveal existing structure.</strong> Half, wedge and slice controls hide parts of the rendered volume. They do not collapse, renormalize or physically change the quantum state.</p>
+    <p><strong>Quality changes sampling.</strong> More ray steps and pixels improve detail; more tracers sample the same flow. Finite viewing bounds omit diffuse outer tails, a soft edge fade avoids a visible cutoff, and finite sampling can soften narrow nodes.</p>
+    <p class="math-note">Visual inspiration: <a href="https://github.com/kavan010/Atoms" target="_blank" rel="noopener noreferrer">kavan010 / Atoms ↗</a> · <a href="https://youtu.be/OSAOh4L41Wg" target="_blank" rel="noopener noreferrer">Reference video ↗</a>. Equations and explanations above use the linked NIST and MIT references.</p>
+  </div>
+</details>
