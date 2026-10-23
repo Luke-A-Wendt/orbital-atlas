@@ -2,7 +2,7 @@
 
 An interactive, self-contained atlas of the hydrogen atom: explore the shape of a wavefunction, see probability flow, and unfold the mathematics behind it.
 
-**[Open the hosted website](https://orbital-atlas.woodsyshore16.chatgpt.site)** — this preview may require the owner's account.
+**[Orbital Atlas](https://luke-a-wendt.github.io/orbital-atlas/)**
 
 ## Explore the atom
 
