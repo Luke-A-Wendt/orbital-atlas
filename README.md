@@ -4,6 +4,13 @@ An interactive, self-contained atlas of the hydrogen atom: explore the shape of 
 
 **[Orbital Atlas](https://luke-a-wendt.github.io/orbital-atlas/)**
 
+Cloud
+<img width="1291" height="774" alt="image" src="https://github.com/user-attachments/assets/077661fa-f2d2-4931-becc-4225928df6c3" />
+
+Sculpted Particles
+<img width="1291" height="774" alt="image" src="https://github.com/user-attachments/assets/87cd96c6-3daa-426c-99f1-3247004e053a" />
+
+
 ## Explore the atom
 
 - **91 spatial eigenstates** through principal quantum number 6, grouped into s, p, d, f, g, and h families.
