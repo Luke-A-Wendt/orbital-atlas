@@ -4,13 +4,22 @@ const FACT = [1];
 for (let i = 1; i < 32; i++) FACT[i] = FACT[i-1] * i;
 const clamp = (v,lo,hi) => Math.max(lo,Math.min(hi,v));
 export function orbitalExtent(n) { return 2.15 * n * n + 3; }
-// The legend and every rendering mode use this same dark-blue → ice-white ramp.
+// Density shading and its legend share this dark-blue → ice-white ramp.
 export function densityPalette(value) {
   const d=clamp(value,0,1),smooth=(a,b)=>{const t=clamp((d-a)/(b-a),0,1);return t*t*(3-2*t);};
   const mix=(a,b,t)=>a.map((v,i)=>v+(b[i]-v)*t);
   let color=mix([.012,.045,.20],[.07,.32,.76],smooth(.001,.09));
   color=mix(color,[.48,.76,1],d**.44);
   return mix(color,[.93,.98,1],smooth(.5,1));
+}
+// Cyclic rainbow with smooth hue transitions, identical at every full turn.
+export function phasePalette(value) {
+  const t=value-Math.floor(value);
+  return [0,2/3,1/3].map(offset=>{
+    const h=t+offset-Math.floor(t+offset);
+    const c=clamp(Math.abs(h*6-3)-1,0,1);
+    return .045+.955*c*c*(3-2*c);
+  });
 }
 function laguerre(k,a,x) {
   if (!k) return 1;
@@ -70,7 +79,8 @@ vec3 densityColor(float d){
   color=mix(color,vec3(.48,.76,1.),pow(d,.44));
   return mix(color,vec3(.93,.98,1.),smoothstep(.5,1.,d));
 }
-vec3 phaseColor(vec3 p){float a=amplitude(p);if(uBasis==0&&uM<0&&abs(uM)%2==1)a=-a;float ph=float(uM)*atan(p.y,p.x);if(uBasis==1){if(uM>0)a*=cos(float(uM)*atan(p.y,p.x));if(uM<0)a*=sin(float(-uM)*atan(p.y,p.x));ph=0.;}if(a<0.)ph+=3.14159265;ph+=uTime*.115*float(uN*uN);float wrapped=atan(sin(ph),cos(ph));return densityColor((wrapped+3.14159265)/6.28318530);}
+vec3 rainbowColor(float t){vec3 c=clamp(abs(fract(t+vec3(0.,2./3.,1./3.))*6.-3.)-1.,0.,1.);c=c*c*(3.-2.*c);return mix(vec3(.045),vec3(1.),c);}
+vec3 phaseColor(vec3 p){float a=amplitude(p);if(uBasis==0&&uM<0&&abs(uM)%2==1)a=-a;float ph=float(uM)*atan(p.y,p.x);if(uBasis==1){if(uM>0)a*=cos(float(uM)*atan(p.y,p.x));if(uM<0)a*=sin(float(-uM)*atan(p.y,p.x));ph=0.;}if(a<0.)ph+=3.14159265;ph+=uTime*.115*float(uN*uN);return rainbowColor(ph/6.28318530+.5);}
 vec3 particlePosition(vec4 seed,float current){
   float r=seed.x,c=seed.y,s=sqrt(max(0.,1.-c*c));
   float omega=float(uM)*pow(float(uN),4.)*.23/max(.001,pow(r*uExtent*s,2.));
@@ -195,7 +205,7 @@ const INTRO_CAMERA={yaw:.63,pitch:.30,distance:2.80};
 export class OrbitalRenderer {
   constructor(canvas,{onStats=()=>{},onError=()=>{}}={}) {
     this.canvas=canvas;this.onStats=onStats;this.onError=onError;
-    this.state={n:6,l:3,m:1,basis:'complex',mode:'density',renderStyle:'cloud',cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:.5,speed:1,animate:true,autoRotate:false,quality:'auto',axes:false};
+    this.state={n:6,l:3,m:1,basis:'complex',mode:'density',renderStyle:'cloud',cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:.5,speed:.5,animate:true,autoRotate:false,quality:'auto',axes:false};
     this.camera={...INTRO_CAMERA};this.time=0;this.dead=false;this.points=new Map();
     this.touchDevice=typeof matchMedia==='function'&&matchMedia('(pointer: coarse)').matches;
     this.tier=this.touchDevice?1:((typeof navigator!=='undefined'&&navigator.hardwareConcurrency<6)?1:2);

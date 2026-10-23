@@ -1,13 +1,14 @@
-import { OrbitalRenderer, densityAt, orbitalExtent, densityPalette } from './renderer.js?v=4';
+import { OrbitalRenderer, densityAt, orbitalExtent, densityPalette, phasePalette } from './renderer.js?v=7';
 
 const $ = id => document.getElementById(id);
 const mathFragments = window.OrbitalMathFragments || {};
 const mathHTML = key => mathFragments[key] || key;
 document.querySelectorAll('[data-math]').forEach(element => { element.innerHTML = mathHTML(element.dataset.math); });
 const family = ['s','p','d','f','g','h'];
-const state = {n:6,l:3,m:1,basis:'complex',mode:'density',renderStyle:'cloud',cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:.65,speed:1,animate:true,autoRotate:false,quality:'auto',axes:false};
+const state = {n:6,l:3,m:1,basis:'complex',mode:'density',renderStyle:'cloud',cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:.65,speed:.5,animate:true,autoRotate:false,quality:'auto',axes:false};
 const appearanceIntensity = {cloud:1,sculpted:1.35};
-const blueGradient = `linear-gradient(90deg,${Array.from({length:33},(_,i)=>`rgb(${densityPalette(i/32).map(v=>Math.round(v*255)).join(',')}) ${i/32*100}%`).join(',')})`;
+const paletteGradient = palette => `linear-gradient(90deg,${Array.from({length:33},(_,i)=>`rgb(${palette(i/32).map(v=>Math.round(v*255)).join(',')}) ${i/32*100}%`).join(',')})`;
+const blueGradient = paletteGradient(densityPalette), rainbowGradient = paletteGradient(phasePalette);
 const initial = new URLSearchParams(location.hash.slice(1));
 if(initial.has('n')){state.n=Math.round(Math.max(1,Math.min(6,+initial.get('n')||6)));state.l=Math.round(Math.max(0,Math.min(state.n-1,+initial.get('l')||0)));state.m=Math.round(Math.max(-state.l,Math.min(state.l,+initial.get('m')||0)));if(initial.get('basis')==='real')state.basis='real';}
 let renderer;
@@ -74,8 +75,8 @@ function sync(){
  $('current-note').textContent=state.particleAmount===0?'Current tracers are hidden.':stationary?'This stationary state has zero current. Tracers stay still.':`Tracers follow ${m>0?'positive':'negative'} circulation around z.`;
  $('auto-rotate').checked=state.autoRotate;$('show-axes').checked=state.axes;$('quality').value=state.quality;
  $('legend-title').textContent=state.mode==='phase'?'WAVEFUNCTION PHASE':'PROBABILITY DENSITY';$('legend-low').innerHTML=state.mode==='phase'?mathHTML('phase_low'):'low';$('legend-high').innerHTML=state.mode==='phase'?mathHTML('phase_high'):'high';
- $('legend-gradient').style.background=blueGradient;
- $('legend-gradient').title=state.mode==='phase'?'Blue to white represents phase angle, from −π to +π. The endpoints meet at the phase wrap.':'Dark blue to white represents increasing probability density.';
+ $('legend-gradient').style.background=state.mode==='phase'?rainbowGradient:blueGradient;
+ $('legend-gradient').title=state.mode==='phase'?'Cyclic rainbow represents phase angle. The colors at −π and +π match for a seamless wrap.':'Dark blue to white represents increasing probability density.';
 }
 for(const name of ['n','l','m'])$(name+'-select').addEventListener('change',e=>update({[name]:+e.target.value}));
 document.querySelectorAll('[data-render-style]').forEach(b=>b.addEventListener('click',()=>update({renderStyle:b.dataset.renderStyle})));
