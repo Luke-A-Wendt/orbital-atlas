@@ -5,6 +5,8 @@ An interactive, self-contained atlas of the hydrogen atom: explore the shape of 
 **[Orbital Atlas](https://luke-a-wendt.github.io/orbital-atlas/)**
 
 <img width="1609" height="774" alt="image" src="https://github.com/user-attachments/assets/47554eb4-0c20-4cfe-836e-7e5b2c9fcb81" />
+<img width="1291" height="774" alt="image" src="https://github.com/user-attachments/assets/d323072c-2938-454d-a806-2d1b0aa4a6f7" />
+
 
 
 ## Explore the atom
