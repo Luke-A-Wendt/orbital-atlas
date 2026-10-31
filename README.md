@@ -1,8 +1,6 @@
-# Orbital Atlas
+# [Orbital Atlas](https://luke-a-wendt.github.io/orbital-atlas/)
 
 An interactive, self-contained atlas of the hydrogen atom: explore the shape of a wavefunction, see probability flow, and unfold the mathematics behind it.
-
-**[Orbital Atlas](https://luke-a-wendt.github.io/orbital-atlas/)**
 
 <img width="1608" height="774" alt="image" src="https://github.com/user-attachments/assets/ff367c9a-196d-4311-baa8-4f1ba5879eb5" />
 <img width="1609" height="774" alt="image" src="https://github.com/user-attachments/assets/47554eb4-0c20-4cfe-836e-7e5b2c9fcb81" />
