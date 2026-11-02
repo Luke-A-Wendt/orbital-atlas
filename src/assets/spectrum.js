@@ -31,9 +31,10 @@ export function initSpectrum(){
  const polarizationMath=value=>fragment('spectrum_pol_'+value,value===0?'<math xmlns="http://www.w3.org/1998/Math/MathML"><mi>π</mi></math>':`<math xmlns="http://www.w3.org/1998/Math/MathML"><msup><mi>σ</mi><mo>${value<0?'−':'+'}</mo></msup></math>`);
  const allChannels=line=>(channelsByLine.get(line.lowerN+'-'+line.upperN)||[]).filter(includesState);
  const shapeChannels=()=>allChannels(currentLine).filter(channel=>channel.subshellKey===currentSubshell.key);
- const visibleChannels=()=>shapeChannels().filter(channel=>qFilter==='all'||channel.q===qFilter);
+ const matchesMagnetic=channel=>channel.lower.m===currentChannel.lower.m&&channel.upper.m===currentChannel.upper.m;
+ const visibleChannels=()=>{const map=new Map();for(const channel of allChannels(currentLine)){if(qFilter!=='all'&&channel.q!==qFilter)continue;const key=channel.lower.m+','+channel.upper.m;if(!map.has(key)||channel.subshellKey===currentSubshell.key)map.set(key,channel);}return [...map.values()].sort((a,b)=>a.lower.m-b.lower.m||a.upper.m-b.upper.m);};
  const availableLines=()=>lines.filter(line=>(series===0||line.lowerN===series)&&allChannels(line).length);
- const channelMarkup=channel=>`<span>${mMath(channel.lower.m)}</span><span class="spectrum-channel-arrow" aria-hidden="true">→</span><span>${mMath(channel.upper.m)}</span>`;
+ const channelMarkup=channel=>`<span>${mMath(channel.lower.m)}</span><span class="spectrum-channel-arrow" aria-hidden="true">↔</span><span>${mMath(channel.upper.m)}</span>`;
  function wavelengthColor(wavelength){
   if(wavelength<380||wavelength>780)return '#a9cfff';
   let r=0,g=0,b=0;
@@ -155,15 +156,15 @@ export function initSpectrum(){
   level.innerHTML=markup;
   level.setAttribute('aria-label',`Shell ${currentLine.lowerN} at minus ${(energyScale/currentLine.lowerN**2).toFixed(3)} electron volts and shell ${currentLine.upperN} at minus ${(energyScale/currentLine.upperN**2).toFixed(3)} electron volts. Level spacing expanded for clarity.`);
  }
- function pairsForLine(){return getSubshellPairs(currentLine.lowerN,currentLine.upperN).filter(pair=>allChannels(currentLine).some(channel=>channel.subshellKey===pair.key));}
+ function pairsForLine(){return getSubshellPairs(currentLine.lowerN,currentLine.upperN).filter(pair=>allChannels(currentLine).some(channel=>channel.subshellKey===pair.key&&matchesMagnetic(channel)));}
  function drawShapes(){
   const container=element('shapes'),focusedShape=document.activeElement?.dataset?.spectrumSubshell;container.replaceChildren();
   const pairs=pairsForLine();container.style.setProperty('--shape-columns',String(Math.min(pairs.length,5)));
-  element('shape-note').textContent=stateFilter?'Allowed pairs from the selected orbital':'Same photon energy · different shapes';
+  element('shape-note').textContent='Orbital pairs matching the selected magnetic states';
   for(const pair of pairs){
-   const channels=allChannels(currentLine).filter(channel=>channel.subshellKey===pair.key);
+   const channels=allChannels(currentLine).filter(channel=>channel.subshellKey===pair.key&&matchesMagnetic(channel));
    const selected=pair.key===currentSubshell.key;
-   const representative=selected?currentChannel:channels.find(channel=>channel.lower.m===0&&channel.upper.m===0)||channels[0];
+   const representative=channels[0];
    const button=document.createElement('button');button.type='button';button.className='spectrum-shape'+(selected?' selected':'');button.dataset.spectrumSubshell=pair.key;button.setAttribute('aria-pressed',String(selected));button.setAttribute('aria-label',`${orbitalName(representative.lower)} to ${orbitalName(representative.upper)}, ${channels.length} magnetic state pairs`);
    const pictures=document.createElement('span');pictures.className='spectrum-shape-pictures';pictures.setAttribute('aria-hidden','true');
    for(const [index,state] of [representative.lower,representative.upper].entries()){
@@ -176,7 +177,7 @@ export function initSpectrum(){
    button.addEventListener('click',()=>selectSubshell(pair.key));container.append(button);
   }
   if(focusedShape)Array.from(container.children).find(button=>button.dataset.spectrumSubshell===focusedShape)?.focus({preventScroll:true});
-  element('line-counts').textContent=pairs.length+' orbital '+(pairs.length===1?'pair':'pairs')+' · '+allChannels(currentLine).length+' state pairs'+(stateFilter?' from this state':'');
+  element('line-counts').textContent=pairs.length+' matching orbital '+(pairs.length===1?'pair':'pairs');
  }
  function drawChannels(){
   const channels=visibleChannels(),container=element('channels'),focusedChannel=document.activeElement?.dataset?.spectrumChannel;container.replaceChildren();
@@ -186,7 +187,7 @@ export function initSpectrum(){
   if(focusedChannel)Array.from(container.children).find(button=>button.dataset.spectrumChannel===focusedChannel)?.focus({preventScroll:true});
   root.querySelectorAll('[data-spectrum-q]').forEach(button=>{
    const q=button.dataset.spectrumQ==='all'?'all':+button.dataset.spectrumQ,selected=q===qFilter;
-   button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected));button.disabled=q!=='all'&&!shapeChannels().some(channel=>channel.q===q);
+   button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected));button.disabled=q!=='all'&&!allChannels(currentLine).some(channel=>channel.q===q);
   });
   element('channel-summary').innerHTML=channelMarkup(currentChannel)+`<span class="spectrum-channel-polarization">${polarizationMath(currentChannel.q)}</span>`;
   element('pair-count').textContent=(channels.findIndex(channel=>channel.id===currentChannel.id)+1)+' / '+channels.length;
@@ -207,7 +208,7 @@ export function initSpectrum(){
   element('lower-name').textContent=orbitalName(currentChannel.lower);element('upper-name').textContent=orbitalName(currentChannel.upper);
   element('lower-m').innerHTML=mMath(currentChannel.lower.m);element('upper-m').innerHTML=mMath(currentChannel.upper.m);
   element('pair').innerHTML=orbitalName(currentChannel.lower)+' <span>↔</span> '+orbitalName(currentChannel.upper);
-  element('stage-state').innerHTML=mMath(currentChannel.lower.m)+' <span aria-hidden="true">→</span> '+mMath(currentChannel.upper.m)+'<br>Same spatial scale throughout the cycle.';
+  element('stage-state').innerHTML=mMath(currentChannel.lower.m)+' <span aria-hidden="true">↔</span> '+mMath(currentChannel.upper.m)+'<br>Same spatial scale throughout the cycle.';
   element('lower-energy').textContent='−'+(energyScale/currentLine.lowerN**2).toFixed(3)+' eV';element('upper-energy').textContent='−'+(energyScale/currentLine.upperN**2).toFixed(3)+' eV';
   element('canvas').setAttribute('aria-label',`Three-dimensional population transfer between ${orbitalName(currentChannel.lower)}, magnetic number ${currentChannel.lower.m}, and ${orbitalName(currentChannel.upper)}, magnetic number ${currentChannel.upper.m}. Drag or use arrow keys to rotate; pinch or use plus and minus to zoom. Space pauses flow.`);
   element('explore-lower').setAttribute('aria-label',`Explore ${orbitalName(currentChannel.lower)}, magnetic number ${currentChannel.lower.m}, in the orbital atlas`);element('explore-upper').setAttribute('aria-label',`Explore ${orbitalName(currentChannel.upper)}, magnetic number ${currentChannel.upper.m}, in the orbital atlas`);
@@ -223,7 +224,7 @@ export function initSpectrum(){
   const pair=pairsForLine().find(item=>item.key===key);if(!pair)return false;
   currentSubshell=pair;let channels=shapeChannels();
   if(qFilter!=='all'&&!channels.some(channel=>channel.q===qFilter))qFilter='all';
-  channels=visibleChannels();currentChannel=channels.find(channel=>channel.lower.m===0&&channel.upper.m===0)||channels[0];applyChannel();return true;
+  currentChannel=channels.find(matchesMagnetic);applyChannel();return true;
  }
  function selectLine(lowerN,upperN,preferredChannel){
   const line=lines.find(item=>item.lowerN===lowerN&&item.upperN===upperN);if(!line||!allChannels(line).length)return false;
@@ -244,8 +245,8 @@ export function initSpectrum(){
  }
  function setPolarization(value){
   const q=value==='all'?'all':+value;if(q!=='all'&&![-1,0,1].includes(q))return false;
-  const channels=shapeChannels().filter(channel=>q==='all'||channel.q===q);if(!channels.length)return false;
-  qFilter=q;if(!channels.some(channel=>channel.id===currentChannel.id)){currentChannel=channels[0];applyChannel();}else drawChannels();return true;
+  const channels=allChannels(currentLine).filter(channel=>q==='all'||channel.q===q);if(!channels.length)return false;
+  qFilter=q;if(!channels.some(channel=>channel.id===currentChannel.id))selectChannel(channels[0].id);else drawChannels();return true;
  }
  function movePair(offset){const channels=visibleChannels(),index=channels.findIndex(channel=>channel.id===currentChannel.id);return selectChannel(channels[(index+offset+channels.length)%channels.length].id);}
  function frame(now){

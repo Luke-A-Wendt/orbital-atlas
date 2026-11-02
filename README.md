@@ -4,13 +4,13 @@ An interactive exploration of hydrogen orbitals and spectral transitions. Rotate
 
 ## Orbital explorer
 
-Explore all 91 spatial eigenstates through principal quantum number 6, arranged into s, p, d, f, g, and h families. Complex and real orbital views reveal different symmetries, while probability-current tracers show circulation within stationary states.
+The full atlas appears directly on the page, with shell and orbital-family filters. Explore all 91 spatial eigenstates through principal quantum number 6, arranged into s, p, d, f, g, and h families. Complex and real orbital views reveal different symmetries, while probability-current tracers show circulation within stationary states.
 
 Cloud and sculpted-particle modes share a blue density palette and a seamless rainbow phase palette. Half, wedge, and slice views expose radial shells and angular nodes. Mouse, touch, and keyboard controls support rotation and zoom, with adaptive rendering quality from Efficient to Ultra.
 
 ## Hydrogen spectrum
 
-The spectrum connects 15 spectral lines to 55 allowed orbital pairs and 465 electric-dipole magnetic-state pairs. Select a wavelength, choose an orbital pair, and examine its magnetic configurations, polarization components, and relative dipole strengths.
+The spectrum connects 15 spectral lines to 55 allowed orbital pairs and 465 electric-dipole magnetic-state pairs. Select a wavelength directly on the spectrum, choose the lower and upper magnetic states, and explore the compatible orbital pairs, polarization components, and relative dipole strengths.
 
 The transition viewer animates population transfer between two states, with independent controls for circulation, appearance, slicing, and playback. Its initial selection is the red Balmer-alpha line, comparing 2p and 3d with magnetic quantum number +1 for both states. The selected pair remains fixed until another is chosen.
 

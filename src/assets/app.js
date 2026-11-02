@@ -33,7 +33,6 @@ function exploreState(target){
  if(![n,l,m].every(Number.isInteger)||n<1||n>6||l<0||l>=n||Math.abs(m)>l)return false;
  update({n,l,m,basis:'complex'});
  renderer?.resetView();
- if($('atlas-dialog').open)$('atlas-dialog').close();
  $('scene').scrollIntoView({behavior:'smooth',block:'center'});
  $('orbital-canvas').focus({preventScroll:true});
  return true;
@@ -126,11 +125,6 @@ function thumbnail(n,l,m){
  }
  ctx.putImageData(data,0,0);const src=canvas.toDataURL();thumbs.set(key,src);return src;
 }
-const quickStates=[[1,0,0,'A single spherical cloud'],[2,1,0,'Two polar lobes'],[3,2,0,'Polar lobes and an equatorial ring'],[4,3,3,'One circulating torus'],[6,3,1,'Nested shells and fine angular structure'],[6,0,0,'Six concentric spherical shells']];
-for(const [n,l,m,desc] of quickStates){
- const button=document.createElement('button');button.className='orbital-card';button.dataset.state=`${n},${l},${m}`;button.setAttribute('aria-label',`Explore ${n}${family[l]}, m equals ${m}. ${desc}`);
- const img=document.createElement('img');img.alt='';img.src=thumbnail(n,l,m);const text=document.createElement('span');text.innerHTML=`<strong>${n}${family[l]}</strong><small>${mathHTML(`lm_${l}_${m}`)}</small>`;button.append(img,text);button.addEventListener('click',()=>{update({n,l,m,basis:'complex'});renderer?.resetView();if(window.innerWidth<780)$('scene').scrollIntoView({behavior:'smooth',block:'start'});});$('quick-orbitals').append(button);
-}
 function highlightCards(){document.querySelectorAll('[data-state]').forEach(b=>{const active=state.basis==='complex'&&b.dataset.state===`${state.n},${state.l},${Math.abs(state.m)}`;b.classList.toggle('selected',active);b.setAttribute('aria-pressed',String(active));});}
 let atlasFamily='all',atlasGeneration=0;
 function renderAtlas(){
@@ -141,7 +135,7 @@ function renderAtlas(){
   const states=[];for(let l=0;l<n;l++){if(atlasFamily!=='all'&&+atlasFamily!==l)continue;for(let m=0;m<=l;m++)states.push([n,l,m]);}
   if(!states.length)continue;total+=states.length;
   const section=document.createElement('section');section.className='atlas-shell-group';section.innerHTML=`<h3 class="shell-title"><span class="shell-number">${mathHTML(`n_${n}`)}</span><span>${(13.605693/(n*n)).toFixed(3)} eV binding energy</span></h3>`;const row=document.createElement('div');row.className='atlas-row';
-  for(const [n,l,m] of states){const b=document.createElement('button');b.className='atlas-card';b.dataset.state=`${n},${l},${m}`;b.setAttribute('aria-label',`Explore ${n}${family[l]}, n ${n}, l ${l}, absolute m ${m}`);const img=document.createElement('img');img.alt='';img.width=120;img.height=120;b.append(img);const title=document.createElement('strong');title.textContent=`${n}${family[l]}`;const small=document.createElement('small');small.innerHTML=mathHTML(`atlas_${l}_${m}`);b.append(title,small);b.addEventListener('click',()=>{update({n,l,m,basis:'complex'});renderer?.resetView();$('atlas-dialog').close();$('scene').scrollIntoView({behavior:'smooth',block:'center'});});row.append(b);queue.push(()=>{img.src=thumbnail(n,l,m);});}
+  for(const [n,l,m] of states){const b=document.createElement('button');b.className='atlas-card';b.dataset.state=`${n},${l},${m}`;b.setAttribute('aria-label',`Explore ${n}${family[l]}, n ${n}, l ${l}, absolute m ${m}`);const img=document.createElement('img');img.alt='';img.width=120;img.height=120;b.append(img);const title=document.createElement('strong');title.textContent=`${n}${family[l]}`;const small=document.createElement('small');small.innerHTML=mathHTML(`atlas_${l}_${m}`);b.append(title,small);b.addEventListener('click',()=>{update({n,l,m,basis:'complex'});renderer?.resetView();$('scene').scrollIntoView({behavior:'smooth',block:'center'});});row.append(b);queue.push(()=>{img.src=thumbnail(n,l,m);});}
   section.append(row);$('atlas-grid').append(section);
  }
  if(!total)$('atlas-grid').innerHTML='<p class="atlas-empty">This family starts in a higher shell. Choose another shell to explore it.</p>';
@@ -149,7 +143,7 @@ function renderAtlas(){
 }
 document.querySelectorAll('[data-family]').forEach(b=>b.addEventListener('click',()=>{atlasFamily=b.dataset.family;document.querySelectorAll('[data-family]').forEach(v=>{v.classList.toggle('selected',v===b);v.setAttribute('aria-pressed',String(v===b));});renderAtlas();}));$('atlas-shell').addEventListener('change',renderAtlas);
 function openDialog(id){const d=$(id);if(!d.open)d.showModal();document.body.style.overflow='hidden';}
-document.querySelectorAll('[data-open-atlas]').forEach(b=>b.addEventListener('click',()=>{renderAtlas();openDialog('atlas-dialog');}));
+document.querySelectorAll('[data-open-atlas]').forEach(b=>b.addEventListener('click',()=>{$('orbital-atlas').scrollIntoView({behavior:'smooth',block:'start'});$('atlas-title').focus({preventScroll:true});}));
 document.querySelectorAll('[data-open-math]').forEach(b=>b.addEventListener('click',()=>{
  openDialog('math-dialog');
  const number=Number(b.dataset.mathSection);
@@ -169,7 +163,7 @@ function drawRadial(){
  const points=values.map((v,i)=>`${(i/180*250+5).toFixed(2)},${(53-v/peak*47).toFixed(2)}`).join(' ');
  $('radial-plot').innerHTML=`<defs><linearGradient id="radial-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#83bbfa" stop-opacity=".2"/><stop offset="100%" stop-color="#83bbfa" stop-opacity="0"/></linearGradient></defs><path d="M5 53H255" stroke="#38414f" stroke-width=".5"/><polygon points="5,53 ${points} 255,53" fill="url(#radial-fill)"/><polyline points="${points}" fill="none" stroke="#a6ceff" stroke-width="1.3"/><text x="5" y="68" font-size="7" fill="#8998ad">0</text><text x="255" y="68" text-anchor="end" font-size="7" fill="#8998ad">${extent.toFixed(1)} Bohr radii</text>`;
 }
-sync();drawRadial();highlightCards();
+sync();drawRadial();renderAtlas();
 initSpectrum();
 $('state-transitions')?.addEventListener('click',()=>{
  if(state.basis==='real'&&state.m!==0){
@@ -179,7 +173,7 @@ $('state-transitions')?.addEventListener('click',()=>{
  window.spectrumApp?.exploreState({n:state.n,l:state.l,m:state.m});
 });
 $('atlas-spectrum')?.addEventListener('click',()=>{
- $('atlas-dialog').close();
+
  $('spectrum').scrollIntoView({behavior:'smooth',block:'start'});
  $('spectrum-title').focus({preventScroll:true});
 });

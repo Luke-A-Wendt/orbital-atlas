@@ -110,3 +110,5 @@
 .spectrum-magnetic-row{flex-wrap:wrap}
 
 .spectrum-stage{background:#000}
+
+.spectrum-pair-selection>.spectrum-magnetic-row{margin:0 0 24px}
