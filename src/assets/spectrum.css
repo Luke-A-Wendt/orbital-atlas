@@ -128,3 +128,5 @@
 .spectrum-q-selector{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:24px}.spectrum-q-selector .spectrum-menu-label{margin:0}.spectrum-q-selector .spectrum-q-filters{display:flex;width:auto;gap:6px}.spectrum-q-selector .spectrum-q-filters button{min-width:68px;min-height:44px}
 
 .spectrum-shape .spectrum-channel-arrow{display:inline-block;margin-inline:.4em}
+
+.spectrum-stage-strength{margin-top:16px;width:190px;max-width:100%}.spectrum-stage-strength .spectrum-small-label{font-size:8px;letter-spacing:1.1px;margin-bottom:7px}.spectrum-stage-strength strong{font-size:21px;font-weight:400;color:#dcecff}.spectrum-stage-strength .spectrum-strength-unit{font-size:13px;margin-left:5px}.spectrum-stage-strength .spectrum-strength-bar{margin:9px 0 5px;height:3px}.spectrum-stage-heading .spectrum-stage-strength p{font-size:9px;line-height:1.5;margin:0;max-width:190px}@media(max-width:600px){.spectrum-stage-strength{width:155px;margin-top:12px}.spectrum-stage-strength strong{font-size:18px}.spectrum-stage-heading .spectrum-stage-strength p{font-size:8px}}

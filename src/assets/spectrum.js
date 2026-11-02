@@ -179,12 +179,8 @@ export function initSpectrum(){
  function updateStrength(){
   const strength=transitionStrength(currentChannel),relative=strength.relative*100;
   element('strength-value').textContent=strength.strength.toPrecision(4)+' ';
-  element('strength-preview').textContent=relative.toFixed(1)+'% of line maximum';
   element('strength-fill').style.width=relative+'%';element('strength-meter').setAttribute('aria-valuenow',relative.toFixed(2));
   element('strength-relative').textContent=relative.toFixed(2)+'% of the strongest state pair on this line.';
-  element('polarization').innerHTML=qMath(currentChannel.q);
-  element('polarization-description').textContent=currentChannel.q===0?'Linear electric-field component along the quantization axis.':'Circular spherical component about the quantization axis. The sign follows the lower-to-upper absorption convention.';
-  element('strength-factors').innerHTML='Radial overlap: '+strength.radial.toPrecision(5)+' '+fragment('a0','<math xmlns="http://www.w3.org/1998/Math/MathML"><msub><mi>a</mi><mn>0</mn></msub></math>')+'. Squared angular factor: '+strength.angular.toPrecision(5)+'.';
  }
  function applyChannel(){
   cycle=0;previousTime=null;

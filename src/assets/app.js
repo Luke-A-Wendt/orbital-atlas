@@ -172,11 +172,6 @@ $('state-transitions')?.addEventListener('click',()=>{
  }
  window.spectrumApp?.exploreState({n:state.n,l:state.l,m:state.m});
 });
-$('atlas-spectrum')?.addEventListener('click',()=>{
-
- $('spectrum').scrollIntoView({behavior:'smooth',block:'start'});
- $('spectrum-title').focus({preventScroll:true});
-});
 // Only spend GPU time on the explorer while its canvas is on screen.
 if(renderer&&!renderer.error&&typeof IntersectionObserver!=='undefined'){
  const explorerVisibility=new IntersectionObserver(entries=>renderer.setVisible(entries[0].isIntersecting),{threshold:0});
