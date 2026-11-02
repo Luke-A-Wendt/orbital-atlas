@@ -204,7 +204,6 @@ footer{flex-wrap:wrap}footer .author-credits{flex-basis:100%;display:flex;flex-d
     <div class="spectrum-state-filter" id="spectrum-state-filter" hidden><span id="spectrum-filter-label"></span><button id="spectrum-clear-filter" aria-label="Show transitions from all orbitals">Show all states ×</button></div>
     <div class="spectrum-track" id="spectrum-track" role="group" aria-label="Select a hydrogen spectral line"></div>
     <div class="spectrum-axis" id="spectrum-axis" aria-hidden="true"></div>
-    <div class="spectrum-line-options" id="spectrum-line-options" role="group" aria-label="Spectral lines by wavelength"></div>
    </div>
    <div class="spectrum-selection">
     <div class="spectrum-line-readout" aria-live="polite" aria-atomic="true"><div class="spectrum-wavelength"><span id="spectrum-wavelength">656.1</span><small>nm</small></div><span class="spectrum-line-name" id="spectrum-line-name">Balmer alpha · 2 ↔ 3</span><span class="spectrum-region"><i aria-hidden="true"></i><span id="spectrum-region">Visible light</span></span></div>
@@ -1774,24 +1773,21 @@ function initSpectrum(){
   }catch(error){engineFailed=true;element('status').hidden=false;element('status').dataset.error='true';element('status').textContent='The orbital view needs WebGL 2. Spectral lines, energies, allowed pairs and state populations remain available.';}
  }
  function drawBand(){
-  const [min,max,ticks]=ranges[series],track=element('track'),options=element('line-options'),axis=element('axis');
-  const focusedLine=document.activeElement?.dataset?.spectrumLine,focusedTrack=document.activeElement?.classList?.contains('spectrum-line');
-  track.replaceChildren();options.replaceChildren();axis.replaceChildren();
+  const [min,max,ticks]=ranges[series],track=element('track'),axis=element('axis');
+  const focusedLine=document.activeElement?.dataset?.spectrumLine;
+  track.replaceChildren();axis.replaceChildren();
   const stops=Array.from({length:25},(_,i)=>`${wavelengthColor(min+(max-min)*i/24)} ${i/24*100}%`);
   track.style.setProperty('--spectrum-band',series===2?`linear-gradient(90deg,${stops.join(',')})`:'linear-gradient(90deg,#4272a3,#92b7e4)');
   element('scale-note').textContent='Vacuum wavelength · '+(series===0?'logarithmic scale':'linear scale');
   ticks.forEach(value=>{const label=document.createElement('span');label.style.left=position(value)*100+'%';label.textContent=value+(value===max?' nm':'');axis.append(label);});
   const filtered=availableLines();
-  options.classList.toggle('spectrum-all-lines',series===0);
   for(const line of filtered){
    const selected=line===currentLine,color=wavelengthColor(line.wavelength);
    const accessible=`${line.name}, ${line.wavelength.toFixed(1)} nanometers, shells ${line.lowerN} and ${line.upperN}`;
    const tick=document.createElement('button');tick.type='button';tick.className='spectrum-line'+(selected?' selected':'');tick.dataset.spectrumLine=line.lowerN+'-'+line.upperN;tick.style.left=position(line.wavelength)*100+'%';tick.style.setProperty('--line-color',color);tick.setAttribute('aria-label',accessible);tick.setAttribute('aria-pressed',String(selected));tick.title=accessible;tick.addEventListener('click',event=>{event.stopPropagation();selectLine(line.lowerN,line.upperN);});
-   const chip=document.createElement('button');chip.type='button';chip.className='spectrum-chip'+(selected?' selected':'');chip.dataset.spectrumLine=line.lowerN+'-'+line.upperN;chip.style.setProperty('--line-color',color);chip.setAttribute('aria-label',accessible);chip.setAttribute('aria-pressed',String(selected));
-   const marker=document.createElement('i');marker.setAttribute('aria-hidden','true');const label=document.createElement('span');const strong=document.createElement('strong');strong.textContent=line.wavelength.toFixed(1)+' nm';const small=document.createElement('small');small.textContent=`${line.name} · ${line.lowerN} ↔ ${line.upperN}`;label.append(strong,small);chip.append(marker,label);chip.addEventListener('click',()=>selectLine(line.lowerN,line.upperN));
-   track.append(tick);options.append(chip);
+   track.append(tick);
   }
-  if(focusedLine){const destination=focusedTrack?track:options;Array.from(destination.children).find(button=>button.dataset.spectrumLine===focusedLine)?.focus({preventScroll:true});}
+  if(focusedLine){const destination=track;Array.from(destination.children).find(button=>button.dataset.spectrumLine===focusedLine)?.focus({preventScroll:true});}
   root.querySelectorAll('[data-spectrum-series]').forEach(button=>{
    const value=+button.dataset.spectrumSeries,selected=value===series;
    button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected));
@@ -2110,7 +2106,7 @@ function thumbnail(n,l,m){
  }
  ctx.putImageData(data,0,0);const src=canvas.toDataURL();thumbs.set(key,src);return src;
 }
-const quickStates=[[1,0,0,'The ground state'],[2,1,0,'Two polar lobes'],[3,2,1,'A circulating cloud'],[6,3,1,'Nested shells in motion'],[5,4,3,'A finer structure'],[6,5,4,'Beyond the familiar']];
+const quickStates=[[1,0,0,'A single spherical cloud'],[2,1,0,'Two polar lobes'],[3,2,0,'Polar lobes and an equatorial ring'],[4,3,3,'One circulating torus'],[6,3,1,'Nested shells and fine angular structure'],[6,0,0,'Six concentric spherical shells']];
 for(const [n,l,m,desc] of quickStates){
  const button=document.createElement('button');button.className='orbital-card';button.dataset.state=`${n},${l},${m}`;button.setAttribute('aria-label',`Explore ${n}${family[l]}, m equals ${m}. ${desc}`);
  const img=document.createElement('img');img.alt='';img.src=thumbnail(n,l,m);const text=document.createElement('span');text.innerHTML=`<strong>${n}${family[l]}</strong><small>${mathHTML(`lm_${l}_${m}`)}</small>`;button.append(img,text);button.addEventListener('click',()=>{update({n,l,m,basis:'complex'});renderer?.resetView();if(window.innerWidth<780)$('scene').scrollIntoView({behavior:'smooth',block:'start'});});$('quick-orbitals').append(button);

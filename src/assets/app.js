@@ -126,7 +126,7 @@ function thumbnail(n,l,m){
  }
  ctx.putImageData(data,0,0);const src=canvas.toDataURL();thumbs.set(key,src);return src;
 }
-const quickStates=[[1,0,0,'The ground state'],[2,1,0,'Two polar lobes'],[3,2,1,'A circulating cloud'],[6,3,1,'Nested shells in motion'],[5,4,3,'A finer structure'],[6,5,4,'Beyond the familiar']];
+const quickStates=[[1,0,0,'A single spherical cloud'],[2,1,0,'Two polar lobes'],[3,2,0,'Polar lobes and an equatorial ring'],[4,3,3,'One circulating torus'],[6,3,1,'Nested shells and fine angular structure'],[6,0,0,'Six concentric spherical shells']];
 for(const [n,l,m,desc] of quickStates){
  const button=document.createElement('button');button.className='orbital-card';button.dataset.state=`${n},${l},${m}`;button.setAttribute('aria-label',`Explore ${n}${family[l]}, m equals ${m}. ${desc}`);
  const img=document.createElement('img');img.alt='';img.src=thumbnail(n,l,m);const text=document.createElement('span');text.innerHTML=`<strong>${n}${family[l]}</strong><small>${mathHTML(`lm_${l}_${m}`)}</small>`;button.append(img,text);button.addEventListener('click',()=>{update({n,l,m,basis:'complex'});renderer?.resetView();if(window.innerWidth<780)$('scene').scrollIntoView({behavior:'smooth',block:'start'});});$('quick-orbitals').append(button);

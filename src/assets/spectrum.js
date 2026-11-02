@@ -120,24 +120,21 @@ export function initSpectrum(){
   }catch(error){engineFailed=true;element('status').hidden=false;element('status').dataset.error='true';element('status').textContent='The orbital view needs WebGL 2. Spectral lines, energies, allowed pairs and state populations remain available.';}
  }
  function drawBand(){
-  const [min,max,ticks]=ranges[series],track=element('track'),options=element('line-options'),axis=element('axis');
-  const focusedLine=document.activeElement?.dataset?.spectrumLine,focusedTrack=document.activeElement?.classList?.contains('spectrum-line');
-  track.replaceChildren();options.replaceChildren();axis.replaceChildren();
+  const [min,max,ticks]=ranges[series],track=element('track'),axis=element('axis');
+  const focusedLine=document.activeElement?.dataset?.spectrumLine;
+  track.replaceChildren();axis.replaceChildren();
   const stops=Array.from({length:25},(_,i)=>`${wavelengthColor(min+(max-min)*i/24)} ${i/24*100}%`);
   track.style.setProperty('--spectrum-band',series===2?`linear-gradient(90deg,${stops.join(',')})`:'linear-gradient(90deg,#4272a3,#92b7e4)');
   element('scale-note').textContent='Vacuum wavelength · '+(series===0?'logarithmic scale':'linear scale');
   ticks.forEach(value=>{const label=document.createElement('span');label.style.left=position(value)*100+'%';label.textContent=value+(value===max?' nm':'');axis.append(label);});
   const filtered=availableLines();
-  options.classList.toggle('spectrum-all-lines',series===0);
   for(const line of filtered){
    const selected=line===currentLine,color=wavelengthColor(line.wavelength);
    const accessible=`${line.name}, ${line.wavelength.toFixed(1)} nanometers, shells ${line.lowerN} and ${line.upperN}`;
    const tick=document.createElement('button');tick.type='button';tick.className='spectrum-line'+(selected?' selected':'');tick.dataset.spectrumLine=line.lowerN+'-'+line.upperN;tick.style.left=position(line.wavelength)*100+'%';tick.style.setProperty('--line-color',color);tick.setAttribute('aria-label',accessible);tick.setAttribute('aria-pressed',String(selected));tick.title=accessible;tick.addEventListener('click',event=>{event.stopPropagation();selectLine(line.lowerN,line.upperN);});
-   const chip=document.createElement('button');chip.type='button';chip.className='spectrum-chip'+(selected?' selected':'');chip.dataset.spectrumLine=line.lowerN+'-'+line.upperN;chip.style.setProperty('--line-color',color);chip.setAttribute('aria-label',accessible);chip.setAttribute('aria-pressed',String(selected));
-   const marker=document.createElement('i');marker.setAttribute('aria-hidden','true');const label=document.createElement('span');const strong=document.createElement('strong');strong.textContent=line.wavelength.toFixed(1)+' nm';const small=document.createElement('small');small.textContent=`${line.name} · ${line.lowerN} ↔ ${line.upperN}`;label.append(strong,small);chip.append(marker,label);chip.addEventListener('click',()=>selectLine(line.lowerN,line.upperN));
-   track.append(tick);options.append(chip);
+   track.append(tick);
   }
-  if(focusedLine){const destination=focusedTrack?track:options;Array.from(destination.children).find(button=>button.dataset.spectrumLine===focusedLine)?.focus({preventScroll:true});}
+  if(focusedLine){const destination=track;Array.from(destination.children).find(button=>button.dataset.spectrumLine===focusedLine)?.focus({preventScroll:true});}
   root.querySelectorAll('[data-spectrum-series]').forEach(button=>{
    const value=+button.dataset.spectrumSeries,selected=value===series;
    button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected));
