@@ -10,7 +10,7 @@ Cloud and sculpted-particle modes share a blue density palette and a seamless ra
 
 ## Hydrogen spectrum
 
-The spectrum connects 15 spectral lines to 55 allowed orbital pairs and 465 electric-dipole magnetic-state pairs. Select a wavelength directly on the spectrum, filter by the change in magnetic quantum number q, and explore every compatible state pair and its relative dipole strength. Each reversible pair appears once.
+The spectrum connects 15 spectral lines to 55 allowed orbital pairs and 465 electric-dipole magnetic-state pairs. Select a wavelength directly on the spectrum, filter by the change in magnetic quantum number q, and explore every compatible state pair and its relative dipole strength. Each reversible pair appears once. For zero change in magnetic number, sign-reversed pairs share one card labeled by the magnitude of m. A magnetic-sign selector reverses circulation while preserving the table layout.
 
 The transition viewer animates population transfer between two states, with independent controls for circulation, appearance, slicing, and playback. Its initial selection is the infrared Pfund-alpha line, comparing 5g and 6f with magnetic quantum number +1 for both states. The selected pair remains fixed until another is chosen.
 

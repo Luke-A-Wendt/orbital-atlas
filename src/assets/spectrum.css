@@ -158,3 +158,16 @@
  .spectrum-states{padding:18px;gap:18px}
 }
 .spectrum-stage:fullscreen{width:100%;height:100%;max-width:none;max-height:none;aspect-ratio:auto}
+
+/* A clear circular anchor for the selected wavelength. */
+.spectrum-line:after{width:16px;height:16px;left:50%;bottom:-9px;box-sizing:border-box;border:2px solid #e2f1ff;border-radius:50%;transform:translateX(-50%);background:#a9d4ff;box-shadow:0 0 0 4px #0b121de6,0 0 15px #91caff99;pointer-events:none}
+.spectrum-line.selected{z-index:2}
+
+/* Let the shared grid row grow to either panel's content height. */
+@media(min-width:1001px){
+ .spectrum-view{align-items:stretch}
+ .spectrum-stage{aspect-ratio:auto;align-self:stretch;height:auto}
+ .spectrum-stage::before{content:"";display:block;padding-top:62.5%;pointer-events:none}
+ .spectrum-states{align-self:stretch}
+ .spectrum-stage:fullscreen::before{display:none}
+}
