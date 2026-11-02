@@ -70,9 +70,9 @@
      <div class="spectrum-state"><span class="spectrum-state-caption">LOWER STATE</span><div class="spectrum-state-name" id="spectrum-lower-name">2p</div><div class="spectrum-state-m" id="spectrum-lower-m"></div><span class="spectrum-state-energy" id="spectrum-lower-energy">−3.401 eV</span><div class="spectrum-population"><span>Population</span><output id="spectrum-lower-population">100%</output></div><div class="spectrum-population-track" aria-hidden="true"><i id="spectrum-lower-fill" style="--population:100%"></i></div><button class="spectrum-explore-state" id="spectrum-explore-lower">Explore state ↗</button></div>
      <div class="spectrum-state-divider"><span>↕</span>Resonant energy exchange</div>
      <div class="spectrum-state"><span class="spectrum-state-caption">UPPER STATE</span><div class="spectrum-state-name" id="spectrum-upper-name">3d</div><div class="spectrum-state-m" id="spectrum-upper-m"></div><span class="spectrum-state-energy" id="spectrum-upper-energy">−1.512 eV</span><div class="spectrum-population"><span>Population</span><output id="spectrum-upper-population">0%</output></div><div class="spectrum-population-track" aria-hidden="true"><i id="spectrum-upper-fill" style="--population:0%"></i></div><button class="spectrum-explore-state" id="spectrum-explore-upper">Explore state ↗</button></div>
+<div class="spectrum-rate-control"><label for="spectrum-rate">TRANSITION SPEED</label><div class="spectrum-rate-buttons"><button id="spectrum-rate-down" aria-label="Decrease transition speed">−</button><output id="spectrum-rate-value" for="spectrum-rate">1×</output><button id="spectrum-rate-up" aria-label="Increase transition speed">+</button></div><input id="spectrum-rate" type="range" min="0" max="6" step="1" value="3" aria-label="Transition speed"><p id="spectrum-rate-period">5 seconds per cycle</p></div>
     </aside>
    </div>
-   <div class="spectrum-playback"><button class="spectrum-play" id="spectrum-play" aria-pressed="false" aria-label="Pause transition">Pause</button><div class="spectrum-timeline"><label class="spectrum-timeline-labels" for="spectrum-progress"><span>Lower</span><span>Upper</span><span>Lower</span></label><input id="spectrum-progress" type="range" min="0" max="1" step="0.001" value="0" aria-label="Transition cycle" aria-valuetext="Lower state: 100%; upper state: 0%"></div><button class="spectrum-restart" id="spectrum-restart">Restart cycle ↺</button></div>
    <p class="spectrum-view-notice" id="spectrum-view-notice" role="status" hidden></p>
    <details class="spectrum-view-options" id="spectrum-view-options">
     <summary><span>Viewing options</span><span class="spectrum-view-summary" id="spectrum-view-summary">Complex · Density · Cloud · Whole</span><span class="spectrum-view-chevron" aria-hidden="true">⌄</span></summary>
@@ -104,11 +104,11 @@
       <label class="select-line" for="spectrum-quality">Render quality <select id="spectrum-quality"><option value="auto">Adaptive</option><option value="low">Efficient</option><option value="medium">Balanced</option><option value="high">High</option><option value="ultra">Ultra</option></select></label>
       <p class="spectrum-view-note">Adaptive monitors frame rate and adjusts detail. Ultra adds finer volume detail, richer lighting and more sculpted particles.</p>
       <label class="slider-label" for="spectrum-particle-amount">Tracer amount <output id="spectrum-particle-amount-value">65%</output></label><input id="spectrum-particle-amount" type="range" min="0" max="1" step="0.05" value="0.65">
-      <p class="spectrum-view-note">Flow controls circulation and the phase clock. Population playback has its own timeline above.</p>
+      <p class="spectrum-view-note">Flow controls circulation and the phase clock. Transition speed controls population transfer independently.</p>
      </section>
     </div>
    </details>
-   <div class="spectrum-caption"><span class="spectrum-model-label">Driven population transfer · optical-cycle-averaged density</span><span>10-second visual cycle · same spatial scale</span></div>
+   <div class="spectrum-caption"><span class="spectrum-model-label">Driven population transfer · optical-cycle-averaged density</span><span>Adjustable visual cycle · same spatial scale</span></div>
   </div>
  </section>
  <div class="math-invitation"><span class="math-symbol" data-math="psi">ψ</span><div><h2>Beautiful on the outside.<br><em>Mathematical at the core.</em></h2><p>From Schrödinger’s equation to the current in the cloud.<br>Unfold the mathematics behind everything you see.</p></div><button class="outline-button" data-open-math>Explore the mathematics <span>↗</span></button></div>

@@ -13,6 +13,7 @@ export function initSpectrum(){
  const ranges={0:[90,8000,[90,200,500,1000,3000,8000]],1:[90,130,[90,100,110,120,130]],2:[390,700,[390,450,550,650,700]],3:[1000,2000,[1000,1250,1500,1750,2000]],4:[2400,4300,[2400,3000,3600,4300]],5:[7000,8000,[7000,7250,7500,7750,8000]]};
  const lines=getSpectralLines();
  const channelsByLine=new Map(lines.map(line=>[line.lowerN+'-'+line.upperN,getChannels(line.lowerN,line.upperN)]));
+ let transitionRate=1;
  let series=0,cycle=0,playing=true,visible=false,previousTime=null,raf=0,renderer=null;
  let currentLine=null,currentSubshell=null,currentChannel=null,stateFilter=null,qFilter='all',lastUiTime=0,engineFailed=false;
  const view={basis:'complex',mode:'density',renderStyle:'cloud',cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:.65,speed:.5,animate:true,autoRotate:false,quality:'auto',axes:false};
@@ -103,10 +104,7 @@ export function initSpectrum(){
   const lowerPercent=Math.round((1-population)*100),upperPercent=100-lowerPercent;
   element('lower-population').value=lowerPercent+'%';element('upper-population').value=upperPercent+'%';
   element('lower-fill').style.setProperty('--population',lowerPercent+'%');element('upper-fill').style.setProperty('--population',upperPercent+'%');
-  element('progress').value=String(cycle);
-  element('progress').setAttribute('aria-valuetext',`Lower state: ${lowerPercent}%; upper state: ${upperPercent}%`);
   element('direction').textContent=!playing?'Transition paused':cycle<.5?'Absorbing energy':'Stimulated emission';
-  element('play').textContent=playing?'Pause':'Play';element('play').setAttribute('aria-label',playing?'Pause transition':'Play transition');element('play').setAttribute('aria-pressed',String(!playing));
   renderer?.setPopulation(population);
  }
  function ensureRenderer(){
@@ -233,7 +231,7 @@ export function initSpectrum(){
   if(playing){
    if(previousTime!==null){
     const dt=Math.min((now-previousTime)/1000,.1);
-    cycle=(cycle+dt/10)%1;
+    cycle=(cycle+dt*transitionRate/5)%1;
    }
    previousTime=now;renderer?.setPopulation(Math.sin(Math.PI*cycle)**2);
    if(now-lastUiTime>=50){updatePopulation();lastUiTime=now;}
@@ -242,6 +240,22 @@ export function initSpectrum(){
   }else{previousTime=null;updatePopulation();}
  }
  function startFrame(){if(!raf&&visible&&!document.hidden&&playing)raf=requestAnimationFrame(frame);}
+ const transitionRates=[.125,.25,.5,1,2,4,8];
+ const transitionRateLabels=['1/8','1/4','1/2','1','2','4','8'];
+ function setTransitionRate(value){
+  if(!Number.isFinite(+value))return;
+  const index=transitionRates.reduce((best,rate,i)=>Math.abs(rate-value)<Math.abs(transitionRates[best]-value)?i:best,0);
+  transitionRate=transitionRates[index];
+  element('rate').value=String(index);
+  element('rate').setAttribute('aria-valuetext',transitionRateLabels[index]+' times speed');
+  element('rate-value').textContent=transitionRateLabels[index]+'×';
+  element('rate-period').textContent=5/transitionRate+' seconds per cycle';
+  element('rate-down').disabled=index===0;element('rate-up').disabled=index===6;
+ }
+ element('rate').addEventListener('input',event=>setTransitionRate(transitionRates[+event.target.value]));
+ element('rate-down').addEventListener('click',()=>setTransitionRate(transitionRate/2));
+ element('rate-up').addEventListener('click',()=>setTransitionRate(transitionRate*2));
+ setTransitionRate(1);
  function setPlaying(value){playing=!!value;previousTime=null;if(!playing){cancelAnimationFrame(raf);raf=0;}updatePopulation();startFrame();}
  function updateStateFilter(){
   element('state-filter').hidden=!stateFilter;
@@ -282,8 +296,6 @@ export function initSpectrum(){
   if(nearest)selectLine(nearest.lowerN,nearest.upperN);
  });
  element('clear-filter').addEventListener('click',clearStateFilter);
- element('play').addEventListener('click',()=>setPlaying(!playing));element('restart').addEventListener('click',()=>{cycle=0;setPlaying(true);});
- element('progress').addEventListener('input',event=>{cycle=Math.max(0,Math.min(1,+event.target.value));setPlaying(false);});
  element('zoom-in').addEventListener('click',()=>renderer?.zoomBy(.86));element('zoom-out').addEventListener('click',()=>renderer?.zoomBy(1.16));element('reset').addEventListener('click',()=>renderer?.resetView());
  element('explore-lower').addEventListener('click',()=>window.orbitalApp?.exploreState({...currentChannel.lower}));element('explore-upper').addEventListener('click',()=>window.orbitalApp?.exploreState({...currentChannel.upper}));
  document.querySelectorAll('[data-open-spectrum]').forEach(button=>button.addEventListener('click',()=>{root.scrollIntoView({behavior:'smooth',block:'start'});element('title').focus({preventScroll:true});}));
@@ -302,6 +314,6 @@ export function initSpectrum(){
    if(active)spectrumNav?.setAttribute('aria-current','location');else spectrumNav?.removeAttribute('aria-current');
   },{rootMargin:'-15% 0px -35% 0px',threshold:0});navigationObserver.observe(root);
  }else{visible=true;ensureRenderer();startFrame();}
- const api={get view(){return {...view};},setView,get state(){return {view:{...view},series,lower:currentLine.lowerN,upper:currentLine.upperN,cycle,population:Math.sin(Math.PI*cycle)**2,playing,visible,wavelength:currentLine.wavelength,energy:currentLine.gap,line:{...currentLine},subshell:{...currentSubshell},channel:{...currentChannel,lower:{...currentChannel.lower},upper:{...currentChannel.upper}},qFilter,stateFilter:stateFilter?{...stateFilter}:null,availableChannelIds:visibleChannels().map(channel=>channel.id)};},selectLine,selectSubshell,selectChannel,setSeries,setPolarization,setPlaying,exploreState,clearStateFilter,nextPair:()=>movePair(1),previousPair:()=>movePair(-1),get renderer(){return renderer;}};
+ const api={get view(){return {...view};},setView,get state(){return {view:{...view},transitionRate,series,lower:currentLine.lowerN,upper:currentLine.upperN,cycle,population:Math.sin(Math.PI*cycle)**2,playing,visible,wavelength:currentLine.wavelength,energy:currentLine.gap,line:{...currentLine},subshell:{...currentSubshell},channel:{...currentChannel,lower:{...currentChannel.lower},upper:{...currentChannel.upper}},qFilter,stateFilter:stateFilter?{...stateFilter}:null,availableChannelIds:visibleChannels().map(channel=>channel.id)};},setTransitionRate,selectLine,selectSubshell,selectChannel,setSeries,setPolarization,setPlaying,exploreState,clearStateFilter,nextPair:()=>movePair(1),previousPair:()=>movePair(-1),get renderer(){return renderer;}};
  window.spectrumApp=api;return api;
 }
