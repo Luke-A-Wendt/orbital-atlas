@@ -171,3 +171,7 @@
  .spectrum-states{align-self:stretch}
  .spectrum-stage:fullscreen::before{display:none}
 }
+
+#spectrum-sign-control[hidden]{display:none}
+
+.spectrum-magnetic-controls{display:flex;align-items:center;flex-wrap:wrap;gap:16px 32px;margin-bottom:24px}.spectrum-magnetic-controls .spectrum-q-selector{margin:0;flex:0 0 auto}.spectrum-magnetic-controls .spectrum-menu-label{white-space:nowrap}

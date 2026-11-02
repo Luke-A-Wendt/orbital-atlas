@@ -52,8 +52,10 @@
     <div class="spectrum-levels"><svg id="spectrum-levels" viewBox="0 0 330 142" role="img" aria-label="Hydrogen energy levels, with the selected transition highlighted"></svg></div>
    </div>
    <div class="spectrum-pair-selection">
-    <div class="spectrum-q-selector"><span class="spectrum-menu-label">REFERENCE POLARIZATION</span><div class="spectrum-q-filters" role="group" aria-label="Polarization q"><button data-spectrum-q="-1" aria-pressed="false"><span data-math="spectrum_q_-1">q = −1</span></button><button data-spectrum-q="0" class="selected" aria-pressed="true"><span data-math="spectrum_q_0">q = 0</span></button><button data-spectrum-q="1" aria-pressed="false"><span data-math="spectrum_q_1">q = +1</span></button></div></div>
-    <div class="spectrum-q-selector"><span class="spectrum-menu-label">MAGNETIC SIGN</span><div class="spectrum-q-filters" role="group" aria-label="Magnetic sign"><button data-spectrum-sigma="-1" aria-pressed="false"><span data-math="sigma_negative">σ = −1</span></button><button data-spectrum-sigma="1" class="selected" aria-pressed="true"><span data-math="sigma_positive">σ = +1</span></button></div></div>
+    <div class="spectrum-magnetic-controls">
+    <div class="spectrum-q-selector"><span class="spectrum-menu-label">MAGNETIC CHANGE</span><div class="spectrum-q-filters" role="group" aria-label="Magnitude of the change in magnetic quantum number"><button data-spectrum-q="0" class="selected" aria-pressed="true"><span data-math="absolute_q_0">|Δm| = 0</span></button><button data-spectrum-q="1" aria-pressed="false"><span data-math="absolute_q_1">|Δm| = 1</span></button></div></div>
+    <div class="spectrum-q-selector" id="spectrum-sign-control"><span class="spectrum-menu-label">MAGNETIC SIGN</span><div class="spectrum-q-filters" role="group" aria-label="Magnetic sign"><button data-spectrum-sigma="-1" aria-label="Negative magnetic sign" aria-pressed="false"><span aria-hidden="true">−</span></button><button data-spectrum-sigma="1" aria-label="Positive magnetic sign" class="selected" aria-pressed="true"><span aria-hidden="true">+</span></button></div></div>
+    </div>
     <div class="spectrum-step-heading"><span class="spectrum-step">02</span><h3>Choose an orbital pair</h3><span class="spectrum-step-note" id="spectrum-shape-note">Same photon energy · different shapes</span></div>
     <div class="spectrum-shapes" id="spectrum-shapes" role="group" aria-label="Dipole-allowed orbital pairs"></div>
 

@@ -157,24 +157,25 @@ export function initSpectrum(){
  const signedChannel=c=>allChannels(currentLine).find(a=>a.subshellKey===c.subshellKey&&a.lower.m===c.lower.m*sigma&&a.upper.m===c.upper.m*sigma);
  function drawShapes(){
   const container=element('shapes');container.replaceChildren();
-  const channels=allChannels(currentLine).filter(c=>c.q===currentChannel.q*sigma&&(c.q!==0||c.lower.m>=0));
+  const channels=(channelsByLine.get(currentLine.lowerN+'-'+currentLine.upperN)||[]).filter(c=>c.q===Math.abs(currentChannel.q)&&(c.q!==0||c.lower.m>=0)&&signedChannel(c));
   const seen=new Set();
-  element('shape-note').textContent=currentChannel.q===0?'Distinct density pairs · magnetic signs set by σ':'All allowed pairs · reversing σ also reverses q';
+  element('shape-note').textContent=currentChannel.q===0?'Shared magnetic magnitude · sign applies to both states':'Actual magnetic numbers · sign reverses both states';
   for(const channel of channels){
    const actual=signedChannel(channel);const key=channel.id;if(seen.has(key))continue;seen.add(key);
    const button=document.createElement('button');button.type='button';button.className='spectrum-shape'+(actual.id===currentChannel.id?' selected':'');button.dataset.spectrumChannel=channel.id;button.setAttribute('aria-pressed',String(actual.id===currentChannel.id));
-   button.setAttribute('aria-label',`${orbitalName(channel.lower)}, m ${channel.lower.m}, and ${orbitalName(channel.upper)}, m ${channel.upper.m}`);
+   button.setAttribute('aria-label',`${orbitalName(actual.lower)}, m ${actual.lower.m}, and ${orbitalName(actual.upper)}, m ${actual.upper.m}.`);
    const pictures=document.createElement('span');pictures.className='spectrum-shape-pictures';pictures.setAttribute('aria-hidden','true');
    for(const [i,state] of [channel.lower,channel.upper].entries()){if(i){const arrow=document.createElement('span');arrow.textContent='↔';pictures.append(arrow);}const img=document.createElement('img');img.width=62;img.height=62;img.alt='';img.src=window.orbitalApp?.thumbnail(state.n,state.l,state.m)||'';pictures.append(img);}
    const name=document.createElement('strong');name.textContent=orbitalName(channel.lower)+' ↔ '+orbitalName(channel.upper);
-   const magnetic=document.createElement('small');magnetic.innerHTML=channel.q===0?fragment('absolute_m_'+Math.abs(channel.lower.m),'|m| = '+Math.abs(channel.lower.m)):channelMarkup(channel);
+   const magnetic=document.createElement('small');magnetic.innerHTML=channel.q===0?fragment('absolute_m_'+Math.abs(channel.lower.m),'|m| = '+Math.abs(channel.lower.m)):channelMarkup(actual);
    button.append(pictures,name,magnetic);button.addEventListener('click',()=>{selectChannel(actual.id);Array.from(container.children).find(b=>b.dataset.spectrumChannel===channel.id)?.focus({preventScroll:true});});container.append(button);
   }
-  element('line-counts').textContent=seen.size+' allowed transitions';
+  element('line-counts').textContent=seen.size+' symmetry-grouped pairs';
  }
  function drawChannels(){
-  root.querySelectorAll('[data-spectrum-sigma]').forEach(b=>{b.classList.toggle('selected',+b.dataset.spectrumSigma===sigma);b.setAttribute('aria-pressed',String(+b.dataset.spectrumSigma===sigma));});
-  root.querySelectorAll('[data-spectrum-q]').forEach(button=>{const q=+button.dataset.spectrumQ;button.hidden=button.dataset.spectrumQ==='all';button.disabled=!allChannels(currentLine).some(c=>c.q===q);button.classList.toggle('selected',q===currentChannel.q*sigma);button.setAttribute('aria-pressed',String(q===currentChannel.q*sigma));});
+  element('sign-control').hidden=false;
+  root.querySelectorAll('[data-spectrum-sigma]').forEach(b=>{b.disabled=+b.dataset.spectrumSigma!==sigma&&!allChannels(currentLine).some(c=>c.subshellKey===currentChannel.subshellKey&&c.lower.m===-currentChannel.lower.m&&c.upper.m===-currentChannel.upper.m);b.title=b.disabled?'Clear the selected-orbital filter to reverse both magnetic signs':'';b.classList.toggle('selected',+b.dataset.spectrumSigma===sigma);b.setAttribute('aria-pressed',String(+b.dataset.spectrumSigma===sigma));});
+  root.querySelectorAll('[data-spectrum-q]').forEach(button=>{const q=+button.dataset.spectrumQ;button.hidden=button.dataset.spectrumQ==='all';button.disabled=!allChannels(currentLine).some(c=>Math.abs(c.q)===q);button.classList.toggle('selected',q===Math.abs(currentChannel.q));button.setAttribute('aria-pressed',String(q===Math.abs(currentChannel.q)));});
  }
  function updateStrength(){
   const strength=transitionStrength(currentChannel),relative=strength.relative*100;
@@ -187,7 +188,7 @@ export function initSpectrum(){
   element('lower-name').textContent=orbitalName(currentChannel.lower);element('upper-name').textContent=orbitalName(currentChannel.upper);
   element('lower-m').innerHTML=mMath(currentChannel.lower.m);element('upper-m').innerHTML=mMath(currentChannel.upper.m);
   element('pair').innerHTML=orbitalName(currentChannel.lower)+' <span>↔</span> '+orbitalName(currentChannel.upper);
-  element('stage-state').innerHTML=mMath(currentChannel.lower.m)+' <span aria-hidden="true">↔</span> '+mMath(currentChannel.upper.m)+'<br>Same spatial scale throughout the cycle.';
+  element('stage-state').innerHTML=mMath(currentChannel.lower.m)+' <span aria-hidden="true">↔</span> '+mMath(currentChannel.upper.m)+'<br>'+qMath(currentChannel.q)+'<br>Same spatial scale throughout the cycle.';
   element('lower-energy').textContent='−'+(energyScale/currentLine.lowerN**2).toFixed(3)+' eV';element('upper-energy').textContent='−'+(energyScale/currentLine.upperN**2).toFixed(3)+' eV';
   element('canvas').setAttribute('aria-label',`Three-dimensional population transfer between ${orbitalName(currentChannel.lower)}, magnetic number ${currentChannel.lower.m}, and ${orbitalName(currentChannel.upper)}, magnetic number ${currentChannel.upper.m}. Drag or use arrow keys to rotate; pinch or use plus and minus to zoom. Space pauses flow.`);
   element('explore-lower').setAttribute('aria-label',`Explore ${orbitalName(currentChannel.lower)}, magnetic number ${currentChannel.lower.m}, in the orbital atlas`);element('explore-upper').setAttribute('aria-label',`Explore ${orbitalName(currentChannel.upper)}, magnetic number ${currentChannel.upper.m}, in the orbital atlas`);
@@ -195,11 +196,12 @@ export function initSpectrum(){
  }
  function selectChannel(id){
   const channel=allChannels(currentLine).find(item=>item.id===id);if(!channel)return false;
-  currentChannel=channel;if(channel.q===0&&channel.lower.m!==0)sigma=Math.sign(channel.lower.m);currentSubshell=getSubshellPairs(currentLine.lowerN,currentLine.upperN).find(pair=>pair.key===channel.subshellKey);
+  currentChannel=channel;if(channel.q!==0)sigma=Math.sign(channel.q);if(channel.q===0&&channel.lower.m!==0)sigma=Math.sign(channel.lower.m);currentSubshell=getSubshellPairs(currentLine.lowerN,currentLine.upperN).find(pair=>pair.key===channel.subshellKey);
   qFilter=channel.q;
   applyChannel();return true;
  }
  function setSigma(value){
+
   const next=Number(value);if(![-1,1].includes(next)||next===sigma)return;
   const partner=allChannels(currentLine).find(c=>c.subshellKey===currentChannel.subshellKey&&c.lower.m===-currentChannel.lower.m&&c.upper.m===-currentChannel.upper.m);
   if(partner){sigma=next;selectChannel(partner.id);}
@@ -229,11 +231,14 @@ export function initSpectrum(){
   series=value;const line=candidates.includes(currentLine)?currentLine:candidates[0];return selectLine(line.lowerN,line.upperN);
  }
  function setPolarization(value){
-  const q=Number(value)*sigma;if(![-1,0,1].includes(q))return false;
-  const channels=allChannels(currentLine).filter(c=>c.q===q);if(!channels.length)return false;
+  const magnitude=Math.abs(Number(value));if(![0,1].includes(magnitude))return false;
+  const q=magnitude*sigma;
+  let channels=allChannels(currentLine).filter(c=>c.q===q&&(q!==0||c.lower.m*sigma>=0));
+  if(!channels.length&&stateFilter)channels=allChannels(currentLine).filter(c=>Math.abs(c.q)===magnitude);
+  if(!channels.length)return false;
   return selectChannel((channels.find(c=>c.id===currentChannel.id)||channels.find(c=>c.subshellKey===currentSubshell.key)||channels[0]).id);
  }
- function movePair(offset){const qs=[-1,0,1].filter(q=>allChannels(currentLine).some(c=>c.q===q));return setPolarization(qs[(qs.indexOf(currentChannel.q)+offset+qs.length)%qs.length]);}
+ function movePair(offset){const qs=[0,1].filter(q=>allChannels(currentLine).some(c=>Math.abs(c.q)===q));return setPolarization(qs[(qs.indexOf(Math.abs(currentChannel.q))+offset+qs.length)%qs.length]);}
  function frame(now){
   raf=0;if(!visible||document.hidden){previousTime=null;return;}
   if(playing){
