@@ -1964,7 +1964,7 @@ function initSpectrum(){
  document.querySelectorAll('[data-open-spectrum]').forEach(button=>button.addEventListener('click',()=>{root.scrollIntoView({behavior:'smooth',block:'start'});element('title').focus({preventScroll:true});}));
  document.addEventListener('visibilitychange',()=>{previousTime=null;renderer?.setVisible(visible&&!document.hidden);if(document.hidden){cancelAnimationFrame(raf);raf=0;}else startFrame();});
  if(matchMedia('(pointer: coarse)').matches)element('gesture').textContent='Drag to rotate · Pinch to zoom';
- selectLine(2,3,getChannels(2,3,1,2).find(channel=>channel.lower.m===1&&channel.upper.m===1).id);
+ selectLine(5,6,getChannels(5,6,4,3).find(channel=>channel.lower.m===1&&channel.upper.m===1).id);
  if('IntersectionObserver' in window){
   const observer=new IntersectionObserver(entries=>{
    visible=entries[0].isIntersecting;previousTime=null;
