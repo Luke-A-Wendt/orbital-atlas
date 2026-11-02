@@ -249,6 +249,11 @@ export class OrbitalRenderer {
     this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(this.canvas);
   }
   resetView(){this.camera={...INTRO_CAMERA};}
+  setVisible(visible){
+    const suspended=!visible;if(this.suspended===suspended)return;
+    this.suspended=suspended;this.lastFrame=null;this.resetPerformance(performance.now());
+    if(!suspended)this.lastDrawSignature='';
+  }
   zoomBy(factor){this.camera.distance=clamp(this.camera.distance*factor,1.25,6.5);}
   setState(partial){
     const old=this.state;this.state={...old,...partial};const s=this.state;
@@ -382,7 +387,7 @@ export class OrbitalRenderer {
   }
   frame(now){
     if(this.dead)return;this.raf=requestAnimationFrame(t=>this.frame(t));
-    if(this.contextLost||document.hidden){this.lastFrame=null;return;}
+    if(this.contextLost||document.hidden||this.suspended){this.lastFrame=null;return;}
     const elapsed=this.lastFrame===null?0:Math.max(0,now-this.lastFrame);this.lastFrame=now;
     const dt=elapsed/1000,s=this.state,gl=this.gl;
     if(s.animate)this.time+=dt*s.speed;if(s.animate&&s.autoRotate&&!this.dragging)this.camera.yaw+=dt*.14;

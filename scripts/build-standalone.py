@@ -96,7 +96,7 @@ def build(root: Path, output: Path | None = None) -> tuple[Path, int]:
     html = template.read_text(encoding="utf-8")
     styles: list[str] = []
     visited: set[Path] = set()
-    for name in ("style.css", "math-typography.css"):
+    for name in ("style.css", "spectrum.css", "math-typography.css"):
         if (assets / name).is_file():
             styles.append(read_css(assets / name, assets, visited))
     css = "\n".join(styles).replace("</style", "<\\/style")
@@ -110,13 +110,13 @@ def build(root: Path, output: Path | None = None) -> tuple[Path, int]:
         raise ValueError("Template must contain exactly one <!-- MATH_GUIDE --> marker")
     html = html.replace("<!-- MATH_GUIDE -->", guide)
 
-    renderer = (assets / "renderer.js").read_text(encoding="utf-8")
-    renderer = re.sub(r"^export\s+(?=(?:function|class|const|let|var)\b)", "", renderer, flags=re.M)
-    app = (assets / "app.js").read_text(encoding="utf-8")
-    app = re.sub(r"^import\s+\{[^}]+\}\s+from\s+['\"]\./renderer\.js(?:\?[^'\"]*)?['\"];?\s*\n", "", app, flags=re.M)
-    # Compatibility with the earlier source: the guide is now already in HTML.
-    app = re.sub(r"^fetch\(['\"]math-guide\.html(?:\?[^'\"]*)?['\"]\).*?;\s*$", "", app, flags=re.M)
-    code = renderer + "\n" + app
+    modules = []
+    for name in ("renderer.js", "transitions.js", "spectrum-renderer.js", "spectrum.js", "app.js"):
+        module = (assets / name).read_text(encoding="utf-8")
+        module = re.sub(r"^export\s+(?=(?:function|class|const|let|var)\b)", "", module, flags=re.M)
+        module = re.sub(r"^import\s+\{[^}]+\}\s+from\s+['\"]\./(?:renderer|transitions|spectrum-renderer|spectrum)\.js(?:\?[^'\"]*)?['\"];?\s*\n", "", module, flags=re.M)
+        modules.append(module)
+    code = "\n".join(modules)
     if re.search(r"^\s*(?:import|export)\b", code, re.M):
         raise ValueError("Unexpected module syntax: update the bundler rather than relying on file:// module loading")
     if re.search(r"\b(?:fetch|XMLHttpRequest|WebSocket|EventSource|importScripts)\s*\(", code):

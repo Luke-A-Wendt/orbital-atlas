@@ -1,5 +1,7 @@
 # Deploying and using Orbital Atlas
 
+This update includes a refreshed `README.md` and leaves out `LICENSE` to preserve your repository’s existing license. Copy the extracted files into your existing checkout without deleting files that are absent from the ZIP. Pull your remote changes before copying the update.
+
 The ZIP contains a ready-built, standalone website. The root `index.html` contains all runtime code, styles, mathematics, and fonts. GitHub Pages needs no npm packages, build action, API keys, backend, or external compute service.
 
 These instructions use a repository named `orbital-atlas` and a publishing branch named `main`. Replace `YOUR-USERNAME` with your GitHub username. The website can also run offline directly from the extracted HTML file; see the offline section below.
@@ -8,8 +10,8 @@ These instructions use a repository named `orbital-atlas` and a publishing branc
 
 This route needs Git and a GitHub account. If Git is not installed, use the [official Git downloads](https://git-scm.com/downloads), or choose the browser-upload alternative below.
 
-1. On GitHub, create a new **empty** repository named `orbital-atlas`. A public repository works with GitHub Free. Leave the options to add a README, license, or `.gitignore` unchecked; this export already includes its own files.
-2. Extract the ZIP into a new folder. Open a terminal in that folder. `index.html`, `README.md`, `.nojekyll`, `src`, and `scripts` should be directly inside it, not nested inside another export folder.
+1. On GitHub, create a new **empty** repository named `orbital-atlas`. A public repository works with GitHub Free. Leave the options to add a README, license, or `.gitignore` unchecked; the website files are supplied in this export. Add your own README and license separately for a fresh repository.
+2. Extract the ZIP into a new folder. Open a terminal in that folder. `index.html`, `.nojekyll`, `src`, and `scripts` should be directly inside it, not nested inside another export folder.
 3. Run:
 
 ```sh
@@ -24,7 +26,7 @@ Use your normal GitHub sign-in through Git Credential Manager or GitHub CLI when
 
 4. In the repository, open **Settings → Pages**. Under **Build and deployment**, choose **Deploy from a branch**, then **main** and **/(root)**. Click **Save**.
 5. Wait for the deployment to finish. The Pages settings page supplies the live URL, normally `https://YOUR-USERNAME.github.io/orbital-atlas/`.
-6. Replace the hosted-preview link in `README.md` with your published URL and commit that change.
+6. Add or update `README.md` with your published URL and commit that change.
 
 The repository root must contain `index.html`; uploading the ZIP itself does not deploy the site. Keep `.nojekyll` so the files are published as static assets. GitHub Pages is publicly accessible; this export contains no account credentials or private hosting configuration.
 

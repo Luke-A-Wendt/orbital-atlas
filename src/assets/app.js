@@ -1,4 +1,5 @@
 import { OrbitalRenderer, densityAt, orbitalExtent, densityPalette, phasePalette } from './renderer.js?v=7';
+import { initSpectrum } from './spectrum.js';
 
 const $ = id => document.getElementById(id);
 const mathFragments = window.OrbitalMathFragments || {};
@@ -25,7 +26,18 @@ try {
  renderer.setState(state);
 } catch(error){$('loading').hidden=true;$('scene-error').hidden=false;console.error(error);}
 // Exposed for accessible keyboard control and debugging; state changes use the same path as the UI.
-window.orbitalApp={get state(){return {...state};},get renderer(){return renderer;},setState:update};
+window.orbitalApp={get state(){return {...state};},get renderer(){return renderer;},setState:update,thumbnail,exploreState};
+
+function exploreState(target){
+ const {n,l,m}=target;
+ if(![n,l,m].every(Number.isInteger)||n<1||n>6||l<0||l>=n||Math.abs(m)>l)return false;
+ update({n,l,m,basis:'complex'});
+ renderer?.resetView();
+ if($('atlas-dialog').open)$('atlas-dialog').close();
+ $('scene').scrollIntoView({behavior:'smooth',block:'center'});
+ $('orbital-canvas').focus({preventScroll:true});
+ return true;
+}
 
 function setSelected(selector,key){document.querySelectorAll(selector).forEach(b=>{const active=b.dataset[key]===String(state[key]);b.classList.toggle('selected',active);b.setAttribute('aria-pressed',String(active));});}
 function update(partial){
@@ -138,7 +150,14 @@ function renderAtlas(){
 document.querySelectorAll('[data-family]').forEach(b=>b.addEventListener('click',()=>{atlasFamily=b.dataset.family;document.querySelectorAll('[data-family]').forEach(v=>{v.classList.toggle('selected',v===b);v.setAttribute('aria-pressed',String(v===b));});renderAtlas();}));$('atlas-shell').addEventListener('change',renderAtlas);
 function openDialog(id){const d=$(id);if(!d.open)d.showModal();document.body.style.overflow='hidden';}
 document.querySelectorAll('[data-open-atlas]').forEach(b=>b.addEventListener('click',()=>{renderAtlas();openDialog('atlas-dialog');}));
-document.querySelectorAll('[data-open-math]').forEach(b=>b.addEventListener('click',()=>openDialog('math-dialog')));
+document.querySelectorAll('[data-open-math]').forEach(b=>b.addEventListener('click',()=>{
+ openDialog('math-dialog');
+ const number=Number(b.dataset.mathSection);
+ if(Number.isInteger(number)&&number>0){
+  const target=$('math-content').querySelectorAll('details')[number-1];
+  if(target){target.open=true;target.scrollIntoView({behavior:'smooth',block:'start'});}
+ }
+}));
 document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>$(b.dataset.close).close()));
 document.querySelectorAll('dialog').forEach(d=>{d.addEventListener('close',()=>{document.body.style.overflow='';});d.addEventListener('click',e=>{if(e.target===d){const r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close();}});});
 $('current-info').addEventListener('click',e=>{e.preventDefault();openDialog('math-dialog');const target=$('math-content').querySelectorAll('details')[5];if(target){target.open=true;target.scrollIntoView({behavior:'smooth',block:'start'});}});
@@ -151,3 +170,21 @@ function drawRadial(){
  $('radial-plot').innerHTML=`<defs><linearGradient id="radial-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#83bbfa" stop-opacity=".2"/><stop offset="100%" stop-color="#83bbfa" stop-opacity="0"/></linearGradient></defs><path d="M5 53H255" stroke="#38414f" stroke-width=".5"/><polygon points="5,53 ${points} 255,53" fill="url(#radial-fill)"/><polyline points="${points}" fill="none" stroke="#a6ceff" stroke-width="1.3"/><text x="5" y="68" font-size="7" fill="#8998ad">0</text><text x="255" y="68" text-anchor="end" font-size="7" fill="#8998ad">${extent.toFixed(1)} Bohr radii</text>`;
 }
 sync();drawRadial();highlightCards();
+initSpectrum();
+$('state-transitions')?.addEventListener('click',()=>{
+ if(state.basis==='real'&&state.m!==0){
+  update({basis:'complex'});
+  toast('Showing the complex eigenstate with this magnetic quantum number.');
+ }
+ window.spectrumApp?.exploreState({n:state.n,l:state.l,m:state.m});
+});
+$('atlas-spectrum')?.addEventListener('click',()=>{
+ $('atlas-dialog').close();
+ $('spectrum').scrollIntoView({behavior:'smooth',block:'start'});
+ $('spectrum-title').focus({preventScroll:true});
+});
+// Only spend GPU time on the explorer while its canvas is on screen.
+if(renderer&&!renderer.error&&typeof IntersectionObserver!=='undefined'){
+ const explorerVisibility=new IntersectionObserver(entries=>renderer.setVisible(entries[0].isIntersecting),{threshold:0});
+ explorerVisibility.observe($('orbital-canvas'));
+}

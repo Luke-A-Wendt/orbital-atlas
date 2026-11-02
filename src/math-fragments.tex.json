@@ -104,5 +104,20 @@
   "atlas_5_4": "\\ell=5,\\quad |m|=4",
   "atlas_5_5": "\\ell=5,\\quad |m|=5",
   "phase_low": "-\\pi",
-  "phase_high": "+\\pi"
+  "phase_high": "+\\pi",
+  "spectrum_relation": "E_\\gamma=h\\nu=\\frac{hc}{\\lambda}=E_{\\mathrm{upper}}-E_{\\mathrm{lower}}",
+  "spectrum_mix": "\\bar\\rho=(1-P)|\\psi_{\\mathrm{lower}}|^2+P|\\psi_{\\mathrm{upper}}|^2",
+  "spectrum_m0": "m=0",
+  "spectrum_q_-1": "q=-1",
+  "spectrum_q_0": "q=0",
+  "spectrum_q_1": "q=+1",
+  "spectrum_pol_-1": "\\sigma^-",
+  "spectrum_pol_0": "\\pi",
+  "spectrum_pol_1": "\\sigma^+",
+  "spectrum_strength_unit": "a_0^2",
+  "spectrum_delta_m": "\\Delta m",
+  "spectrum_delta_n": "\\Delta n",
+  "spectrum_delta_l": "\\Delta\\ell",
+  "spectrum_strength": "\\left|\\langle u|r_q|l\\rangle\\right|^2",
+  "spectrum_selection": "\\Delta\\ell=\\pm1,\\quad\\Delta m=0,\\pm1"
 }
