@@ -68,9 +68,7 @@ function sync(){
  else if(n===6&&l===3&&Math.abs(m)===1)description='Nested shells and flowing rings.<br>Watch probability circle the axis.';
  else if(n===3&&l===2&&Math.abs(m)===1)description='A pair of luminous rings.<br>A current around the nucleus.';
  else description=m?'A wave wrapped around the axis.<br>Probability flows through a steady cloud.':'A standing wave along the axis.<br>A cloud with zero probability current.';
- $('state-description').innerHTML=description;
  $('energy').textContent=`−${(13.605693/(n*n)).toFixed(3)} eV`;$('radial-nodes').textContent=radial;
- $('nodes-caption').textContent=radial?`${radial} spherical ${radial===1?'surface':'surfaces'} with zero probability.`:'No spherical gaps in probability.';
  setSelected('[data-basis]','basis');setSelected('[data-mode]','mode');setSelected('[data-cut]','cut');setSelected('[data-render-style]','renderStyle');
  $('render-note').textContent=state.renderStyle==='sculpted'?'Luminous blue spheres with soft highlights and bright, dense cores.':'A luminous volume with moving current tracers.';
  $('cut-settings').hidden=state.cut==='none';$('cut-offset-wrap').hidden=state.cut==='wedge';
@@ -161,7 +159,7 @@ function drawRadial(){
  const {n,l,m}=state,extent=orbitalExtent(n),q=Math.abs(m),theta=.731,phi=.37,values=[];
  let peak=0;for(let i=0;i<=180;i++){const r=i/180*extent,v=r*r*densityAt(r*Math.sin(theta)*Math.cos(phi),r*Math.sin(theta)*Math.sin(phi),r*Math.cos(theta),n,l,q);values.push(v);peak=Math.max(peak,v);}
  const points=values.map((v,i)=>`${(i/180*250+5).toFixed(2)},${(53-v/peak*47).toFixed(2)}`).join(' ');
- $('radial-plot').innerHTML=`<defs><linearGradient id="radial-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#83bbfa" stop-opacity=".2"/><stop offset="100%" stop-color="#83bbfa" stop-opacity="0"/></linearGradient></defs><path d="M5 53H255" stroke="#38414f" stroke-width=".5"/><polygon points="5,53 ${points} 255,53" fill="url(#radial-fill)"/><polyline points="${points}" fill="none" stroke="#a6ceff" stroke-width="1.3"/><text x="5" y="68" font-size="7" fill="#8998ad">0</text><text x="255" y="68" text-anchor="end" font-size="7" fill="#8998ad">${extent.toFixed(1)} Bohr radii</text>`;
+ $('radial-plot').innerHTML=`<defs><linearGradient id="radial-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#83bbfa" stop-opacity=".2"/><stop offset="100%" stop-color="#83bbfa" stop-opacity="0"/></linearGradient></defs><path d="M5 53H255" stroke="#38414f" stroke-width=".5"/><polygon points="5,53 ${points} 255,53" fill="url(#radial-fill)"/><polyline points="${points}" fill="none" stroke="#a6ceff" stroke-width="2.5" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/><text x="5" y="74" font-size="17" fill="#a7bbd3">0</text><text x="255" y="68" text-anchor="end" font-size="19" font-family="KaTeX_Math,serif" font-style="italic" fill="#a7bbd3">r</text>`;
 }
 sync();drawRadial();renderAtlas();
 initSpectrum();

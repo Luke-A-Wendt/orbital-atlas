@@ -20,3 +20,35 @@
 footer{flex-wrap:wrap}footer .author-credits{flex-basis:100%;display:flex;flex-direction:column;gap:8px;font-size:12px;line-height:1.6;color:#9ba8b8;letter-spacing:0}footer .author-credits a{margin-left:5px;color:#badbff;text-underline-offset:3px}footer .author-credits a:hover,footer .author-credits a:focus-visible{color:#fff;text-decoration:underline}
 
 .atlas-inline{scroll-margin-top:24px;border:1px solid #303842;border-radius:12px;padding:28px;background:#101317}.atlas-inline .discovery-heading{margin-bottom:20px}.atlas-inline .atlas-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}.atlas-inline .atlas-card{width:100%;min-width:0}.atlas-inline .atlas-footer{flex-wrap:wrap;gap:12px}@media(max-width:540px){.atlas-inline{padding:18px 14px}.atlas-inline .atlas-row{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}.atlas-inline .atlas-filters{flex-wrap:wrap;gap:14px}.atlas-inline .family-filters{flex-wrap:wrap}}
+
+/* Selected-state data stays beside the orbital it describes. */
+.scene{container-type:inline-size}
+.scene-metrics{position:absolute;top:205px;left:30px;width:225px;display:grid;grid-template-columns:1fr 1fr;gap:18px;pointer-events:none;z-index:1}
+.scene-metrics .insight{padding:0;border:0;min-width:0}
+.scene-metrics .eyebrow,.scene-radial .eyebrow{font-size:7px;letter-spacing:1.2px}
+.scene-metrics strong{font-size:20px;letter-spacing:-.3px;margin-top:8px}
+.scene-metrics p{font-size:8px;line-height:1.5;margin-top:6px}
+.scene-radial{position:absolute;left:30px;bottom:105px;width:235px;max-width:calc(100% - 100px);pointer-events:none;z-index:1}
+.scene-radial p{font-size:8px;color:#8b99aa;line-height:1.5;margin:6px 0 8px}
+.scene-radial svg{display:block;width:100%;height:auto;overflow:visible}
+@container(max-width:600px){
+ .scene-metrics{left:22px;top:190px;width:230px;gap:22px}
+ .scene-radial{left:22px;bottom:100px;width:210px}
+ .scene canvas{top:275px;bottom:205px;height:calc(100% - 480px)}
+}
+@media(max-width:780px){.scene{height:85svh;min-height:740px;max-height:none}}
+
+.scene-metrics{top:150px}.scene-radial{width:150px}.scene-radial svg{margin-top:10px}@container(max-width:600px){.scene-metrics{top:145px}.scene-radial{width:150px}.scene canvas{top:230px;height:calc(100% - 435px)}}
+
+.scene .scene-metrics{top:130px;grid-template-columns:1fr;gap:13px;width:150px}
+.scene .scene-metrics strong{margin-top:5px}
+.scene .scene-bottom .gesture-hint{position:absolute;left:50%;bottom:0;transform:translateX(-50%);white-space:nowrap;font-size:8px}
+@container(max-width:420px){.scene .scene-bottom .gesture-hint{bottom:55px}}
+
+.scene{--readout-width:117px;--readout-left:30px}
+.scene .density-key,.scene .scene-radial{width:var(--readout-width);flex-shrink:0}
+.scene .scene-radial{left:var(--readout-left);bottom:78px}
+.scene .scene-bottom{left:var(--readout-left)}
+@media(max-width:1180px){.scene{--readout-left:24px}}
+@media(max-width:540px){.scene{--readout-width:110px}}
+@media(max-width:420px){.scene{--readout-left:20px}}
