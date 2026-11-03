@@ -1,7 +1,7 @@
 # [Orbital Atlas](https://Luke-A-Wendt.github.io/orbital-atlas/)
 
 
-<img width="1291" height="818" alt="image" src="https://github.com/user-attachments/assets/955a49aa-f332-4e85-8302-4332124b279a" />
+<img width="1291" height="818" alt="image" src="https://github.com/user-attachments/assets/4028b812-505e-4d1c-8483-e99b89546c8d" />
 
 An interactive exploration of hydrogen orbitals and spectral transitions. Rotate luminous probability clouds, reveal their interiors, and explore the mathematics behind their shapes and motion.
 
