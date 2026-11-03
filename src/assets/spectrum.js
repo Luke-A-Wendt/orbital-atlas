@@ -157,7 +157,7 @@ export function initSpectrum(){
  const signedChannel=c=>allChannels(currentLine).find(a=>a.subshellKey===c.subshellKey&&a.lower.m===c.lower.m*sigma&&a.upper.m===c.upper.m*sigma);
  function drawShapes(){
   const container=element('shapes');container.replaceChildren();
-  const channels=(channelsByLine.get(currentLine.lowerN+'-'+currentLine.upperN)||[]).filter(c=>c.q===Math.abs(currentChannel.q)&&(c.q!==0||c.lower.m>=0)&&signedChannel(c));
+  const channels=(channelsByLine.get(currentLine.lowerN+'-'+currentLine.upperN)||[]).filter(c=>c.q===Math.abs(currentChannel.q)&&(c.q!==0||c.lower.m>=0)&&signedChannel(c)).sort((a,b)=>transitionStrength(a).strength-transitionStrength(b).strength);
   const seen=new Set();
   element('shape-note').textContent=currentChannel.q===0?'Shared magnetic magnitude · sign applies to both states':'Actual magnetic numbers · sign reverses both states';
   for(const channel of channels){
@@ -185,7 +185,7 @@ export function initSpectrum(){
  function updateStrength(){
   const strength=transitionStrength(currentChannel),relative=strength.relative*100;
   element('strength-value').textContent=strength.strength.toPrecision(4)+' ';
-  element('strength-relative').textContent=relative.toFixed(2)+'% strongest';
+  element('strength-relative').textContent=Number(relative.toPrecision(2)).toString()+'% strength';
  }
  function applyChannel(){
   cycle=0;previousTime=null;
