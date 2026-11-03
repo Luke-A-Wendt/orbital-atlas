@@ -1984,7 +1984,7 @@ function initSpectrum(){
     const magnetic=document.createElement('small');magnetic.innerHTML=channel.q===0?fragment('absolute_m_'+Math.abs(state.m),'|m| = '+Math.abs(state.m)):mMath(state.m);
     endpoint.append(img,name,magnetic);layout.append(endpoint);
    }
-   button.append(layout);button.addEventListener('click',()=>{selectChannel(actual.id);Array.from(container.children).find(b=>b.dataset.spectrumChannel===channel.id)?.focus({preventScroll:true});});container.append(button);
+   button.append(layout);button.addEventListener('click',()=>{selectChannel(actual.id);Array.from(container.children).find(b=>b.dataset.spectrumChannel===channel.id)?.focus({preventScroll:true});element('stage').scrollIntoView({behavior:'smooth',block:'center'});});container.append(button);
   }
   element('line-counts').textContent=seen.size+' symmetry-grouped pairs';
  }
