@@ -52,3 +52,13 @@ footer{flex-wrap:wrap}footer .author-credits{flex-basis:100%;display:flex;flex-d
 @media(max-width:1180px){.scene{--readout-left:24px}}
 @media(max-width:540px){.scene{--readout-width:110px}}
 @media(max-width:420px){.scene{--readout-left:20px}}
+
+.scene .state-title{align-items:baseline;gap:16px}
+.scene .quantum-badge{border:0;border-radius:0;padding:0;background:none;box-shadow:none;font-family:inherit;font-size:16px;line-height:1.4;color:#a9ccef;letter-spacing:0;white-space:nowrap}
+.scene .quantum-badge .katex{font-size:1em}
+@media(max-width:540px){.scene .quantum-badge{font-size:14px}.scene .state-title{gap:13px}}
+
+.scene .state-title{flex-direction:column;align-items:flex-start;gap:3px}
+.scene .quantum-badge{margin-left:2px}
+.scene .scene-metrics{top:170px}
+@container(max-width:600px){.scene canvas{top:265px;height:calc(100% - 470px)}}

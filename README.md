@@ -1,21 +1,14 @@
 # [Orbital Atlas](https://Luke-A-Wendt.github.io/orbital-atlas/)
 
-
-<img width="1291" height="818" alt="image" src="https://github.com/user-attachments/assets/4028b812-505e-4d1c-8483-e99b89546c8d" />
-
 An interactive exploration of hydrogen orbitals and spectral transitions. Rotate luminous probability clouds, reveal their interiors, and explore the mathematics behind their shapes and motion.
 
 ## Orbital explorer
-
-<img width="1555" height="2051" alt="image" src="https://github.com/user-attachments/assets/64df19e2-5f36-47fb-903f-442e987b4ff8" />
 
 The full atlas appears directly on the page, with shell and orbital-family filters. Explore all 91 spatial eigenstates through principal quantum number 6, arranged into s, p, d, f, g, and h families. Complex and real orbital views reveal different symmetries, while probability-current tracers show circulation within stationary states.
 
 Cloud and sculpted-particle modes share a blue density palette and a seamless rainbow phase palette. Half, wedge, and slice views expose radial shells and angular nodes. Mouse, touch, and keyboard controls support rotation and zoom, with adaptive rendering quality from Efficient to Ultra.
 
 ## Hydrogen spectrum
-
-<img width="1611" height="470" alt="image" src="https://github.com/user-attachments/assets/bb992059-c470-4c11-a528-fcbf4557d2e6" />
 
 The spectrum connects 15 spectral lines to 55 allowed orbital pairs and 465 electric-dipole magnetic-state pairs. Select a wavelength directly on the spectrum, filter by the magnitude of the change in magnetic quantum number, and explore every compatible state pair and its relative dipole strength. Each reversible pair appears once. For zero change in magnetic number, sign-reversed pairs share one card labeled by the magnitude of m. A magnetic-sign selector reverses both magnetic numbers and circulation while preserving the table layout. For a magnetic-number change of one, card labels display the actual signed states.
 
