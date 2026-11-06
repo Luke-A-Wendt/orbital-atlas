@@ -1,0 +1,235 @@
+/* Square viewing surfaces use all space left after the compact controls. */
+.workspace,.spectrum-panel>.spectrum-view{
+ display:grid;grid-template-columns:minmax(0,1fr) clamp(260px,23vw,340px);align-items:start;gap:0
+}
+.workspace>.scene,.spectrum-view>.spectrum-stage{
+ grid-column:1;grid-row:1;position:relative;align-self:start;width:100%;height:auto;
+ min-height:0;max-height:none;aspect-ratio:1;overflow:hidden;background:#030507
+}
+.workspace>.scene{container-name:orbital-viewer;container-type:inline-size}
+.spectrum-view>.spectrum-stage{container-name:transition-viewer;container-type:inline-size}
+.spectrum-view>.spectrum-stage::before{display:none}
+#scene>#orbital-canvas,#spectrum-stage>#spectrum-canvas{
+ position:absolute;inset:0;width:100%;height:100%;max-width:none;max-height:none
+}
+.workspace>.controls,.spectrum-view>.spectrum-controls{
+ grid-column:2;grid-row:1;align-self:stretch;min-width:0;padding:0;display:flex;flex-direction:column;
+ border:0;border-left:1px solid #2b3540;background:#121619;container:viewer-controls / inline-size
+}
+.spectrum-view>.spectrum-controls{background:#10161d}
+.workspace .controls .control-section,.spectrum-controls .spectrum-view-control-group,
+.spectrum-controls .spectrum-view-control-group:first-child,.spectrum-controls .spectrum-view-control-group:last-child{
+ grid-column:auto;grid-row:auto;padding:16px 18px;margin:0;min-width:0;border:0;border-bottom:1px solid var(--line)
+}
+.workspace .controls .quantum-links{gap:6px 10px;margin:0 0 12px}
+.workspace .controls .quantum-help{font-size:9px;line-height:1.4;min-height:26px;margin:0;display:flex;align-items:center}
+.workspace .controls .quantum-inputs{gap:8px}
+.workspace .controls .quantum-inputs label>span{margin-bottom:6px;align-items:baseline}
+.workspace .controls .quantum-inputs .quantum-symbol{font-size:25px}
+.workspace .controls .quantum-inputs .quantum-description{font-size:9px}
+.workspace .controls .quantum-inputs select{font-size:16px;padding:8px;min-height:38px}
+.workspace .controls .basis-switch{margin-top:12px}
+.workspace .controls .segmented button,.spectrum-controls .segmented button{min-height:34px;padding:5px;font-size:11px}
+.workspace .controls .settings-heading,.spectrum-controls .settings-heading{margin:0 0 9px;min-height:28px;gap:7px}
+.workspace .controls .settings-heading>.section-label,.spectrum-controls .settings-heading>h3{
+ margin:0;font-size:9px;letter-spacing:1.3px;font-weight:550;line-height:1.5;text-transform:uppercase
+}
+.workspace .controls .settings-gear,.spectrum-controls .settings-gear{width:28px;height:28px;padding:5px;flex-shrink:0}
+.workspace .controls .settings-gear svg,.spectrum-controls .settings-gear svg{width:17px;height:17px}
+.appearance-choices{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+.workspace .controls .appearance-choices>.segmented,.spectrum-controls .appearance-choices>.segmented{margin:0}
+.workspace .controls .cut-more-options,.spectrum-controls .cut-more-options{max-width:none;margin:0}
+.workspace .controls .cut-more-options[open],.spectrum-controls .cut-more-options[open]{margin-top:12px}
+.workspace .controls .cut-more-content,.spectrum-controls .cut-more-content{padding-top:5px}
+.workspace .controls .slider-label,.spectrum-controls .slider-label{font-size:11px;margin:11px 0 4px}
+.workspace .controls .slider-label output,.spectrum-controls .slider-label output{font-size:11px;font-variant-numeric:tabular-nums}
+.workspace .controls .toggle-line,.spectrum-controls .toggle-line{font-size:11px;min-height:30px;margin-top:8px}
+.workspace .controls .tracer-limit-note,.spectrum-controls .tracer-limit-note{font-size:9px;line-height:1.5;margin:3px 0 0}
+.workspace .controls input[type=range],.spectrum-controls input[type=range]{
+ width:100%;height:26px;min-width:0;margin:0;display:block;
+ background:linear-gradient(#394149,#394149) center/100% 3px no-repeat
+}
+/* Both quick strips share a row when the controls themselves are wide enough. */
+.orbital-quick-controls,.spectrum-quick-controls{display:grid;grid-template-columns:minmax(0,1fr);min-width:0}
+.workspace .controls .cut-options,.spectrum-controls .cut-options{gap:6px;max-width:none}
+.workspace .controls .cut-options button,.spectrum-controls .cut-options button{min-width:0;min-height:56px;padding:6px 2px}
+.workspace .controls .cut-options svg,.spectrum-controls .cut-options svg{width:25px;height:25px;margin-bottom:3px}
+.workspace .controls .cut-options span,.spectrum-controls .cut-options span{font-size:10px}
+.flow-speed-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:22px;margin:0 0 3px}
+.workspace .controls .flow-speed-heading label,.spectrum-controls .flow-speed-heading label{
+ margin:0;color:#9caab8;font-size:9px;font-weight:550;letter-spacing:1.1px
+}
+.flow-speed-heading output{font-size:14px;color:#c8e3ff;font-variant-numeric:tabular-nums;white-space:nowrap}
+.speed-ticks{display:flex;align-items:center;justify-content:space-between;color:#8196ad;font-size:9px;line-height:1.5;pointer-events:none;margin:1px 0 0;padding:0 2px}
+.speed-ticks>span{width:20px;text-align:center}.speed-ticks>span:first-child{text-align:left}.speed-ticks>span:last-child{text-align:right}
+.spectrum-controls .spectrum-view-controls{display:block;padding:0;min-width:0}
+.spectrum-controls .spectrum-view-math{font-size:9px;line-height:1.5;margin:0;padding:12px 18px;display:block;text-align:left;min-height:36px}
+/* Transition timing and basis remain side by side. */
+.spectrum-controls>.spectrum-states{
+ display:grid;grid-template-columns:minmax(0,1fr) 112px;align-items:start;gap:14px;
+ padding:16px 18px;margin:0;border:0;border-bottom:1px solid #293848;background:none
+}
+.spectrum-controls .spectrum-states>.spectrum-rate-control{
+ display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:7px;row-gap:3px;
+ grid-column:auto;grid-row:auto;width:100%;max-width:none;margin:0;padding:0;border:0;align-self:start
+}
+.spectrum-controls .spectrum-rate-control>label{font-size:8px;letter-spacing:.6px;line-height:1.5;white-space:nowrap}
+.spectrum-controls .spectrum-rate-control>.spectrum-rate-buttons{min-height:0;margin:0}
+.spectrum-controls .spectrum-rate-buttons output{font-size:14px}
+.spectrum-controls .spectrum-rate-control>input{height:26px}
+.spectrum-controls .spectrum-rate-control>p{font-size:9px;line-height:1.4;margin:0;white-space:nowrap}
+.spectrum-basis-control{min-width:0}
+.spectrum-basis-control>.section-label{display:block;margin:1px 0 7px;color:#8da9c9;font-size:8px;letter-spacing:.8px}
+.spectrum-basis-control>.segmented{margin:0;background:#0c1117;border-color:#2f3c4b}
+.spectrum-controls .spectrum-basis-control .segmented button{min-height:32px;padding:5px;font-size:10px}
+.spectrum-basis-control .segmented button.selected{background:#283b50;color:#e3f0ff;box-shadow:0 0 0 1px #4c6888}
+.spectrum-controls>.spectrum-view-notice{margin:0;padding:12px 18px}
+@media(max-width:860px){
+ .workspace,.spectrum-panel>.spectrum-view{grid-template-columns:minmax(0,1fr)}
+ .workspace>.controls,.spectrum-view>.spectrum-controls{grid-column:1;grid-row:2;border-left:0;border-top:1px solid #2b3540}
+ .workspace>.controls .orbital-quick-controls{order:-1}
+ .spectrum-controls>.spectrum-states{grid-template-columns:minmax(0,1fr) minmax(112px,.65fr);gap:20px}
+}
+/* Narrow desktop sidebars compress without shrinking touch controls to tiny targets. */
+@container viewer-controls (max-width:300px){
+ .workspace .controls .control-section,.spectrum-controls .spectrum-view-control-group,
+ .spectrum-controls .spectrum-view-control-group:first-child,.spectrum-controls .spectrum-view-control-group:last-child{padding:12px}
+ .workspace .controls .quantum-links{margin-bottom:8px;gap:6px}
+ .workspace .controls .quantum-help{font-size:8px;min-height:24px}
+ .workspace .controls .quantum-inputs .quantum-symbol{font-size:22px}
+ .workspace .controls .quantum-inputs select{font-size:14px;min-height:36px;padding:7px}
+ .workspace .controls .basis-switch{margin-top:9px}
+ .spectrum-controls>.spectrum-states{padding:12px;gap:12px;grid-template-columns:minmax(0,1fr) 100px}
+ .spectrum-controls .spectrum-rate-control>label{font-size:7px;letter-spacing:.3px}
+ .spectrum-controls .spectrum-view-math{padding:10px 12px}
+}
+@container viewer-controls (min-width:480px){
+ .appearance-choices{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+}
+@container viewer-controls (min-width:560px){
+ .orbital-quick-controls[data-flow-visible="true"],.spectrum-quick-controls[data-flow-visible="true"]{grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr)}
+ .workspace .controls .orbital-flow-control,.spectrum-controls .spectrum-flow-control{border-right:1px solid var(--line)}
+ .workspace .controls .quantum-inputs,.workspace .controls .basis-switch,.workspace .controls .quantum-links{max-width:540px}
+}
+@media(pointer:coarse){
+ .workspace .controls .segmented button,.spectrum-controls .segmented button{min-height:40px}
+ .workspace .controls .settings-gear,.spectrum-controls .settings-gear{width:36px;height:36px}
+ .workspace .controls input[type=range],.spectrum-controls input[type=range]{height:32px}
+ .workspace .controls input[type=range]::-webkit-slider-thumb,.spectrum-controls input[type=range]::-webkit-slider-thumb{width:18px;height:18px}
+ .workspace .controls input[type=range]::-moz-range-thumb,.spectrum-controls input[type=range]::-moz-range-thumb{width:18px;height:18px}
+}
+
+/* Keep orbital readouts at the edges of the square, with an open center. */
+.scene .scene-heading{top:24px;left:24px}
+.scene .scene-top-right{right:20px;top:20px}
+.scene .scene-top-right .tiny-label{display:none}
+.scene .scene-top-right .scene-metrics{width:150px;margin-top:3px;gap:13px}
+.scene .scene-top-right .scene-metrics strong{font-size:20px}
+.scene .scene-tools{right:20px;bottom:85px}
+.scene{--readout-left:24px;--readout-width:117px}
+.scene .scene-radial{bottom:76px}
+.scene .scene-bottom{left:24px;right:20px;bottom:20px;display:flex;align-items:flex-end;flex-wrap:nowrap}
+.scene .scene-bottom .render-status{position:absolute;left:auto;right:0;bottom:0;font-size:8px}
+.scene .scene-bottom .gesture-hint{left:50%;bottom:0;font-size:8px}
+.scene .scene-bottom .density-key{width:var(--readout-width)}
+.spectrum-stage .spectrum-stage-heading{top:24px;left:24px;max-width:calc(100% - 80px)}
+.spectrum-stage .spectrum-stage-heading .spectrum-pair{width:226px;margin-top:12px}
+.spectrum-stage .spectrum-pair .transition-pair-layout .transition-endpoint{padding:10px 8px;gap:4px}
+.spectrum-stage .spectrum-view-tools{top:20px;right:20px;bottom:auto;display:flex;flex-direction:column;gap:6px}
+.spectrum-stage .spectrum-stage-bottom{left:24px;right:20px;bottom:20px;display:flex;flex-direction:row;align-items:flex-end;gap:0}
+.spectrum-stage .spectrum-stage-bottom .spectrum-gesture{position:absolute;bottom:0;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:8px}
+.spectrum-stage .spectrum-stage-bottom .spectrum-view-legend{width:130px;margin-top:12px}
+.spectrum-stage .spectrum-stage-bottom .spectrum-render-status{display:block;margin-top:6px;font-size:8px}
+.spectrum-stage>.spectrum-stage-strength{right:20px;bottom:42px;max-width:calc(50% - 24px);width:155px}
+.spectrum-stage>.spectrum-stage-strength .spectrum-small-label{font-size:8px;margin-bottom:7px}
+.spectrum-stage>.spectrum-stage-strength>strong{font-size:23px}
+.spectrum-stage>.spectrum-stage-strength #spectrum-strength-relative{font-size:10px;margin-top:5px}
+
+@container orbital-viewer (max-width:600px){
+ .scene .scene-heading{top:18px;left:18px}
+ .scene .scene-heading .eyebrow{font-size:6px;letter-spacing:1.2px}
+ .scene .state-title>span:first-child{font-size:54px;line-height:1.05}
+ .scene .state-title{margin-top:14px;gap:4px}
+ .scene .quantum-badge{font-size:12px}
+ .scene .scene-top-right{right:16px;top:16px;max-width:140px;gap:6px}
+ .scene .scene-top-right .scene-metrics{width:140px;gap:10px;margin-top:4px}
+ .scene .scene-top-right .scene-metrics .eyebrow{font-size:6px;letter-spacing:.8px}
+ .scene .scene-top-right .scene-metrics strong{font-size:17px;line-height:1.2;margin-top:5px}
+ .scene .scene-tools{right:16px;bottom:64px;gap:5px}
+ .scene .scene-tools .icon-button,.scene .scene-top-right .icon-button{width:36px;height:36px;min-height:36px;font-size:21px}
+ .scene .scene-bottom{left:18px;right:16px;bottom:16px}
+ .scene .scene-bottom .gesture-hint{display:none}
+ .scene .scene-bottom .render-status{font-size:6px}
+ .scene .scene-radial{left:18px;bottom:66px;width:102px}
+ .scene .scene-radial .eyebrow{font-size:6px;letter-spacing:.7px}
+ .scene .scene-radial svg{margin-top:6px}
+ .scene .scene-bottom .density-key{width:102px}
+ .scene .scene-bottom .density-key>span{font-size:6px;letter-spacing:.7px}
+ .scene .scene-bottom .legend-labels{font-size:8px}
+}
+@container transition-viewer (max-width:600px){
+ .spectrum-stage .spectrum-stage-heading{top:18px;left:18px;max-width:calc(100% - 74px)}
+ .spectrum-stage .spectrum-stage-heading .eyebrow{font-size:6px;letter-spacing:1px;line-height:1.5}
+ .spectrum-stage .spectrum-stage-heading .spectrum-pair{width:198px;margin-top:10px}
+ .spectrum-stage .spectrum-pair>.transition-pair-layout{gap:7px}
+ .spectrum-stage .spectrum-pair .transition-pair-layout .transition-endpoint{padding:8px 5px;gap:3px}
+ .spectrum-stage .spectrum-pair .transition-endpoint>strong{font-size:25px}
+ .spectrum-stage .spectrum-pair .transition-endpoint>small{font-size:9px}
+ .spectrum-stage .spectrum-pair .spectrum-state-energy{font-size:8px}
+ .spectrum-stage .spectrum-view-tools{right:16px;top:16px;gap:5px}
+ .spectrum-stage .spectrum-view-tools button{width:36px;height:36px;min-width:36px;min-height:36px;font-size:21px}
+ .spectrum-stage .spectrum-stage-bottom{left:18px;right:16px;bottom:16px}
+ .spectrum-stage .spectrum-stage-bottom .spectrum-gesture{display:none}
+ .spectrum-stage .spectrum-stage-bottom .spectrum-transport-status{font-size:8px;line-height:1.5}
+ .spectrum-stage .spectrum-stage-bottom .spectrum-view-legend{width:102px;margin-top:9px}
+ .spectrum-stage .spectrum-stage-bottom .spectrum-view-legend>span{font-size:6px;letter-spacing:.5px}
+ .spectrum-stage .spectrum-stage-bottom .spectrum-legend-labels span{font-size:7px}
+ .spectrum-stage .spectrum-stage-bottom .spectrum-render-status{font-size:6px;margin-top:5px}
+ .spectrum-stage>.spectrum-stage-strength{right:16px;bottom:29px;width:130px;max-width:calc(50% - 20px)}
+ .spectrum-stage>.spectrum-stage-strength .spectrum-small-label{font-size:6px;letter-spacing:.8px;margin-bottom:5px}
+ .spectrum-stage>.spectrum-stage-strength>strong{font-size:20px}
+ .spectrum-stage>.spectrum-stage-strength .spectrum-strength-unit{font-size:12px}
+ .spectrum-stage>.spectrum-stage-strength #spectrum-strength-relative{font-size:8px;margin-top:5px}
+}
+@container transition-viewer (max-width:360px){
+ .spectrum-stage .spectrum-stage-heading .spectrum-pair{width:176px}
+ .spectrum-stage .spectrum-pair .transition-endpoint>strong{font-size:23px}
+}
+
+/* Fullscreen may use the entire display while ordinary viewers stay square. */
+#scene:fullscreen,#spectrum-stage:fullscreen{width:100vw;height:100dvh;min-height:0;max-height:none;aspect-ratio:auto}
+#scene:fullscreen>#orbital-canvas,#spectrum-stage:fullscreen>#spectrum-canvas{inset:0;width:100%;height:100%}
+
+/* A generous drag target retains a visually small wavelength marker. */
+.spectrum-track .spectrum-line.selected::after{display:none}
+.spectrum-selection-handle{
+ position:absolute;z-index:5;bottom:-22px;width:44px;height:44px;min-width:44px;min-height:44px;
+ padding:0;transform:translateX(-50%);border:0;background:transparent;cursor:grab;touch-action:none;user-select:none
+}
+.spectrum-selection-handle::before{
+ content:"";position:absolute;left:17px;top:17px;width:10px;height:10px;border-radius:50%;
+ background:#c8e7ff;border:1px solid #fff;box-shadow:0 0 0 4px #9acaff18,0 0 12px #99caff45
+}
+.spectrum-selection-handle:hover::before,.spectrum-selection-handle:focus-visible::before{box-shadow:0 0 0 6px #9acaff28,0 0 16px #99caff65}
+.spectrum-selection-handle:active,.spectrum-track.is-dragging .spectrum-selection-handle,.spectrum-track[data-dragging="true"] .spectrum-selection-handle{cursor:grabbing}
+#spectrum-drag-readout{
+ position:absolute;z-index:6;bottom:20px;transform:translateX(-50%);padding:7px 10px;
+ background:#182b3deF;border:1px solid #6385a5;border-radius:5px;pointer-events:none;
+ color:#e1f0ff;font-size:10px;line-height:1.5;white-space:nowrap;box-shadow:0 4px 12px #0007
+}
+#spectrum-drag-readout[hidden]{display:none}
+.spectrum-drag-hint{color:#8096ad;font-size:10px;line-height:1.6;margin:16px 12px 0}
+@media(max-width:540px){.spectrum-drag-hint{margin:14px 8px 0;font-size:9px}}
+
+/* Basis and its flow control form one consistent group in both viewers. */
+.spectrum-controls>.spectrum-states{grid-template-columns:minmax(0,1fr);gap:16px}
+.spectrum-controls .spectrum-basis-control>.section-label{display:none}
+.spectrum-controls .spectrum-basis-control .segmented button{min-height:34px;font-size:11px}
+.workspace .controls .quantum-section>.orbital-flow-control,
+.spectrum-controls .spectrum-basis-control>.spectrum-flow-control{padding:14px 0 0;margin:0;border:0}
+.orbital-quick-controls,.spectrum-quick-controls{grid-template-columns:minmax(0,1fr)}
+@media(pointer:coarse){.spectrum-controls .spectrum-basis-control .segmented button{min-height:40px}}
+
+/* Color is a secondary Appearance setting; style keeps the full row. */
+.appearance-choices{grid-template-columns:minmax(0,1fr)}
+.appearance-more-options .cut-more-content>.segmented{margin:6px 0 12px}

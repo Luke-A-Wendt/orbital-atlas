@@ -16,9 +16,18 @@ export function initSpectrum(){
  let transitionRate=1,sigma=1;
  let series=0,cycle=0,playing=true,visible=false,previousTime=null,raf=0,renderer=null;
  let currentLine=null,currentSubshell=null,currentChannel=null,stateFilter=null,qFilter='all',lastUiTime=0,engineFailed=false;
- const view={basis:'complex',mode:'density',renderStyle:'cloud',cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:.65,speed:.5,animate:true,autoRotate:false,quality:'auto',axes:false};
- const viewIntensity={cloud:1,sculpted:1.35};
- let lastTracerAmount=.65;
+ const view={basis:'real',mode:'density',renderStyle:'cloud',cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:0,speed:.5,animate:true,autoRotate:false,axes:false};
+ // Basis and color mode are shared; Cloud and Granular retain their other presets.
+ const modeSettingKeys=['cut','cutAngle','cutOffset','density','particleAmount','speed','autoRotate','axes'];
+ const defaultModeSettings={cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:0,speed:.5,animate:true,autoRotate:false,axes:false};
+ const modeSettings={cloud:{...defaultModeSettings},granular:{...defaultModeSettings,density:2,particleAmount:1,speed:2}};
+ const lastPositiveTracers={cloud:.025,granular:1};
+ const flowSpeeds=[.25,.5,1,2,4],flowSpeedLabels=['¼×','½×','1×','2×','4×'];
+ const nearestFlowSpeed=value=>flowSpeeds.reduce((best,speed)=>Math.abs(speed-value)<Math.abs(best-value)?speed:best,flowSpeeds[0]);
+ const basisStyles={real:'cloud',complex:'granular'};
+ const initializedBases=new Set([view.basis]);
+ let cloudBasis=view.basis;
+ let lastPerformance=null;
  const viewGradient=palette=>'linear-gradient(90deg,'+Array.from({length:33},(_,i)=>'rgb('+palette(i/32).map(v=>Math.round(v*255)).join(',')+') '+i/32*100+'%').join(',')+')';
  const viewDensityGradient=viewGradient(densityPalette),viewPhaseGradient=viewGradient(phasePalette);
  const spectrumNav=document.querySelector('[data-open-spectrum]');
@@ -34,6 +43,66 @@ export function initSpectrum(){
  const matchesMagnetic=channel=>channel.lower.m===currentChannel.lower.m&&channel.upper.m===currentChannel.upper.m;
  const visibleChannels=()=>{const map=new Map();for(const channel of allChannels(currentLine)){if(qFilter!=='all'&&channel.q!==qFilter)continue;const key=channel.lower.m+','+channel.upper.m;if(!map.has(key)||channel.subshellKey===currentSubshell.key)map.set(key,channel);}return [...map.values()].sort((a,b)=>a.lower.m-b.lower.m||a.upper.m-b.upper.m);};
  const availableLines=()=>lines.filter(line=>(series===0||line.lowerN===series)&&allChannels(line).length);
+ const orderedLines=()=>availableLines().sort((a,b)=>a.wavelength-b.wavelength);
+ // Keep the handle mounted while changing lines, including throughout pointer capture.
+ const spectrumTrack=element('track'),lineLayer=document.createElement('span'),selectionHandle=document.createElement('button'),dragReadout=document.createElement('span');
+ lineLayer.id='spectrum-lines';lineLayer.className='spectrum-lines';
+ selectionHandle.id='spectrum-selection-handle';selectionHandle.className='spectrum-selection-handle';selectionHandle.type='button';
+ selectionHandle.setAttribute('role','slider');selectionHandle.setAttribute('aria-label','Selected spectral line');selectionHandle.setAttribute('aria-orientation','horizontal');
+ selectionHandle.setAttribute('aria-describedby','spectrum-drag-hint');selectionHandle.title='Drag to step through spectral lines. Use arrow keys for one line at a time.';
+ dragReadout.id='spectrum-drag-readout';dragReadout.className='spectrum-drag-readout';dragReadout.setAttribute('aria-hidden','true');dragReadout.hidden=true;
+ spectrumTrack.append(lineLayer,selectionHandle,dragReadout);
+ let lineDrag=null,suppressTrackClickUntil=0;
+ function updateSelectionHandle(){
+  const candidates=orderedLines(),index=candidates.indexOf(currentLine),left=position(currentLine.wavelength)*100+'%';
+  selectionHandle.style.left=left;dragReadout.style.left=left;
+  selectionHandle.setAttribute('aria-valuemin','1');selectionHandle.setAttribute('aria-valuemax',String(candidates.length));selectionHandle.setAttribute('aria-valuenow',String(index+1));
+  selectionHandle.setAttribute('aria-valuetext',`${currentLine.wavelength.toFixed(1)} nanometers, ${currentLine.name}, shells ${currentLine.lowerN} and ${currentLine.upperN}`);
+  dragReadout.textContent=currentLine.wavelength.toFixed(1)+' nm';selectionHandle.disabled=candidates.length<2;
+ }
+ function selectIndexedLine(candidates,index){
+  const line=candidates[Math.max(0,Math.min(candidates.length-1,index))];
+  if(line&&line!==currentLine)selectLine(line.lowerN,line.upperN);
+ }
+ function finishLineDrag(restore=false){
+  if(!lineDrag)return;
+  const drag=lineDrag;lineDrag=null;
+  spectrumTrack.classList.remove('is-dragging');selectionHandle.classList.remove('is-dragging');dragReadout.hidden=true;
+  if(drag.moved)suppressTrackClickUntil=performance.now()+400;
+  if(selectionHandle.hasPointerCapture?.(drag.pointerId))selectionHandle.releasePointerCapture(drag.pointerId);
+  if(restore)selectLine(drag.initialLine.lowerN,drag.initialLine.upperN,drag.initialChannel);
+ }
+ function moveLineDrag(event){
+  if(!lineDrag||event.pointerId!==lineDrag.pointerId)return;
+  event.preventDefault();
+  const distance=event.clientX-lineDrag.startX;
+  if(Math.abs(distance)>3)lineDrag.moved=true;
+  // Equal travel per line makes even the tightly clustered All-series lines selectable.
+  selectIndexedLine(lineDrag.candidates,lineDrag.startIndex+Math.round(distance/lineDrag.pixelsPerLine));
+ }
+ selectionHandle.addEventListener('pointerdown',event=>{
+  if(lineDrag||event.isPrimary===false||(event.button!==undefined&&event.button!==0))return;
+  event.preventDefault();event.stopPropagation();selectionHandle.focus({preventScroll:true});
+  const candidates=orderedLines(),bounds=spectrumTrack.getBoundingClientRect();
+  lineDrag={pointerId:event.pointerId,startX:event.clientX,startIndex:candidates.indexOf(currentLine),candidates,pixelsPerLine:Math.max(24,bounds.width/Math.max(1,candidates.length-1)),initialLine:currentLine,initialChannel:currentChannel.id,moved:false};
+  selectionHandle.setPointerCapture?.(event.pointerId);spectrumTrack.classList.add('is-dragging');selectionHandle.classList.add('is-dragging');dragReadout.hidden=false;
+ });
+ selectionHandle.addEventListener('pointermove',moveLineDrag);
+ selectionHandle.addEventListener('pointerup',event=>{if(lineDrag?.pointerId===event.pointerId){event.preventDefault();finishLineDrag();}});
+ selectionHandle.addEventListener('pointercancel',event=>{if(lineDrag?.pointerId===event.pointerId)finishLineDrag();});
+ selectionHandle.addEventListener('lostpointercapture',()=>finishLineDrag());
+ // Document listeners also cover browsers without element pointer capture.
+ document.addEventListener('pointermove',event=>{if(event.target!==selectionHandle)moveLineDrag(event);});
+ document.addEventListener('pointerup',event=>{if(lineDrag?.pointerId===event.pointerId)finishLineDrag();});
+ document.addEventListener('pointercancel',event=>{if(lineDrag?.pointerId===event.pointerId)finishLineDrag();});
+ selectionHandle.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();});
+ selectionHandle.addEventListener('keydown',event=>{
+  if(event.key==='Escape'&&lineDrag){event.preventDefault();finishLineDrag(true);return;}
+  const candidates=orderedLines(),index=candidates.indexOf(currentLine);
+  const destination={ArrowLeft:index-1,ArrowDown:index-1,ArrowRight:index+1,ArrowUp:index+1,Home:0,End:candidates.length-1}[event.key];
+  if(destination===undefined)return;
+  event.preventDefault();finishLineDrag();selectIndexedLine(candidates,destination);
+ });
  const channelMarkup=channel=>`<span>${mMath(channel.lower.m)}</span><span class="spectrum-channel-arrow" aria-hidden="true">↔</span><span>${mMath(channel.upper.m)}</span>`;
  function wavelengthColor(wavelength){
   if(wavelength<380||wavelength>780)return '#a9cfff';
@@ -48,6 +117,14 @@ export function initSpectrum(){
   return `rgb(${[r,g,b].map(v=>Math.round(255*Math.pow(Math.max(0,v*scale),.7))).join(',')})`;
  }
  function position(wavelength){const [min,max]=ranges[series];return series===0?Math.log(wavelength/min)/Math.log(max/min):(wavelength-min)/(max-min);}
+ function syncPerformance(){
+  element('particle-amount').max=view.renderStyle==='cloud'?.05:1;element('particle-amount').step=view.renderStyle==='cloud'?.0005:.005;element('particle-amount').value=view.particleAmount;element('particle-amount-value').value=Math.round(view.particleAmount*200000).toLocaleString();
+  element('particle-amount').setAttribute('aria-valuetext',Math.round(view.particleAmount*200000).toLocaleString()+' tracers');
+  const requested=Math.round(view.particleAmount*200000),active=Number.isFinite(lastPerformance?.particles)?Math.min(requested,lastPerformance.particles):requested;
+  const targetFps=view.renderStyle==='granular'?30:60;
+  element('tracer-status').hidden=!lastPerformance?.limited;
+  element('tracer-status').textContent=lastPerformance?.limited?`${active.toLocaleString()} active · limited to protect ${targetFps} FPS`:`Up to ${requested.toLocaleString()} tracers`;
+ }
  function syncView(){
   for(const [attribute,key] of [['basis','basis'],['mode','mode'],['render-style','renderStyle'],['cut','cut']]){
    root.querySelectorAll('[data-spectrum-view-'+attribute+']').forEach(button=>{
@@ -55,26 +132,18 @@ export function initSpectrum(){
     button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected));
    });
   }
-  const phase=view.mode==='phase',sculpted=view.renderStyle==='sculpted',real=view.basis==='real';
-  const stationary=real||!currentChannel||(!currentChannel.lower.m&&!currentChannel.upper.m);
-  element('view-label').textContent=(real?'REAL-BASIS PREVIEW':'COMPLEX')+' · '+(phase?'COMPONENT PHASE':sculpted?'SCULPTED DENSITY':'DENSITY CLOUD');
-  element('view-summary').textContent=(real?'Real orbitals':'Complex')+' · '+(phase?'Phase color':'Density')+' · '+(sculpted?'Sculpted':'Cloud')+' · '+({none:'Whole',half:'Half',wedge:'Wedge',slice:'Slice'}[view.cut]);
-  element('basis-note').hidden=!real;
-  element('stage-basis-note').hidden=!real;
-  element('phase-note').hidden=!phase;
-  element('render-note').textContent=sculpted?'Luminous spheres with soft highlights and bright, dense cores.':'A luminous volume with moving current tracers.';
-  element('density').value=view.density;element('density-value').value=view.density.toFixed(2).replace(/\.?0+$/,'')+'×';
+  const phase=view.mode==='phase',granular=view.renderStyle==='granular',real=view.basis==='real';
+  element('view-label').textContent=(real?'REAL-BASIS PREVIEW':'COMPLEX')+' · '+(phase?'COMPONENT PHASE':granular?'GRANULAR DENSITY':'DENSITY CLOUD');
+  element('density').max=view.renderStyle==='cloud'?2:3;element('density').value=view.density;element('density-value').value=view.density.toFixed(2).replace(/\.?0+$/,'')+'×';
   element('cut-settings').hidden=view.cut==='none';element('cut-offset-wrap').hidden=view.cut==='wedge';
   element('cut-angle').value=view.cutAngle;element('cut-angle-value').value=view.cutAngle+'°';
   element('cut-offset').value=view.cutOffset;element('cut-offset-value').value=Math.abs(view.cutOffset)<.01?'center':(view.cutOffset>0?'+':'')+Math.round(view.cutOffset*100)+'%';
-  element('particles-toggle').checked=view.particleAmount>0;
-  element('particle-amount').value=view.particleAmount;element('particle-amount-value').value=Math.round(view.particleAmount*100)+'%';
-  element('speed').value=view.speed;element('speed-value').value=view.speed.toFixed(1).replace('.0','')+'×';
-  element('flow-play').textContent=view.animate?'Pause flow':'Play flow';element('flow-play').setAttribute('aria-label',view.animate?'Pause transition flow':'Play transition flow');element('flow-play').setAttribute('aria-pressed',String(!view.animate));
-  element('flow-status').textContent=!view.animate?'Flow paused':stationary?'Stationary · zero current':view.particleAmount===0?'Flow playing · tracers hidden':'Flow playing';
-  element('flow-state').dataset.active=String(view.animate&&!stationary&&view.particleAmount>0);
-  element('current-note').textContent=view.particleAmount===0?'Current tracers are hidden.':stationary?'These component shapes have zero stationary circulation.':'Tracers show each state’s circulation, weighted by its population.';
-  element('auto-rotate').checked=view.autoRotate;element('show-axes').checked=view.axes;element('quality').value=view.quality;
+  syncPerformance();
+  element('flow-control').hidden=real;element('flow-control').parentElement.dataset.flowVisible=String(!real);
+  const speedIndex=flowSpeeds.indexOf(view.speed);
+  element('speed').min=0;element('speed').max=4;element('speed').step=1;element('speed').value=speedIndex;element('speed-value').value=flowSpeedLabels[speedIndex];
+  element('speed').setAttribute('aria-valuetext',view.speed+' times speed');
+  element('auto-rotate').checked=view.autoRotate;element('show-axes').checked=view.axes;
   element('legend-title').textContent=phase?'COMPONENT PHASE':'PROBABILITY DENSITY';
   element('legend-gradient').style.background=phase?viewPhaseGradient:viewDensityGradient;
   element('legend-gradient').title=phase?'Cyclic colors show the component phases, blended by local population-weighted density. The colors at minus pi and plus pi match.':'Dark blue to white shows increasing probability density.';
@@ -83,27 +152,54 @@ export function initSpectrum(){
  function setView(partial){
   if(!partial||typeof partial!=='object')return false;
   const next={};
-  for(const [key,values] of Object.entries({basis:['complex','real'],mode:['density','phase'],renderStyle:['cloud','sculpted'],cut:['none','half','wedge','slice'],quality:['auto','low','medium','high','ultra']}))if(values.includes(partial[key]))next[key]=partial[key];
-  for(const [key,range] of Object.entries({density:[.2,3],cutAngle:[0,360],cutOffset:[-.8,.8],particleAmount:[0,1],speed:[.1,2]}))if(typeof partial[key]==='number'&&Number.isFinite(partial[key]))next[key]=Math.max(range[0],Math.min(range[1],partial[key]));
+  for(const [key,values] of Object.entries({basis:['complex','real'],mode:['density','phase'],renderStyle:['cloud','granular'],cut:['none','half','wedge','slice']}))if(values.includes(partial[key]))next[key]=partial[key];
+  for(const [key,range] of Object.entries({density:[.2,3],cutAngle:[0,360],cutOffset:[-.8,.8],particleAmount:[0,1],speed:[.25,4]}))if(typeof partial[key]==='number'&&Number.isFinite(partial[key]))next[key]=Math.max(range[0],Math.min(range[1],partial[key]));
+  if('speed' in next)next.speed=nearestFlowSpeed(next.speed);
   if('cutAngle' in next)next.cutAngle=Math.round(next.cutAngle);
-  for(const key of ['animate','autoRotate','axes'])if(typeof partial[key]==='boolean')next[key]=partial[key];
-  if(next.renderStyle&&next.renderStyle!==view.renderStyle){viewIntensity[view.renderStyle]=view.density;if(!('density' in next))next.density=viewIntensity[next.renderStyle];}
-  if('density' in next)viewIntensity[next.renderStyle||view.renderStyle]=next.density;
-  if(next.particleAmount>0)lastTracerAmount=next.particleAmount;
-  Object.assign(view,next);renderer?.setState({...view});syncView();return {...view};
+  for(const key of ['autoRotate','axes'])if(typeof partial[key]==='boolean')next[key]=partial[key];
+  if(next.basis&&next.basis!==view.basis){
+   basisStyles[view.basis]=view.renderStyle;
+   if(!next.renderStyle)next.renderStyle=basisStyles[next.basis];
+   if(!initializedBases.has(next.basis)){
+    if(!('cut' in next))next.cut=next.basis==='complex'?'wedge':'none';
+    initializedBases.add(next.basis);
+   }
+  }
+  const nextStyle=next.renderStyle||view.renderStyle;
+   if(nextStyle!==view.renderStyle){
+   for(const key of modeSettingKeys)modeSettings[view.renderStyle][key]=view[key];
+   for(const key of modeSettingKeys)if(!(key in next))next[key]=modeSettings[nextStyle][key];
+  if(nextStyle==='granular'&&next.particleAmount===0)next.particleAmount=lastPositiveTracers.granular||1;
+   lastPerformance=null;
+  }
+  const nextBasis=next.basis||view.basis;
+  if(nextStyle==='cloud'&&nextBasis!==cloudBasis){
+   if(!Number.isFinite(partial.particleAmount))next.particleAmount=nextBasis==='real'?0:.025;
+   cloudBasis=nextBasis;
+  }
+  if(Number.isFinite(next.particleAmount)){
+   next.particleAmount=Math.max(0,Math.min(nextStyle==='cloud'?.05:1,next.particleAmount));
+   if(next.particleAmount>0)lastPositiveTracers[nextStyle]=next.particleAmount;
+   lastPerformance=null;
+  }
+  if(Number.isFinite(next.density))next.density=Math.max(.2,Math.min(nextStyle==='cloud'?2:3,next.density));
+ Object.assign(view,next,{animate:true});basisStyles[view.basis]=view.renderStyle;renderer?.setState({...view});syncView();return {...view};
  }
  function reportViewStats(info={}){
   element('status').hidden=true;
-  const quality=String(info.quality||'Adaptive');
-  element('render-status').textContent=(info.idle?'IDLE':Number.isFinite(info.fps)?Math.round(info.fps)+' FPS':'GPU')+' · '+quality.toUpperCase()+(info.adaptive?' AUTO':'');
+  lastPerformance=info;syncPerformance();
+  element('render-status').textContent=(info.idle?'IDLE':Number.isFinite(info.fps)?Math.round(info.fps)+' FPS':'GPU')+(info.limited?' · LIMITED':'');
   if(info.resolution)element('render-status').title=info.resolution.join(' × ')+' pixels · '+(info.steps||0)+' samples per ray · '+(info.particles||0).toLocaleString()+' particles';
  }
  function showViewNotice(message){element('view-notice').textContent=message;element('view-notice').hidden=!message;}
  function updatePopulation(){
   const population=Math.sin(Math.PI*cycle)**2;
-  const lowerPercent=Math.round((1-population)*100),upperPercent=100-lowerPercent;
-  element('lower-population').value=lowerPercent+'%';element('upper-population').value=upperPercent+'%';
-  element('lower-fill').style.setProperty('--population',lowerPercent+'%');element('upper-fill').style.setProperty('--population',upperPercent+'%');
+  // Drive both outlines from the same population used by the renderer.
+  for(const [side,weight] of [['lower',1-population],['upper',population]]){
+   const card=element(side+'-card');
+   card.style.setProperty('--state-population',String(weight));
+   card.setAttribute('aria-label',side+' state, '+Math.round(weight*100)+'% population');
+  }
   element('direction').textContent=!playing?'Transition paused':cycle<.5?'Absorbing energy':'Stimulated emission';
   renderer?.setPopulation(population);
  }
@@ -120,7 +216,7 @@ export function initSpectrum(){
  function drawBand(){
   const [min,max,ticks]=ranges[series],track=element('track'),axis=element('axis');
   const focusedLine=document.activeElement?.dataset?.spectrumLine;
-  track.replaceChildren();axis.replaceChildren();
+  lineLayer.replaceChildren();axis.replaceChildren();
   const stops=Array.from({length:25},(_,i)=>`${wavelengthColor(min+(max-min)*i/24)} ${i/24*100}%`);
   track.style.setProperty('--spectrum-band',series===2?`linear-gradient(90deg,${stops.join(',')})`:'linear-gradient(90deg,#4272a3,#92b7e4)');
   element('scale-note').textContent='Vacuum wavelength · '+(series===0?'logarithmic scale':'linear scale');
@@ -129,10 +225,11 @@ export function initSpectrum(){
   for(const line of filtered){
    const selected=line===currentLine,color=wavelengthColor(line.wavelength);
    const accessible=`${line.name}, ${line.wavelength.toFixed(1)} nanometers, shells ${line.lowerN} and ${line.upperN}`;
-   const tick=document.createElement('button');tick.type='button';tick.className='spectrum-line'+(selected?' selected':'');tick.dataset.spectrumLine=line.lowerN+'-'+line.upperN;tick.style.left=position(line.wavelength)*100+'%';tick.style.setProperty('--line-color',color);tick.setAttribute('aria-label',accessible);tick.setAttribute('aria-pressed',String(selected));tick.title=accessible;tick.addEventListener('click',event=>{event.stopPropagation();selectLine(line.lowerN,line.upperN);});
-   track.append(tick);
+   const tick=document.createElement('button');tick.type='button';tick.className='spectrum-line'+(selected?' selected':'');tick.dataset.spectrumLine=line.lowerN+'-'+line.upperN;tick.style.left=position(line.wavelength)*100+'%';tick.style.setProperty('--line-color',color);tick.setAttribute('aria-label',accessible);tick.setAttribute('aria-pressed',String(selected));tick.title=accessible;tick.addEventListener('click',event=>{event.stopPropagation();if(performance.now()>=suppressTrackClickUntil)selectLine(line.lowerN,line.upperN);});
+   lineLayer.append(tick);
   }
-  if(focusedLine){const destination=track;Array.from(destination.children).find(button=>button.dataset.spectrumLine===focusedLine)?.focus({preventScroll:true});}
+  updateSelectionHandle();
+  if(focusedLine)Array.from(lineLayer.children).find(button=>button.dataset.spectrumLine===focusedLine)?.focus({preventScroll:true});
   root.querySelectorAll('[data-spectrum-series]').forEach(button=>{
    const value=+button.dataset.spectrumSeries,selected=value===series;
    button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected));
@@ -191,10 +288,8 @@ export function initSpectrum(){
   cycle=0;previousTime=null;
   element('lower-name').textContent=orbitalName(currentChannel.lower);element('upper-name').textContent=orbitalName(currentChannel.upper);
   element('lower-m').innerHTML=mMath(currentChannel.lower.m);element('upper-m').innerHTML=mMath(currentChannel.upper.m);
-  element('pair').innerHTML='<span class="transition-pair-layout">'+[currentChannel.lower,currentChannel.upper].map(state=>'<span class="transition-endpoint"><strong>'+orbitalName(state)+'</strong><small>'+mMath(state.m)+'</small></span>').join('')+'</span>';
   element('lower-energy').textContent='−'+(energyScale/currentLine.lowerN**2).toFixed(3)+' eV';element('upper-energy').textContent='−'+(energyScale/currentLine.upperN**2).toFixed(3)+' eV';
   element('canvas').setAttribute('aria-label',`Three-dimensional population transfer between ${orbitalName(currentChannel.lower)}, magnetic number ${currentChannel.lower.m}, and ${orbitalName(currentChannel.upper)}, magnetic number ${currentChannel.upper.m}. Drag or use arrow keys to rotate; pinch or use plus and minus to zoom. Space pauses flow.`);
-  element('explore-lower').setAttribute('aria-label',`Explore ${orbitalName(currentChannel.lower)}, magnetic number ${currentChannel.lower.m}, in the orbital atlas`);element('explore-upper').setAttribute('aria-label',`Explore ${orbitalName(currentChannel.upper)}, magnetic number ${currentChannel.upper.m}, in the orbital atlas`);
   renderer?.setPair(currentChannel.lower,currentChannel.upper);drawShapes();drawChannels();updateStrength();updatePopulation();syncView();if(visible)startFrame();
  }
  function selectChannel(id){
@@ -231,6 +326,7 @@ export function initSpectrum(){
  function setSeries(value){
   if(!Number.isInteger(value)||value<0||value>5)return false;
   const candidates=lines.filter(line=>(value===0||line.lowerN===value)&&allChannels(line).length);if(!candidates.length)return false;
+  finishLineDrag();
   series=value;const line=candidates.includes(currentLine)?currentLine:candidates[0];return selectLine(line.lowerN,line.upperN);
  }
  function setPolarization(value){
@@ -266,11 +362,8 @@ export function initSpectrum(){
   element('rate').setAttribute('aria-valuetext',transitionRateLabels[index]+' times speed');
   element('rate-value').textContent=transitionRateLabels[index]+'×';
   element('rate-period').textContent=1.25/transitionRate+' seconds per cycle';
-  element('rate-down').disabled=index===0;element('rate-up').disabled=index===4;
  }
  element('rate').addEventListener('input',event=>setTransitionRate(transitionRates[+event.target.value]));
- element('rate-down').addEventListener('click',()=>setTransitionRate(transitionRate/2));
- element('rate-up').addEventListener('click',()=>setTransitionRate(transitionRate*2));
  setTransitionRate(1);
  function setPlaying(value){playing=!!value;previousTime=null;if(!playing){cancelAnimationFrame(raf);raf=0;}updatePopulation();startFrame();}
  function updateStateFilter(){
@@ -280,19 +373,18 @@ export function initSpectrum(){
  function exploreState(state){
   const candidate={n:Number(state.n),l:Number(state.l),m:Number(state.m)};
   if(!Number.isInteger(candidate.n)||candidate.n<1||candidate.n>6||!Number.isInteger(candidate.l)||candidate.l<0||candidate.l>=candidate.n||!Number.isInteger(candidate.m)||Math.abs(candidate.m)>candidate.l)return false;
+  finishLineDrag();
   stateFilter=candidate;series=0;updateStateFilter();
   const available=lines.filter(line=>allChannels(line).length),line=available.includes(currentLine)?currentLine:available.find(item=>item.lowerN===2)||available[0];
-  selectLine(line.lowerN,line.upperN);root.scrollIntoView({behavior:'smooth',block:'start'});element('title').focus({preventScroll:true});return true;
+  window.orbitalPages?.go('spectra',{scroll:false});selectLine(line.lowerN,line.upperN);root.scrollIntoView({behavior:'smooth',block:'start'});element('title').focus({preventScroll:true});return true;
  }
- function clearStateFilter(){stateFilter=null;updateStateFilter();selectLine(currentLine.lowerN,currentLine.upperN,currentChannel.id);}
+ function clearStateFilter(){finishLineDrag();stateFilter=null;updateStateFilter();selectLine(currentLine.lowerN,currentLine.upperN,currentChannel.id);}
  for(const [attribute,key] of [['basis','basis'],['mode','mode'],['render-style','renderStyle'],['cut','cut']])root.querySelectorAll('[data-spectrum-view-'+attribute+']').forEach(button=>button.addEventListener('click',()=>setView({[key]:button.getAttribute('data-spectrum-view-'+attribute)})));
- for(const [id,key] of [['density','density'],['speed','speed'],['cut-angle','cutAngle'],['cut-offset','cutOffset'],['particle-amount','particleAmount']])element(id).addEventListener('input',event=>setView({[key]:+event.target.value}));
- element('particles-toggle').addEventListener('change',event=>setView({particleAmount:event.target.checked?lastTracerAmount:0}));
- element('flow-play').addEventListener('click',()=>setView({animate:!view.animate}));
- element('canvas').addEventListener('keydown',event=>{if(event.key===' '){event.preventDefault();setView({animate:!view.animate});}});
+ for(const [id,key] of [['density','density'],['cut-angle','cutAngle'],['cut-offset','cutOffset']])element(id).addEventListener('input',event=>setView({[key]:+event.target.value}));
+ element('speed').addEventListener('input',event=>setView({speed:flowSpeeds[+event.target.value]}));
+ element('particle-amount').addEventListener('input',event=>setView({particleAmount:+event.target.value}));
  element('auto-rotate').addEventListener('change',event=>setView({autoRotate:event.target.checked}));
  element('show-axes').addEventListener('change',event=>setView({axes:event.target.checked}));
- element('quality').addEventListener('change',event=>setView({quality:event.target.value}));
  element('fullscreen').addEventListener('click',async()=>{
   try{
    if(document.fullscreenElement===element('stage'))await document.exitFullscreen();
@@ -307,29 +399,29 @@ export function initSpectrum(){
  root.querySelectorAll('[data-spectrum-series]').forEach(button=>button.addEventListener('click',()=>setSeries(+button.dataset.spectrumSeries)));
  root.querySelectorAll('[data-spectrum-q]').forEach(button=>button.addEventListener('click',()=>setPolarization(button.dataset.spectrumQ)));
  element('track').addEventListener('click',event=>{
+  if(lineDrag||performance.now()<suppressTrackClickUntil||event.target===selectionHandle)return;
   const bounds=element('track').getBoundingClientRect(),fraction=Math.max(0,Math.min(1,(event.clientX-bounds.left)/bounds.width));
   const nearest=availableLines().reduce((best,line)=>!best||Math.abs(position(line.wavelength)-fraction)<Math.abs(position(best.wavelength)-fraction)?line:best,null);
   if(nearest)selectLine(nearest.lowerN,nearest.upperN);
  });
  element('clear-filter').addEventListener('click',clearStateFilter);
- element('zoom-in').addEventListener('click',()=>renderer?.zoomBy(.86));element('zoom-out').addEventListener('click',()=>renderer?.zoomBy(1.16));element('reset').addEventListener('click',()=>renderer?.resetView());
- element('explore-lower').addEventListener('click',()=>window.orbitalApp?.exploreState({...currentChannel.lower}));element('explore-upper').addEventListener('click',()=>window.orbitalApp?.exploreState({...currentChannel.upper}));
- document.querySelectorAll('[data-open-spectrum]').forEach(button=>button.addEventListener('click',()=>{root.scrollIntoView({behavior:'smooth',block:'start'});element('title').focus({preventScroll:true});}));
+ element('zoom-in').addEventListener('click',()=>renderer?.zoomBy(.86));element('zoom-out').addEventListener('click',()=>renderer?.zoomBy(1.16));element('reset').addEventListener('click',()=>{const granular=view.renderStyle==='granular';setView({density:granular?2:1,particleAmount:granular?1:view.basis==='real'?0:.025,speed:granular?2:.5,cutAngle:0,cutOffset:0});setTransitionRate(1);renderer?.resetView();});
+ document.querySelectorAll('[data-open-spectrum]').forEach(button=>button.addEventListener('click',()=>{window.orbitalPages?.go('spectra',{scroll:false});root.scrollIntoView({behavior:'smooth',block:'start'});element('title').focus({preventScroll:true});}));
  document.addEventListener('visibilitychange',()=>{previousTime=null;renderer?.setVisible(visible&&!document.hidden);if(document.hidden){cancelAnimationFrame(raf);raf=0;}else startFrame();});
  if(matchMedia('(pointer: coarse)').matches)element('gesture').textContent='Drag to rotate · Pinch to zoom';
- selectLine(5,6,getChannels(5,6,4,3).find(channel=>channel.lower.m===1&&channel.upper.m===1).id);
+ selectLine(2,3,getChannels(2,3,1,2).find(channel=>channel.lower.m===0&&channel.upper.m===0).id);
  if('IntersectionObserver' in window){
   const observer=new IntersectionObserver(entries=>{
-   visible=entries[0].isIntersecting;previousTime=null;
+   visible=document.body.dataset.page==='spectra'&&entries[0].isIntersecting;previousTime=null;
    if(visible){ensureRenderer();renderer?.setVisible(!document.hidden);startFrame();}
    else{renderer?.setVisible(false);cancelAnimationFrame(raf);raf=0;}
   },{threshold:0});observer.observe(root.querySelector('.spectrum-stage'));
-  const navigationObserver=new IntersectionObserver(entries=>{
-   const active=entries[0].isIntersecting;
-   spectrumNav?.classList.toggle('active',active);document.getElementById('explorer-nav')?.classList.toggle('active',!active);
-   if(active)spectrumNav?.setAttribute('aria-current','location');else spectrumNav?.removeAttribute('aria-current');
-  },{rootMargin:'-15% 0px -35% 0px',threshold:0});navigationObserver.observe(root);
- }else{visible=true;ensureRenderer();startFrame();}
- const api={get view(){return {...view};},setView,get state(){return {view:{...view},sigma,transitionRate,series,lower:currentLine.lowerN,upper:currentLine.upperN,cycle,population:Math.sin(Math.PI*cycle)**2,playing,visible,wavelength:currentLine.wavelength,energy:currentLine.gap,line:{...currentLine},subshell:{...currentSubshell},channel:{...currentChannel,lower:{...currentChannel.lower},upper:{...currentChannel.upper}},qFilter,stateFilter:stateFilter?{...stateFilter}:null,availableChannelIds:visibleChannels().map(channel=>channel.id)};},setSigma,setTransitionRate,selectLine,selectSubshell,selectChannel,setSeries,setPolarization,setPlaying,exploreState,clearStateFilter,nextPair:()=>movePair(1),previousPair:()=>movePair(-1),get renderer(){return renderer;}};
+ }else{visible=document.body.dataset.page==='spectra';if(visible){ensureRenderer();startFrame();}}
+ function setPageActive(active){
+  previousTime=null;
+  if(!active){finishLineDrag();visible=false;renderer?.setVisible(false);cancelAnimationFrame(raf);raf=0;}
+  else if(typeof IntersectionObserver==='undefined'){visible=true;ensureRenderer();renderer?.setVisible(!document.hidden);startFrame();}
+ }
+ const api={setPageActive,get view(){return {...view};},setView,get state(){return {view:{...view},sigma,transitionRate,series,lower:currentLine.lowerN,upper:currentLine.upperN,cycle,population:Math.sin(Math.PI*cycle)**2,playing,visible,wavelength:currentLine.wavelength,energy:currentLine.gap,line:{...currentLine},subshell:{...currentSubshell},channel:{...currentChannel,lower:{...currentChannel.lower},upper:{...currentChannel.upper}},qFilter,stateFilter:stateFilter?{...stateFilter}:null,availableChannelIds:visibleChannels().map(channel=>channel.id)};},setSigma,setTransitionRate,selectLine,selectSubshell,selectChannel,setSeries,setPolarization,setPlaying,exploreState,clearStateFilter,nextPair:()=>movePair(1),previousPair:()=>movePair(-1),get renderer(){return renderer;}};
  window.spectrumApp=api;return api;
 }

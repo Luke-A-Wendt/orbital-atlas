@@ -161,6 +161,7 @@ const sphereFragment=`#version 300 es
 precision highp float;
 in vec3 vPlane;flat in vec3 vCenter,vColor;flat in float vRadius,vDensity;
 uniform float uDensity,uSculptLight,uCameraDistance,uPolish;
+uniform bool uGranular;
 out vec4 outColor;
 void main(){
   if(vRadius<=0.)discard;
@@ -181,6 +182,12 @@ void main(){
   linear+=vec3(.66,.84,1.)*(spec*.56+softSpec*.055*uPolish)*(.12+.88*sqrt(vDensity));
   linear+=vec3(.18,.48,.95)*fresnel*.15*uPolish*(.3+.7*sqrt(vDensity));
   linear+=vColor*pow(vDensity,1.35)*uSculptLight;
+  // Granular uses small matte beads: broad diffuse light without a glowing core.
+  if(uGranular){
+    float facing=max(dot(normal,-ray),0.);
+    linear=vColor*(.26+.62*diffuse+.18*fill+.12*facing);
+    linear+=vec3(1.)*softSpec*.055;
+  }
   linear*=pow(uDensity,.55);
   outColor=vec4(clamp(pow(linear,vec3(.90)),0.,1.),1.);
   gl_FragDepth=.5*(1.002002-.1001001/hit.z)+.5;
@@ -193,22 +200,25 @@ precision highp float;in vec3 vColor;out vec4 outColor;void main(){outColor=vec4
 function compile(gl,type,source){const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){const error=gl.getShaderInfoLog(s);gl.deleteShader(s);throw new Error(error);}return s;}
 function program(gl,vs,fs){const p=gl.createProgram(),v=compile(gl,gl.VERTEX_SHADER,vs),f=compile(gl,gl.FRAGMENT_SHADER,fs);gl.attachShader(p,v);gl.attachShader(p,f);gl.linkProgram(p);gl.deleteShader(v);gl.deleteShader(f);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(p));return p;}
 function inverseCDF(cdf,u){let lo=0,hi=cdf.length-1;while(lo+1<hi){const m=(lo+hi)>>1;if(cdf[m]<u)lo=m;else hi=m;}return (lo+(u-cdf[lo])/Math.max(1e-12,cdf[hi]-cdf[lo]))/(cdf.length-1);}
-const MAX_PARTICLES=48000;
+const MAX_PARTICLES=200000;
 const TIERS=[
-  {name:'Low',scale:.60,steps:70,particles:3200,spheres:4500,radius:.009},
-  {name:'Medium',scale:.85,steps:110,particles:6500,spheres:11000,radius:.0075},
-  {name:'High',scale:1.2,steps:160,particles:14000,spheres:26000,radius:.0065},
-  {name:'Ultra',scale:1.6,steps:240,particles:28000,spheres:36000,radius:.0060}
+  {name:'Low',scale:.60,steps:70,radius:.009},
+  {name:'Medium',scale:.85,steps:110,radius:.0075},
+  {name:'High',scale:1.2,steps:160,radius:.0065},
+  {name:'Ultra',scale:1.6,steps:240,radius:.0060}
 ];
 const INTRO_CAMERA={yaw:.63,pitch:.30,distance:2.80};
 
 export class OrbitalRenderer {
   constructor(canvas,{onStats=()=>{},onError=()=>{}}={}) {
     this.canvas=canvas;this.onStats=onStats;this.onError=onError;
-    this.state={n:6,l:3,m:1,basis:'complex',mode:'density',renderStyle:'cloud',cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:.5,speed:.5,animate:true,autoRotate:false,quality:'auto',axes:false};
+    this.state={n:6,l:3,m:1,basis:'complex',mode:'density',renderStyle:'cloud',cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:.025,speed:.5,animate:true,autoRotate:false,axes:false};
+    this.activeParticleAmount=this.state.particleAmount;
     this.camera={...INTRO_CAMERA};this.time=0;this.dead=false;this.points=new Map();
     this.touchDevice=typeof matchMedia==='function'&&matchMedia('(pointer: coarse)').matches;
     this.tier=this.touchDevice?1:((typeof navigator!=='undefined'&&navigator.hardwareConcurrency<6)?1:2);
+    // Granular keeps its initial raster quality; Cloud retains its own adaptive tier.
+    this.styleTiers={cloud:this.tier,granular:this.tier};
     this.frameTimes=[];this.lastQualityChange=performance.now();this.lastStats=0;this.lastFrame=null;this.dragging=false;this.contextLost=false;this.volumeKey='';
     try {
       this.gl=canvas.getContext('webgl2',{alpha:false,antialias:false,depth:true,powerPreference:'high-performance',preserveDrawingBuffer:false});
@@ -244,7 +254,7 @@ export class OrbitalRenderer {
     const end=e=>{this.points.delete(e.pointerId);this.dragging=this.points.size>0;this.canvas.style.cursor='grab';};on('pointerup',end);on('pointercancel',end);on('lostpointercapture',end);
     on('wheel',e=>{e.preventDefault();this.zoomBy(Math.exp(e.deltaY*.001));},{passive:false});on('dblclick',()=>this.resetView());
     on('webglcontextlost',e=>{e.preventDefault();this.contextLost=true;this.onError('The GPU context was interrupted. Restoring the orbital…');});
-    on('webglcontextrestored',()=>{try{this.contextLost=false;this.init();this.setState({quality:this.state.quality});this.prepareOrbital();this.resize(true);this.lastFrame=null;this.onError('');}catch(e){this.onError(e.message);}});
+    on('webglcontextrestored',()=>{try{this.contextLost=false;this.init();this.setState({});this.prepareOrbital();this.resize(true);this.lastFrame=null;this.onError('');}catch(e){this.onError(e.message);}});
     this.visibilityHandler=()=>{this.lastFrame=null;this.resetPerformance(performance.now());this.lastDrawSignature='';};document.addEventListener('visibilitychange',this.visibilityHandler);
     this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(this.canvas);
   }
@@ -258,12 +268,19 @@ export class OrbitalRenderer {
   setState(partial){
     const old=this.state;this.state={...old,...partial};const s=this.state;
     s.n=clamp(Math.round(s.n),1,6);s.l=clamp(Math.round(s.l),0,s.n-1);s.m=clamp(Math.round(s.m),-s.l,s.l);
-    s.density=clamp(s.density,.1,4);s.particleAmount=clamp(s.particleAmount,0,1);s.speed=clamp(s.speed,0,3);
-    s.renderStyle=s.renderStyle==='sculpted'?'sculpted':'cloud';
+    s.density=clamp(s.density,.1,4);s.particleAmount=clamp(Number.isFinite(+s.particleAmount)?+s.particleAmount:old.particleAmount,0,1);s.speed=clamp(s.speed,.25,4);
+    s.renderStyle=['sculpted','granular'].includes(s.renderStyle)?'granular':'cloud';
+    delete s.autoTracers;delete s.targetFps;delete s.quality;
+    this.updateTracerCeiling(old.particleAmount,s.particleAmount);
+    if(old.renderStyle!==s.renderStyle){
+      this.styleTiers[old.renderStyle]=this.tier;
+      const nextTier=this.styleTiers[s.renderStyle];
+      if(nextTier!==this.tier){this.tier=nextTier;this.resize(true);}
+      this.activeParticleAmount=s.particleAmount;this.lastTracerAdjustment=0;this.limiterRecoveryUntil=0;
+    }
     if(old.n!==s.n||old.l!==s.l||old.m!==s.m||old.basis!==s.basis)this.prepareOrbital();
     if(old.animate!==s.animate)this.lastFrame=null;
     if(old.mode!==s.mode||old.renderStyle!==s.renderStyle||old.particleAmount!==s.particleAmount)this.resetPerformance(performance.now());
-    if(old.quality!==s.quality){if(s.quality!=='auto')this.tier=Math.max(0,['low','medium','high','ultra'].indexOf(s.quality));this.lastQualityChange=performance.now();this.resetPerformance(this.lastQualityChange);this.resize(true);}
   }
   prepareOrbital(){
     if(!this.gl||this.error)return;
@@ -279,9 +296,12 @@ export class OrbitalRenderer {
     for(let i=1;i<ac.length;i++)ac[i]=ac[i-1]+angular(l,m,2*i/(ac.length-1)-1)**2;
     const radialSum=rc[rc.length-1],angularSum=ac[ac.length-1];
     for(let i=1;i<rc.length;i++)rc[i]/=radialSum;for(let i=1;i<ac.length;i++)ac[i]/=angularSum;
-    const data=new Float32Array(MAX_PARTICLES*4);let seed=761+n*919+l*313+q*51;
+    const cacheKey=[n,l,basis,basis==='real'?m:q].join('|');this.particleCache??=new Map();
+    let data=this.particleCache.get(cacheKey);
+    if(!data){data=new Float32Array(MAX_PARTICLES*4);let seed=761+n*919+l*313+q*51;
     const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)|0;return(seed>>>0)/4294967296;};
-    for(let i=0;i<MAX_PARTICLES;i++){const r=inverseCDF(rc,random()),c=inverseCDF(ac,random())*2-1;let ph=random()*TAU;if(basis==='real'&&m){for(let k=0;k<80;k++){ph=random()*TAU;const f=m>0?Math.cos(m*ph):Math.sin(-m*ph);if(random()<f*f)break;}}data.set([r,c,ph,random()],i*4);}
+    for(let i=0;i<MAX_PARTICLES;i++){const r=inverseCDF(rc,random()),c=inverseCDF(ac,random())*2-1;let ph=random()*TAU;if(basis==='real'&&m){for(let k=0;k<80;k++){ph=random()*TAU;const f=m>0?Math.cos(m*ph):Math.sin(-m*ph);if(random()<f*f)break;}}const index=i*4;data[index]=r;data[index+1]=c;data[index+2]=ph;data[index+3]=random();}
+    this.particleCache.set(cacheKey,data);if(this.particleCache.size>3)this.particleCache.delete(this.particleCache.keys().next().value);}
     const gl=this.gl;gl.bindBuffer(gl.ARRAY_BUFFER,this.particleBuffer);gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);this.time=0;this.volumeKey='';this.lastDrawSignature='';this.resetPerformance(performance.now());
   }
   resize(force=false){
@@ -327,7 +347,7 @@ export class OrbitalRenderer {
       gl.bindFramebuffer(gl.FRAMEBUFFER,this.canCache?this.volumeFBO:null);
       gl.useProgram(this.volume);this.sharedUniforms(this.volume);
       this.uniform(this.volume,'uSteps','uniform1i',TIERS[this.tier].steps);
-      this.uniform(this.volume,'uVolumeStrength','uniform1f',s.renderStyle==='sculpted'?(this.tier===3?.30:.22):1.);
+      this.uniform(this.volume,'uVolumeStrength','uniform1f',s.renderStyle==='granular'?.055:1.);
       gl.bindVertexArray(this.quad);gl.drawArrays(gl.TRIANGLES,0,6);this.volumeKey=key;this.volumeRenderCount=(this.volumeRenderCount||0)+1;
     }
     if(this.canCache){
@@ -338,7 +358,7 @@ export class OrbitalRenderer {
   resetPerformance(now){
     this.frameTimes=[];this.gpuTimes=[];this.healthySince=null;this.slowSince=null;this.longFrames=0;this.wasPerformanceIdle=false;
     for(const query of this.gpuQueries||[])this.gl.deleteQuery(query);this.gpuQueries=[];
-    this.performanceWarmup=now+1500;this.adaptiveRecoveryUntil=this.adaptiveRecoveryUntil||0;
+    this.decreaseCount=0;this.decreaseBaseline=0;this.performanceWarmup=now+500;this.adaptiveRecoveryUntil=this.adaptiveRecoveryUntil||0;
   }
   beginGpuTimer(){
     const gl=this.gl,extension=this.timerExtension;if(!extension)return null;
@@ -364,26 +384,57 @@ export class OrbitalRenderer {
     if(this.wasPerformanceIdle)this.resetPerformance(now);
     if(now<this.performanceWarmup||elapsed<=0)return;
     if(elapsed>250){if(++this.longFrames<2)return;}else this.longFrames=0;
-    this.frameTimes.push(Math.min(elapsed,1000));if(this.frameTimes.length>90)this.frameTimes.shift();
+    this.frameTimes.push(Math.min(elapsed,1000));if(this.frameTimes.length>30)this.frameTimes.shift();
     const total=this.frameTimes.reduce((a,b)=>a+b,0);
-    if(this.frameTimes.length<20&&total<900)return;
+    if(this.frameTimes.length<10&&total<400)return;
     const mean=total/this.frameTimes.length,fps=1000/mean;
     const sorted=[...this.gpuTimes].sort((a,b)=>a-b),gpu90=sorted.length>=5?sorted[Math.floor((sorted.length-1)*.9)]:null;
-    const slow=fps<42||(gpu90!==null&&gpu90>27&&fps<54);
-    const healthy=fps>=55&&(gpu90===null||gpu90<8.5);
-    if(slow){if(this.slowSince===null)this.slowSince=now;this.healthySince=null;}
-    else if(healthy){if(this.healthySince===null)this.healthySince=now;this.slowSince=null;}
+    this.adaptTracers(now,fps,gpu90);
+  }
+  updateTracerCeiling(previous,requested){
+    const active=this.activeParticleAmount;
+    // An unconstrained request takes effect immediately. Once limited, increases
+    // are earned by sustained headroom instead of restarting an overload.
+    this.activeParticleAmount=active===undefined||active>=previous-1.e-8?requested:Math.min(active,requested);
+    if(requested===0)this.activeParticleAmount=0;
+  }
+  adaptTracers(now,fps,gpu90){
+    const ceiling=this.state.particleAmount;
+    this.activeParticleAmount=Math.min(ceiling,this.activeParticleAmount??ceiling);
+    const granular=this.state.renderStyle==='granular';
+    const slow=fps<29.5||(gpu90!==null&&gpu90>32.5);
+    const healthy=(granular?fps>=29.8:fps>32)&&(gpu90===null||gpu90<28);
+    const recoveryDelay=2500;
+    if(slow){this.healthySince=null;if(this.slowSince==null)this.slowSince=now;}
+    else if(healthy){this.slowSince=null;if(this.healthySince==null)this.healthySince=now;}
     else{this.healthySince=null;this.slowSince=null;}
-    if(this.state.quality!=='auto')return;
-    let next=this.tier;
-    if(next>0&&this.slowSince!==null&&now-this.slowSince>=650&&now-this.lastQualityChange>=2000){next--;this.adaptiveRecoveryUntil=now+30000;}
-    else if(next<3&&this.healthySince!==null&&now-this.healthySince>=12000&&now-this.lastQualityChange>=12000&&now>=this.adaptiveRecoveryUntil)next++;
-    if(next!==this.tier){this.tier=next;this.lastQualityChange=now;this.resetPerformance(now);this.resize(true);}
+    if(now-(this.lastTracerAdjustment||0)<600)return;
+    let amount=this.activeParticleAmount,nextTier=this.tier;
+    const floor=Math.min(ceiling,.0025);
+    if(this.slowSince!=null&&now-this.slowSince>=300){
+      if(!granular&&(this.decreaseCount||0)>=2&&fps<this.decreaseBaseline*1.05&&nextTier>0){nextTier--;this.decreaseCount=0;}
+      else if(amount>floor){
+        if(!this.decreaseCount)this.decreaseBaseline=fps;
+        this.decreaseCount=(this.decreaseCount||0)+1;
+        amount=Math.max(floor,Math.round(amount*(fps<22?.60:.78)*200000)/200000);
+      }else if(!granular&&nextTier>0){nextTier--;this.decreaseCount=0;}
+      this.limiterRecoveryUntil=now+4000;
+    }else if(this.healthySince!=null&&now-this.healthySince>=recoveryDelay&&now>(this.limiterRecoveryUntil||0)){
+      this.decreaseCount=0;
+      if(amount<ceiling)amount=Math.min(ceiling,amount+(granular?Math.max(.025,amount*.15):Math.max(.005,amount*.035)));
+      else if(!granular&&nextTier<3&&now-this.healthySince>=15000)nextTier++;
+    }
+    if(amount!==this.activeParticleAmount||nextTier!==this.tier){
+      this.activeParticleAmount=Math.min(ceiling,Math.round(amount*200000)/200000);this.lastTracerAdjustment=now;
+      this.frameTimes=[];this.gpuTimes=[];this.healthySince=null;this.slowSince=null;this.performanceWarmup=now+200;
+      if(nextTier!==this.tier){this.tier=nextTier;this.resize(true);}
+
+    }
   }
   visualSignature(){
     const s=this.state;
     const moves=s.mode==='phase'||(s.particleAmount>0&&s.basis==='complex'&&s.m!==0);
-    return this.volumeSignature()+'|'+[s.particleAmount,s.axes,s.quality,moves?this.time:0].join('|');
+    return this.volumeSignature()+'|'+[this.activeParticleAmount,s.axes,moves?this.time:0].join('|');
   }
   frame(now){
     if(this.dead)return;this.raf=requestAnimationFrame(t=>this.frame(t));
@@ -391,8 +442,8 @@ export class OrbitalRenderer {
     const elapsed=this.lastFrame===null?0:Math.max(0,now-this.lastFrame);this.lastFrame=now;
     const dt=elapsed/1000,s=this.state,gl=this.gl;
     if(s.animate)this.time+=dt*s.speed;if(s.animate&&s.autoRotate&&!this.dragging)this.camera.yaw+=dt*.14;
-    const tier=TIERS[this.tier],sculpted=s.renderStyle==='sculpted';
-    const count=Math.round((sculpted?tier.spheres:tier.particles)*s.particleAmount);
+    const tier=TIERS[this.tier],granular=s.renderStyle==='granular',sculpted=granular;
+    const count=Math.round(MAX_PARTICLES*this.activeParticleAmount);
     const visualKey=this.visualSignature(),idle=visualKey===this.lastDrawSignature;
     if(!idle){
       const timer=this.beginGpuTimer();
@@ -402,7 +453,8 @@ export class OrbitalRenderer {
           gl.depthMask(true);gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LESS);gl.disable(gl.BLEND);
           gl.useProgram(this.sphere);this.sharedUniforms(this.sphere);
           this.uniform(this.sphere,'uCurrent','uniform1f',s.basis==='complex'?1:0);
-          this.uniform(this.sphere,'uSphereRadius','uniform1f',tier.radius);
+          this.uniform(this.sphere,'uSphereRadius','uniform1f',tier.radius*(granular?.95:1));
+          this.uniform(this.sphere,'uGranular','uniform1i',granular?1:0);
           this.uniform(this.sphere,'uSculptLight','uniform1f',this.tier===3?.42:.20);
           this.uniform(this.sphere,'uPolish','uniform1f',this.tier===3?1.:.4);
           gl.clear(gl.DEPTH_BUFFER_BIT);gl.bindVertexArray(this.sphereVAO);gl.drawArraysInstanced(gl.TRIANGLES,0,6,count);gl.disable(gl.DEPTH_TEST);
@@ -419,7 +471,7 @@ export class OrbitalRenderer {
     this.recordPerformance(now,elapsed,idle);
     if(now-this.lastStats>1000){
       this.lastStats=now;const mean=this.frameTimes.reduce((a,b)=>a+b,0)/Math.max(1,this.frameTimes.length),fps=mean?Math.min(120,1000/mean):60;
-      this.onStats({fps:Math.round(fps),quality:TIERS[this.tier].name,particles:count,resolution:[this.canvas.width,this.canvas.height],steps:TIERS[this.tier].steps,gpu:'WebGL2',adaptive:s.quality==='auto',renderStyle:s.renderStyle,cachedVolume:this.canCache&&s.mode==='density',idle});
+      this.onStats({fps:Math.round(fps),targetFps:30,adaptiveResolution:!granular,quality:TIERS[this.tier].name,particles:count,resolution:[this.canvas.width,this.canvas.height],steps:TIERS[this.tier].steps,gpu:'WebGL2',limited:count<Math.round(MAX_PARTICLES*s.particleAmount),requestedParticles:Math.round(MAX_PARTICLES*s.particleAmount),particleAmount:s.particleAmount,activeParticleAmount:count/MAX_PARTICLES,renderStyle:s.renderStyle,cachedVolume:this.canCache&&s.mode==='density',idle});
     }
   }
   destroy(){

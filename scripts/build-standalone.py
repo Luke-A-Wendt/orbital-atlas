@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Build a self-contained Orbital Atlas HTML file without third-party tools.
+"""Build self-contained Orbital Atlas pages without third-party tools.
 
 Checkout layout: src/index.template.html + dist/ editable assets.
 Export layout:   src/index.template.html + src/assets/ editable assets.
 The latter writes index.html at the repository root by default.
+Both layouts also emit orbits.html, spectra.html and math.html beside index.html.
 """
 from __future__ import annotations
 
@@ -96,7 +97,7 @@ def build(root: Path, output: Path | None = None) -> tuple[Path, int]:
     html = template.read_text(encoding="utf-8")
     styles: list[str] = []
     visited: set[Path] = set()
-    for name in ("style.css", "spectrum.css", "math-typography.css"):
+    for name in ("style.css", "spectrum.css", "math-typography.css", "pages.css", "math-page.css", "viewer-layout.css"):
         if (assets / name).is_file():
             styles.append(read_css(assets / name, assets, visited))
     css = "\n".join(styles).replace("</style", "<\\/style")
@@ -111,10 +112,10 @@ def build(root: Path, output: Path | None = None) -> tuple[Path, int]:
     html = html.replace("<!-- MATH_GUIDE -->", guide)
 
     modules = []
-    for name in ("renderer.js", "transitions.js", "spectrum-renderer.js", "spectrum.js", "app.js"):
+    for name in ("renderer.js", "transitions.js", "spectrum-renderer.js", "spectrum.js", "pages.js", "app.js"):
         module = (assets / name).read_text(encoding="utf-8")
         module = re.sub(r"^export\s+(?=(?:function|class|const|let|var)\b)", "", module, flags=re.M)
-        module = re.sub(r"^import\s+\{[^}]+\}\s+from\s+['\"]\./(?:renderer|transitions|spectrum-renderer|spectrum)\.js(?:\?[^'\"]*)?['\"];?\s*\n", "", module, flags=re.M)
+        module = re.sub(r"^import\s+\{[^}]+\}\s+from\s+['\"]\./(?:renderer|transitions|spectrum-renderer|spectrum|pages)\.js(?:\?[^'\"]*)?['\"];?\s*\n", "", module, flags=re.M)
         modules.append(module)
     code = "\n".join(modules)
     if re.search(r"^\s*(?:import|export)\b", code, re.M):
@@ -151,6 +152,13 @@ def build(root: Path, output: Path | None = None) -> tuple[Path, int]:
     output = output or root / ("index.html" if exported else "dist/index.html")
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(html, encoding="utf-8")
+    # Each tab has a standalone entrypoint, including direct reload and file:// use.
+    for page, title in (("orbits", "Orbits"), ("spectra", "Spectra"), ("math", "Math")):
+        page_html = html.replace('<body data-page="orbits">', f'<body data-page="{page}">', 1)
+        page_html = page_html.replace('<title>Orbits — Orbital Atlas</title>', f'<title>{title} — Orbital Atlas</title>')
+        page_html = page_html.replace(' data-page-link="orbits" aria-current="page"', ' data-page-link="orbits"')
+        page_html = page_html.replace(f'data-page-link="{page}"><span class="page-tab-label"', f'data-page-link="{page}" aria-current="page"><span class="page-tab-label"')
+        (output.parent / f"{page}.html").write_text(page_html, encoding="utf-8")
     return output, len(html.encode("utf-8"))
 
 

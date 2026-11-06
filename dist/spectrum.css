@@ -222,3 +222,86 @@
 .spectrum-shape .transition-endpoint strong{grid-row:2}
 .spectrum-shape .transition-endpoint small{grid-row:3}
 .spectrum-shape .transition-pair-divider{grid-column:2;grid-row:1/-1;align-self:stretch;width:1px;margin:4px 0;background:#9bbbd22e}
+
+/* Endpoint density palettes share a scale; phase retains its own legend. */
+.spectrum-view-control-group [aria-label="Transition rendering style"]{flex-wrap:wrap}
+.spectrum-view-control-group [aria-label="Transition rendering style"] button{flex:1 1 auto}
+.spectrum-view-control-group .toggle-line:has(input:disabled){opacity:.55}
+
+.spectrum-rate-buttons{display:flex;justify-content:center;min-height:30px}
+
+/* Keep Look inside visible below the transition, outside Viewing options. */
+.spectrum-view>.spectrum-stage{grid-column:1;grid-row:1}
+.spectrum-view>.spectrum-states{grid-column:2;grid-row:1}
+.spectrum-view>.spectrum-cut-panel{grid-column:1 / -1;grid-row:2;padding:22px 28px;border:0;border-top:1px solid #29313b;background:#10151c}
+.spectrum-cut-panel .cut-options,.spectrum-cut-panel #spectrum-cut-settings,.spectrum-cut-panel .toggle-line{max-width:420px}
+.spectrum-view-controls{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(max-width:1000px){.spectrum-view{display:grid;grid-template-columns:minmax(0,1fr)}.spectrum-view>.spectrum-cut-panel{grid-column:1;grid-row:2}.spectrum-view>.spectrum-states{grid-column:1;grid-row:3}}
+@media(max-width:780px){.spectrum-view>.spectrum-cut-panel{padding:20px}}
+
+/* State readouts and transition speed precede the animation. */
+.spectrum-view{display:grid;grid-template-columns:minmax(0,1fr)}
+.spectrum-view>.spectrum-states{grid-column:1;grid-row:1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px;align-items:center;padding:24px 28px;border:0;border-bottom:1px solid #29313b}
+.spectrum-view>.spectrum-stage{grid-column:1;grid-row:2}
+.spectrum-view>.spectrum-cut-panel{grid-column:1;grid-row:3}
+.spectrum-states>.spectrum-state-divider{display:none}
+.spectrum-states>.spectrum-rate-control{grid-column:3;margin:0;padding:0;border:0;width:100%;max-width:none;align-self:center}
+.spectrum-states::before,.spectrum-states::after{display:none}
+@media(max-width:780px){
+ .spectrum-view>.spectrum-states{grid-template-columns:repeat(2,minmax(0,1fr));padding:20px;gap:24px}
+ .spectrum-states>.spectrum-rate-control{grid-column:1/-1;padding-top:20px;border-top:1px solid #29313b}
+}
+
+/* Keep state details with the two endpoints already shown in the animation. */
+.spectrum-stage-heading .spectrum-pair{width:244px;max-width:100%}
+.spectrum-pair .transition-pair-layout .transition-endpoint{min-width:0;gap:7px;padding:10px 8px}
+.spectrum-pair .spectrum-state-energy{font-size:10px;margin:2px 0;color:#9fb5cb}
+.spectrum-pair .spectrum-population{width:100%;font-size:9px;margin-top:3px;letter-spacing:0}
+.spectrum-pair .spectrum-population-track{width:100%;height:3px;margin-top:0}
+.spectrum-pair .spectrum-explore-state{font-size:10px;margin-top:5px;padding:0;line-height:1.5}
+.spectrum-view>.spectrum-states{display:block;padding:18px 28px}
+.spectrum-states>.spectrum-rate-control{max-width:400px;margin:0 auto;padding:0;border:0}
+@media(max-width:780px){.spectrum-stage canvas{top:295px;height:calc(100% - 390px)}.spectrum-stage{height:clamp(700px,90svh,880px)}}
+
+/* Transition timing follows the animation, before the cutaway controls. */
+.spectrum-view>.spectrum-stage{grid-row:1}
+.spectrum-view>.spectrum-states{grid-row:2;border-top:1px solid #29313b;border-bottom:0}
+.spectrum-view>.spectrum-cut-panel{grid-row:3}
+
+/* Compact timing strip: label and speed share a single row. */
+.spectrum-view>.spectrum-states{padding:12px 24px}
+.spectrum-states>.spectrum-rate-control{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:16px;row-gap:3px}
+.spectrum-rate-control>label{grid-column:1;grid-row:1}
+.spectrum-rate-control>.spectrum-rate-buttons{grid-column:2;grid-row:1;min-height:0;margin:0}
+.spectrum-rate-buttons output{font-size:15px;line-height:1.4}
+.spectrum-rate-control>input{grid-column:1/-1;grid-row:2;margin:0;height:28px}
+.spectrum-rate-control>p{grid-column:1/-1;grid-row:3;margin:0;font-size:10px;line-height:1.4}
+
+/* Compact endpoint readouts without duplicate navigation. */
+.spectrum-pair .transition-pair-layout .transition-endpoint{gap:4px;padding:8px 8px 10px}
+.spectrum-pair .transition-endpoint>strong{font-size:30px;line-height:1.05}
+.spectrum-pair .transition-endpoint>small{line-height:1.2}
+.spectrum-pair .spectrum-state-energy{margin:0;font-size:10px;line-height:1.3}
+.spectrum-pair .spectrum-population{margin:3px 0 0;line-height:1.3}
+.spectrum-pair .spectrum-population-track{margin:0}
+@media(max-width:780px){.spectrum-stage canvas{top:245px;height:calc(100% - 340px)}}
+
+/* Cutaway controls belong to the expandable viewing-options group. */
+.spectrum-view-controls{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:1000px){.spectrum-view-controls{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:780px){.spectrum-view-controls{display:block}}
+
+/* Read the transfer status first, then its color scale. */
+.spectrum-stage-bottom .spectrum-view-legend{position:static;left:auto;bottom:auto;margin:2px 0 0;width:130px}
+.spectrum-stage-bottom .spectrum-view-legend>span{font-size:8px;color:#91a9c7;letter-spacing:.8px}
+.spectrum-stage-bottom .spectrum-legend-labels span{font-size:8px}
+
+/* Transition strength is anchored opposite the color legend. */
+.spectrum-stage>.spectrum-stage-strength{position:absolute;right:23px;bottom:57px;margin:0;width:155px;max-width:calc(50% - 28px);text-align:right;pointer-events:none;z-index:2}
+.spectrum-stage>.spectrum-stage-strength #spectrum-strength-relative{font-size:11px;line-height:1.5;margin:7px 0 0;color:#91a9c7}
+@media(max-width:780px){.spectrum-stage>.spectrum-stage-strength{right:18px;bottom:61px}}
+.spectrum-stage:fullscreen>.spectrum-stage-strength{right:28px;bottom:62px}
+
+/* Population appears as a synchronized white outline, without layout shifts. */
+.spectrum-pair .transition-pair-layout .transition-endpoint{position:relative}
+.spectrum-pair .transition-endpoint::after{content:"";position:absolute;inset:-1px;border:2px solid #fff;border-radius:inherit;opacity:var(--state-population,0);pointer-events:none;box-shadow:0 0 8px #ffffff28}

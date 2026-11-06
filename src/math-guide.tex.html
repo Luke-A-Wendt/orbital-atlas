@@ -1,105 +1,173 @@
-<p class="math-intro">A hydrogen orbital is a wavefunction, not a path around the nucleus. The cloud shows where a position measurement is more likely; the moving tracers reveal the flow of probability.</p>
+<p class="math-intro">Hydrogen connects orbital shape, probability flow and light through one wavefunction. Each topic starts with its defining equations; expand the derivation to follow the steps, conventions and limits of the model.</p>
 
-<details class="math-section" open>
-  <summary><span>01</span> Three numbers, one state</summary>
-  <div class="math-section-body">
-    <p>\(n\) sets the energy and radial structure. \(\ell\) sets the orbital family and angular momentum. \(m\) sets its projection on the \(z\) axis in the complex basis.</p>
-    <div class="equation">\[n=1,2,\ldots;\qquad \ell=0,\ldots,n-1;\qquad m=-\ell,\ldots,\ell\]</div>
-    <table><thead><tr><th>Family</th><th>s</th><th>p</th><th>d</th><th>f</th><th>g</th><th>h</th></tr></thead><tbody><tr><th>\(\ell\)</th><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td></tr><tr><th>States</th><td>1</td><td>3</td><td>5</td><td>7</td><td>9</td><td>11</td></tr></tbody></table>
-    <p>The spherical harmonics are eigenfunctions of squared angular momentum and its axial component:</p>
-    <div class="equation">\[\begin{aligned}\hat{\mathbf L}^{\,2}Y_\ell^m&=\hbar^2\ell(\ell+1)Y_\ell^m,\\[0.4em]\hat L_zY_\ell^m&=m\hbar Y_\ell^m.\end{aligned}\]</div>
+<nav class="math-topic-nav" aria-label="Mathematics topics"><a href="#math-topic-1">States</a><a href="#math-topic-2">Dynamics</a><a href="#math-topic-3">Radial structure</a><a href="#math-topic-4">Angular shape</a><a href="#math-topic-5">Probability</a><a href="#math-topic-6">Current</a><a href="#math-topic-7">Rendering</a><a href="#math-topic-8">Spectra</a><a href="#math-topic-9">Coupling</a><a href="#math-topic-10">Transitions</a><a href="#math-topic-11">Viewing model</a></nav>
+
+<section class="math-topic" id="math-topic-1" aria-labelledby="math-topic-title-1">
+ <header class="math-topic-heading"><span class="math-topic-number">01</span><h2 id="math-topic-title-1">Three numbers, one state</h2></header>
+ <p class="math-topic-lead">Three quantum numbers identify a spatial hydrogen eigenstate. The shell \(n\) sets energy, \(\ell\) sets angular momentum, and \(m\) sets its projection along the chosen axis.</p>
+ <div class="math-primary"><div class="equation">\[n=1,2,\ldots;\qquad \ell=0,\ldots,n-1;\qquad m=-\ell,\ldots,\ell\]</div>
+<div class="equation">\[\begin{aligned}\hat{\mathbf L}^{\,2}Y_\ell^m&=\hbar^2\ell(\ell+1)Y_\ell^m,\\[0.4em]\hat L_zY_\ell^m&=m\hbar Y_\ell^m.\end{aligned}\]</div>
+</div>
+ <details class="math-deep-dive"><summary><span>Derivation &amp; details</span><small>Quantum numbers and state counting</small></summary><div class="math-section-body">
+ <h3>Why these values are discrete</h3>
+<p>Single-valued angular functions must return to themselves after a full turn: \(\mathrm e^{\mathrm im(\varphi+2\pi)}=\mathrm e^{\mathrm im\varphi}\). Thus \(m\) is an integer. The angular-momentum ladder terminates at \(m=\pm\ell\); regular radial solutions require \(n\ge\ell+1\).</p>
+<div class="equation">\[\begin{aligned}g_n&=\sum_{\ell=0}^{n-1}(2\ell+1)=2\frac{n(n-1)}2+n=n^2,\\N_{n\le6}&=1+4+9+16+25+36=91.\end{aligned}\]</div>
+<p>For a 6f state, \(n=6\), \(\ell=3\), and \(m\) can take seven values, from \(-3\) to \(+3\). Opposite magnetic signs share a complex-state density but reverse its circulation.</p>
+ <h3>Orbital families</h3>
+ <table><thead><tr><th>Family</th><th>s</th><th>p</th><th>d</th><th>f</th><th>g</th><th>h</th></tr></thead><tbody><tr><th>\(\ell\)</th><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td></tr><tr><th>States</th><td>1</td><td>3</td><td>5</td><td>7</td><td>9</td><td>11</td></tr></tbody></table>
+
     <p class="math-note">The atlas covers \(n=1\) through \(6\): 91 spatial states in either basis. Spin is not included. <a href="https://dlmf.nist.gov/14.30#iv" target="_blank" rel="noopener noreferrer">Angular momentum reference ↗</a></p>
-  </div>
-</details>
+ </div></details>
+</section>
 
-<details class="math-section">
-  <summary><span>02</span> The equation behind the cloud</summary>
-  <div class="math-section-body">
-    <p>These are bound-state solutions for one electron in the Coulomb field of a fixed proton. Relativity, spin, external fields and interactions with other electrons are omitted.</p>
-    <div class="equation">\[\mathrm i\hbar\frac{\partial\Psi}{\partial t}=\left[-\frac{\hbar^2}{2m_e}\nabla^2-\frac{e^2}{4\pi\varepsilon_0r}\right]\Psi\]</div>
-    <div class="equation">\[E_n=-\frac{\hbar^2}{2m_ea_0^2n^2}\approx-\frac{13.606\;\mathrm{eV}}{n^2}\]</div>
-    <div class="equation">\[a_0=\frac{4\pi\varepsilon_0\hbar^2}{m_ee^2}\approx0.0529\;\mathrm{nm}\]</div>
+<section class="math-topic" id="math-topic-2" aria-labelledby="math-topic-title-2">
+ <header class="math-topic-heading"><span class="math-topic-number">02</span><h2 id="math-topic-title-2">The equation behind the cloud</h2></header>
+ <p class="math-topic-lead">A single electron in a Coulomb potential obeys the Schrödinger equation. Its normalizable bound states have discrete, negative energies that depend only on \(n\).</p>
+ <div class="math-primary"><div class="equation">\[\mathrm i\hbar\frac{\partial\Psi}{\partial t}=\left[-\frac{\hbar^2}{2m_e}\nabla^2-\frac{e^2}{4\pi\varepsilon_0r}\right]\Psi\]</div>
+<div class="equation">\[E_n=-\frac{\hbar^2}{2m_ea_0^2n^2}\approx-\frac{13.606\;\mathrm{eV}}{n^2}\]</div>
+</div>
+ <details class="math-deep-dive"><summary><span>Derivation &amp; details</span><small>Separation, boundary conditions and energy</small></summary><div class="math-section-body">
+ <h3>From time evolution to an energy eigenvalue</h3>
+<p>The model uses one electron and a fixed proton. Relativity, spin, external fields and electron–electron interactions are omitted.</p>
+<p>Insert \(\Psi(\mathbf r,t)=\psi(\mathbf r)\mathrm e^{-\mathrm iEt/\hbar}\). The time derivative contributes \(E\), leaving a time-independent eigenvalue equation. Separating its angular part gives the radial equation:</p>
+<div class="equation">\[\begin{aligned}\hat H\psi&=E\psi,\\-\frac{\hbar^2}{2m_e}\left[\frac1{r^2}\frac{\mathrm d}{\mathrm dr}\left(r^2\frac{\mathrm dR}{\mathrm dr}\right)-\frac{\ell(\ell+1)}{r^2}R\right]-\frac{e^2}{4\pi\varepsilon_0r}R&=ER.\end{aligned}\]</div>
+<p>A bound solution must remain regular at the origin and decay at infinity. After extracting \(r^\ell\) and the exponential tail, the remaining series must terminate; its polynomial degree is \(n-\ell-1\). That condition produces the discrete energy spectrum. The minus sign means that energy must be supplied to reach the free-electron threshold \(E=0\).</p>
+ <h3>Natural length and physical constants</h3>
+ <div class="equation">\[a_0=\frac{4\pi\varepsilon_0\hbar^2}{m_ee^2}\approx0.0529\;\mathrm{nm}\]</div>
     <p>Here \(\hbar\) is the reduced Planck constant, \(m_e\) the electron mass, \(e\) the positive elementary charge and \(\varepsilon_0\) the vacuum permittivity. The Bohr radius \(a_0\) is the unit of distance.</p>
     <p class="math-note"><a href="https://ocw.mit.edu/courses/8-04-quantum-physics-i-spring-2016/e34ceed6a6ec944a3c761fcbbf48be5f_MIT8_04S16_LecNotes22.pdf" target="_blank" rel="noopener noreferrer">MIT · Hydrogen atom and spectrum ↗</a></p>
-  </div>
-</details>
+ </div></details>
+</section>
 
-<details class="math-section">
-  <summary><span>03</span> Radial shells and nodes</summary>
-  <div class="math-section-body">
-    <p>Separation in spherical coordinates splits the wavefunction into radial, angular and time factors. \(\theta\) is measured from \(+z\); \(\varphi\) turns around \(z\) from \(+x\) toward \(+y\).</p>
-    <div class="equation">\[\Psi_{n\ell m}(r,\theta,\varphi,t)=R_{n\ell}(r)Y_\ell^m(\theta,\varphi)\,\mathrm e^{-\mathrm i E_nt/\hbar}\]</div>
-    <div class="equation">\[R_{n\ell}(r)=\sqrt{\left(\frac{2}{na_0}\right)^3\frac{(n-\ell-1)!}{2n(n+\ell)!}}\;\mathrm e^{-u/2}u^\ell L_{n-\ell-1}^{\,2\ell+1}(u)\]</div>
+<section class="math-topic" id="math-topic-3" aria-labelledby="math-topic-title-3">
+ <header class="math-topic-heading"><span class="math-topic-number">03</span><h2 id="math-topic-title-3">Radial shells and nodes</h2></header>
+ <p class="math-topic-lead">The wavefunction separates into radial shells, angular shape and a time-dependent phase. Radial nodes occur where the radial factor vanishes.</p>
+ <div class="math-primary"><div class="equation">\[\Psi_{n\ell m}(r,\theta,\varphi,t)=R_{n\ell}(r)Y_\ell^m(\theta,\varphi)\,\mathrm e^{-\mathrm i E_nt/\hbar}\]</div>
+<div class="equation">\[N_{\mathrm{radial}}=n-\ell-1\]</div></div>
+ <details class="math-deep-dive"><summary><span>Derivation &amp; details</span><small>Radial equation, normalization and nodes</small></summary><div class="math-section-body">
+ <h3>How the radial polynomial appears</h3>
+<p>The polar angle \(\theta\) is measured from \(+z\); azimuth \(\varphi\) turns around \(z\) from \(+x\) toward \(+y\).</p>
+<p>Use \(u=2r/(na_0)\) and write \(R=C\,u^\ell\mathrm e^{-u/2}F(u)\). Substitution in the radial equation removes the known behavior near zero and infinity, leaving</p>
+<div class="equation">\[uF''+(2\ell+2-u)F'+(n-\ell-1)F=0.\]</div>
+<p>This is the generalized Laguerre equation with degree \(k=n-\ell-1\) and parameter \(2\ell+1\). Its \(k\) positive roots are the radial nodes. Normalizing \(\int_0^\infty |R|^2r^2\,\mathrm dr=1\) fixes \(C\) and gives the expression below.</p>
+<p>For 6f, \(k=6-3-1=2\): two radial nodal spheres separate regions of nonzero density. The origin and the asymptotic tail are not counted as radial nodes.</p>
+ <h3>Normalized radial functions</h3>
+ <div class="equation">\[R_{n\ell}(r)=\sqrt{\left(\frac{2}{na_0}\right)^3\frac{(n-\ell-1)!}{2n(n+\ell)!}}\;\mathrm e^{-u/2}u^\ell L_{n-\ell-1}^{\,2\ell+1}(u)\]</div>
     <div class="equation">\[\begin{aligned}u&=\frac{2r}{na_0},\\[0.5em]L_k^\alpha(u)&=\sum_{j=0}^{k}(-1)^j\frac{(k+\alpha)!}{(k-j)!(\alpha+j)!j!}\,u^j.\end{aligned}\]</div>
     <p>\(L_k^\alpha\) is a generalized Laguerre polynomial; here \(k=n-\ell-1\) and \(\alpha=2\ell+1\) are nonnegative integers. Its roots create <strong>\(n-\ell-1\) radial nodes</strong>: spherical surfaces with zero density. Increasing \(n\) generally extends the cloud; the characteristic radius grows like \(n^2a_0\).</p>
     <p class="math-note"><a href="https://dlmf.nist.gov/18.39#ii" target="_blank" rel="noopener noreferrer">NIST DLMF · Hydrogen radial functions ↗</a></p>
-  </div>
-</details>
+ </div></details>
+</section>
 
-<details class="math-section">
-  <summary><span>04</span> Spherical harmonics, phase and basis</summary>
-  <div class="math-section-body">
-    <p>For \(0\le q\le\ell\), the normalized complex angular function is</p>
-    <div class="equation">\[Y_\ell^q(\theta,\varphi)=\sqrt{\frac{(2\ell+1)(\ell-q)!}{4\pi(\ell+q)!}}\;P_\ell^q(\cos\theta)\,\mathrm e^{\mathrm i q\varphi}\]</div>
-    <div class="equation">\[Y_\ell^{-q}=(-1)^q\bigl(Y_\ell^q\bigr)^*\]</div>
+<section class="math-topic" id="math-topic-4" aria-labelledby="math-topic-title-4">
+ <header class="math-topic-heading"><span class="math-topic-number">04</span><h2 id="math-topic-title-4">Spherical harmonics, phase and basis</h2></header>
+ <p class="math-topic-lead">Complex spherical harmonics have a winding phase. Real orbitals combine opposite magnetic states to form directional lobes; both describe bases of the same state space.</p>
+ <div class="math-primary"><div class="equation">\[Y_\ell^q(\theta,\varphi)=\sqrt{\frac{(2\ell+1)(\ell-q)!}{4\pi(\ell+q)!}}\;P_\ell^q(\cos\theta)\,\mathrm e^{\mathrm i q\varphi}\]</div>
+<div class="equation">\[Y_{\ell,m}^{\mathrm{real}}=\begin{cases}Y_\ell^0,&m=0,\\[0.5em]\sqrt{2}\,\operatorname{Re}Y_\ell^m,&m>0,\\[0.5em]\sqrt{2}\,\operatorname{Im}Y_\ell^{|m|},&m<0.\end{cases}\]</div>
+</div>
+ <details class="math-deep-dive"><summary><span>Derivation &amp; details</span><small>Angular functions and real combinations</small></summary><div class="math-section-body">
+ <h3>From complex phase to real lobes</h3>
+<p>Here \(q\) denotes a nonnegative magnetic magnitude, \(0\le q\le\ell\); it is distinct from the dipole component index introduced in topic 09.</p>
+<p>Write \(Y_\ell^q=A(\theta)\mathrm e^{\mathrm iq\varphi}\), with real \(A\). Euler’s formula splits it into cosine and sine components. The factor \(\sqrt2\) restores normalization because each component carries half the norm for \(q>0\).</p>
+<div class="equation">\[\begin{aligned}|Y_\ell^q|^2&=A(\theta)^2,\\|\sqrt2\operatorname{Re}Y_\ell^q|^2&=2A(\theta)^2\cos^2(q\varphi),\\|\sqrt2\operatorname{Im}Y_\ell^q|^2&=2A(\theta)^2\sin^2(q\varphi).\end{aligned}\]</div>
+<p>The complex density is independent of azimuth. The real combinations add azimuthal nodal planes and directional lobes. For example, the two real \(|m|=1\) p functions are proportional to \(x/r\) and \(y/r\), up to overall signs.</p>
+ <h3>Conventions and nodal surfaces</h3>
+ <div class="equation">\[Y_\ell^{-q}=(-1)^q\bigl(Y_\ell^q\bigr)^*\]</div>
     <p>\(P_\ell^q\) is the associated Legendre function on \([-1,1]\), including the Condon–Shortley sign:</p>
     <div class="equation">\[P_\ell^q(x)=\frac{(-1)^q}{2^\ell\ell!}(1-x^2)^{q/2}\frac{\mathrm d^{\ell+q}}{\mathrm dx^{\ell+q}}(x^2-1)^\ell\]</div>
-    <p><strong>Complex basis:</strong> phase winds \(m\) times around \(z\). Opposite \(m\) values have identical densities and opposite current. The global time phase changes no probabilities.</p>
-    <p><strong>Real basis:</strong> combine \(\pm q\) to make the familiar directional lobes. The signed index selects cosine \((+)\) or sine \((- )\), rather than a definite \(L_z\).</p>
-    <div class="equation">\[Y_{\ell,m}^{\mathrm{real}}=\begin{cases}Y_\ell^0,&m=0,\\[0.5em]\sqrt{2}\,\operatorname{Re}Y_\ell^m,&m>0,\\[0.5em]\sqrt{2}\,\operatorname{Im}Y_\ell^{|m|},&m<0.\end{cases}\]</div>
-    <p class="math-note">Real orbitals have \(\ell\) angular nodal surfaces. Complex orbitals have \(\ell-|m|\) polar nodal surfaces, with an additional zero on the \(z\) axis when \(|m|>0\). <a href="https://dlmf.nist.gov/14.30" target="_blank" rel="noopener noreferrer">NIST DLMF · Spherical harmonics ↗</a></p>
-  </div>
-</details>
+    <h3>Complex basis</h3>
+<p>Phase winds \(m\) times around \(z\). Opposite \(m\) values have identical densities and opposite current. The global time phase changes no probabilities.</p>
+    <h3>Real basis</h3>
+<p>Combine \(\pm q\) to make the familiar directional lobes. The signed index selects cosine \((+)\) or sine \((- )\), rather than a definite \(L_z\).</p>
 
-<details class="math-section">
-  <summary><span>05</span> Probability: volume versus radius</summary>
-  <div class="math-section-body">
-    <p>The Born rule turns a complex amplitude into probability density. A probability comes from integrating over a volume, not from reading the value at one point.</p>
-    <div class="equation">\[\rho=|\Psi|^2,\qquad P(V)=\int_V\rho\,\mathrm d^3\mathbf r,\qquad\int_{\mathbb R^3}\rho\,\mathrm d^3\mathbf r=1\]</div>
-    <div class="equation">\[\mathrm dP=\bigl|R_{n\ell}(r)\bigr|^2\bigl|Y_\ell^m(\theta,\varphi)\bigr|^2r^2\sin\theta\;\mathrm dr\,\mathrm d\theta\,\mathrm d\varphi\]</div>
-    <div class="equation">\[P_r(r)=r^2\bigl|R_{n\ell}(r)\bigr|^2,\qquad\int_0^\infty P_r(r)\,\mathrm dr=1\]</div>
+    <p class="math-note">Real orbitals have \(\ell\) angular nodal surfaces. Complex orbitals have \(\ell-|m|\) polar nodal surfaces, with an additional zero on the \(z\) axis when \(|m|>0\). <a href="https://dlmf.nist.gov/14.30" target="_blank" rel="noopener noreferrer">NIST DLMF · Spherical harmonics ↗</a></p>
+ </div></details>
+</section>
+
+<section class="math-topic" id="math-topic-5" aria-labelledby="math-topic-title-5">
+ <header class="math-topic-heading"><span class="math-topic-number">05</span><h2 id="math-topic-title-5">Probability: volume versus radius</h2></header>
+ <p class="math-topic-lead">The cloud shows probability per unit volume. The radial plot instead asks how much probability lies in a thin spherical shell at radius \(r\).</p>
+ <div class="math-primary"><div class="equation">\[\rho=|\Psi|^2,\qquad P(V)=\int_V\rho\,\mathrm d^3\mathbf r,\qquad\int_{\mathbb R^3}\rho\,\mathrm d^3\mathbf r=1\]</div>
+<div class="equation">\[P_r(r)=r^2\bigl|R_{n\ell}(r)\bigr|^2,\qquad\int_0^\infty P_r(r)\,\mathrm dr=1\]</div>
+</div>
+ <details class="math-deep-dive"><summary><span>Derivation &amp; details</span><small>Volume integration and a worked 1s example</small></summary><div class="math-section-body">
+ <h3>Integrating out the angles</h3>
+<p>In spherical coordinates, the volume element is \(r^2\sin\theta\,\mathrm dr\,\mathrm d\theta\,\mathrm d\varphi\). Since \(\int|Y_\ell^m|^2\,\mathrm d\Omega=1\), integrating the three-dimensional density over angle leaves \(P_r=r^2|R|^2\).</p>
+<div class="equation">\[R_{10}=2a_0^{-3/2}\mathrm e^{-r/a_0},\qquad P_{1s}(r)=\frac{4r^2}{a_0^3}\mathrm e^{-2r/a_0}.\]</div>
+<p>For \(r>0\), setting \(\mathrm d(\log P_{1s})/\mathrm dr=2/r-2/a_0=0\) gives \(r=a_0\). This is why the most likely radial shell differs from the point of greatest local density.</p>
+ <h3>The spherical volume element</h3>
+ <div class="equation">\[\mathrm dP=\bigl|R_{n\ell}(r)\bigr|^2\bigl|Y_\ell^m(\theta,\varphi)\bigr|^2r^2\sin\theta\;\mathrm dr\,\mathrm d\theta\,\mathrm d\varphi\]</div>
+
     <p>The factor \(r^2\) accounts for the increasing area of spherical shells. For 1s, local density is greatest at the nucleus, while the radial probability peaks at \(a_0\).</p>
     <p class="math-note"><a href="https://ocw.mit.edu/courses/5-111sc-principles-of-chemical-science-fall-2014/pages/unit-i-the-atom/lecture-6-hydrogen-atom-wavefunctions-orbitals/" target="_blank" rel="noopener noreferrer">MIT · Orbitals and radial probability ↗</a></p>
-  </div>
-</details>
+ </div></details>
+</section>
 
-<details class="math-section">
-  <summary><span>06</span> What the moving particles mean</summary>
-  <div class="math-section-body">
-    <p>Probability current measures probability flowing through an area per unit time. It depends on the spatial gradient of phase, not only brightness.</p>
-    <div class="equation">\[\mathbf j=\frac{\hbar}{m_e}\operatorname{Im}\!\left(\Psi^*\nabla\Psi\right),\qquad\frac{\partial\rho}{\partial t}+\nabla\!\cdot\mathbf j=0\]</div>
-    <p>For a complex hydrogen eigenstate, the phase factor \(\mathrm e^{\mathrm i m\varphi}\) gives an azimuthal current. Away from nodes, its flow field is</p>
-    <div class="equation">\[\mathbf v=\frac{\mathbf j}{\rho}=\frac{\hbar m}{m_er\sin\theta}\,\hat{\mathbf e}_\varphi\]</div>
+<section class="math-topic" id="math-topic-6" aria-labelledby="math-topic-title-6">
+ <header class="math-topic-heading"><span class="math-topic-number">06</span><h2 id="math-topic-title-6">What the moving particles mean</h2></header>
+ <p class="math-topic-lead">A cloud can remain stationary while probability circulates. Current depends on the spatial phase gradient; the tracers visualize that flow rather than measured electron paths.</p>
+ <div class="math-primary"><div class="equation">\[\mathbf j=\frac{\hbar}{m_e}\operatorname{Im}\!\left(\Psi^*\nabla\Psi\right),\qquad\frac{\partial\rho}{\partial t}+\nabla\!\cdot\mathbf j=0\]</div>
+<div class="equation">\[\mathbf v=\frac{\mathbf j}{\rho}=\frac{\hbar m}{m_er\sin\theta}\,\hat{\mathbf e}_\varphi\]</div>
+</div>
+ <details class="math-deep-dive"><summary><span>Derivation &amp; details</span><small>Continuity equation and the phase gradient</small></summary><div class="math-section-body">
+ <h3>Deriving conservation and circulation</h3>
+<p>Differentiate \(\rho=\Psi^*\Psi\), insert the Schrödinger equation and its complex conjugate, and subtract. A real potential cancels; the kinetic terms combine into a divergence:</p>
+<div class="equation">\[\partial_t\rho=\frac{\mathrm i\hbar}{2m_e}\nabla\!\cdot\left(\Psi^*\nabla\Psi-\Psi\nabla\Psi^*\right)=-\nabla\!\cdot\mathbf j.\]</div>
+<p>Writing \(\Psi=\sqrt\rho\,\mathrm e^{\mathrm iS/\hbar}\) gives \(\mathbf j=\rho\nabla S/m_e\). For an eigenstate, \(S=m\hbar\varphi-E_nt\); using \(\nabla\varphi=\hat{\mathbf e}_\varphi/(r\sin\theta)\) gives the displayed flow velocity. Dividing that tangential speed by \(r\sin\theta\) yields its angular speed.</p>
+ <h3>Angular motion and its limits</h3>
+ <p>For a complex hydrogen eigenstate, the azimuthal velocity gives these coordinate rates away from nodes:</p>
+
     <div class="equation">\[\frac{\mathrm d\varphi}{\mathrm dt}=\frac{\hbar m}{m_er^2\sin^2\theta},\qquad\frac{\mathrm dr}{\mathrm dt}=\frac{\mathrm d\theta}{\mathrm dt}=0\]</div>
     <p>Changing the sign of \(m\) reverses circulation. For \(m=0\), or a stationary real orbital, the current is zero. A stationary cloud can therefore have a circulating current while its density stays constant.</p>
     <p class="math-note">Tracers illustrate this flow field; they are not measured electron trajectories. Animation time is rescaled for visibility and is not a laboratory clock. At a node, \(\mathbf j/\rho\) is undefined. <a href="https://ocw.mit.edu/courses/8-04-quantum-physics-i-spring-2016/d87c768c4e1181fde8d4366112169719_MIT8_04S16_LecNotes6.pdf" target="_blank" rel="noopener noreferrer">MIT · Probability current and conservation ↗</a></p>
-  </div>
-</details>
+ </div></details>
+</section>
 
-<details class="math-section">
-  <summary><span>07</span> From mathematics to the screen</summary>
-  <div class="math-section-body">
-    <p>The renderer evaluates the analytic orbital in three dimensions, then accumulates samples along viewing rays. Density mode uses brightness to expose structure; the single-orbital phase view colors the complex angle \(\arg\Psi\). Density keeps its blue-to-white palette. Phase uses a vibrant cyclic rainbow. The colors at \(-\pi\) and \(+\pi\) match, and hue transitions remain smooth as the angle wraps around a full turn. In phase mode, hue represents an angle, not a probability.</p>
-    <p><strong>Shading is a visual mapping.</strong> State-dependent exposure and nonlinear brightness reveal faint outer lobes. Display brightness is not an absolute probability scale, and equal brightness across different orbitals does not imply equal density.</p>
-    <p><strong>Sculpted particles add depth.</strong> Each probability sample is drawn as a shaded spherical surface, with darker blue at low density and pale blue or white at high density. Surface lighting and bright centers illustrate the distribution; they are not light emitted by the atom, and the spheres are not solid electrons. Ultra adds finer volume sampling, more sculpted particles, layered highlights and luminous rims. This stylized lighting is computed locally on the GPU. Adaptive quality monitors frame rate, steps down under sustained load and cautiously adds detail when there is room.</p>
-    <p><strong>Cutaways reveal existing structure.</strong> Half, wedge and slice controls hide parts of the rendered volume. They do not collapse, renormalize or physically change the quantum state.</p>
-    <p><strong>Quality changes sampling.</strong> More ray steps and pixels improve detail; more tracers sample the same flow. Finite viewing bounds omit diffuse outer tails, a soft edge fade avoids a visible cutoff, and finite sampling can soften narrow nodes.</p>
+<section class="math-topic" id="math-topic-7" aria-labelledby="math-topic-title-7">
+ <header class="math-topic-heading"><span class="math-topic-number">07</span><h2 id="math-topic-title-7">From mathematics to the screen</h2></header>
+ <p class="math-topic-lead">The renderer maps density to brightness and phase to hue. Cloud integrates a volume; Granular displays samples from that same probability distribution.</p>
+ <div class="math-primary">
+<div class="equation">\[\rho(\mathbf r)=|\psi(\mathbf r)|^2,\qquad \phi(\mathbf r)=\arg\psi(\mathbf r)\]</div></div>
+ <details class="math-deep-dive"><summary><span>Derivation &amp; details</span><small>Sampling, color and rendering limits</small></summary><div class="math-section-body">
+ <h3>What sampling estimates</h3>
+<p>For normalized density, an independent sample lands in a region \(V\) with probability \(P(V)\). A collection of \(N\) samples therefore has expected regional count</p>
+<div class="equation">\[\mathbb E[N_V]=N\int_V\rho(\mathbf r)\,\mathrm d^3\mathbf r.\]</div>
+<p>Increasing the sample count reveals finer structure without changing the underlying state. Color and exposure make that structure legible: they are display choices, not another physical observable. The finite volume and finite number of samples approximate the analytic distribution.</p>
+ <h3>Visual mappings and sampling limits</h3>
+ <p>The renderer evaluates the analytic orbital in three dimensions, then accumulates samples along viewing rays. Density mode uses brightness to expose structure; the single-orbital phase view colors the complex angle \(\arg\Psi\). Density keeps its blue-to-white palette. Phase uses a vibrant cyclic rainbow. The colors at \(-\pi\) and \(+\pi\) match, and hue transitions remain smooth as the angle wraps around a full turn. In phase mode, hue represents an angle, not a probability.</p>
+    <h3>Shading is a visual mapping</h3>
+<p>State-dependent exposure and nonlinear brightness reveal faint outer lobes. Display brightness is not an absolute probability scale, and equal brightness across different orbitals does not imply equal density.</p>
+    <h3>Granular particles add depth</h3>
+<p>Each probability sample is a softly shaded matte sphere with depth testing. Density shading uses dark blue through pale blue and white. These spheres are probability samples, not solid electrons or emitted light. Cloud mode emphasizes the integrated density; Granular emphasizes the individual samples.</p><h3>Tracer limits</h3>
+<p>Cloud and Granular remember separate tracer ceilings. Selecting Real in Cloud starts with zero tracers; Complex starts with 5,000, and either can then be adjusted. Granular starts with 200,000. Each style remembers its intensity, flow speed, cut settings, auto rotation and axes independently. Basis and Density/Phase are shared across styles. The main explorer starts in Granular with a wedge; the transition viewer retains Whole as its Granular default. Granular intensity and flow speed both default to 2. Flow speed snaps to ¼×, ½×, 1×, 2× or 4×. Its control is shown only for Complex; flow runs continuously. The tracer slider sets the maximum requested samples for that style, up to 10,000 in Cloud and 200,000 in Granular. A background limiter lowers the active count rapidly when measured frame rate falls below the target, then restores samples when there is sustained headroom, never exceeding the slider setting. Granular targets 30 FPS in both viewers and keeps its raster resolution fixed. Cloud retains adaptive resolution and targets 30 FPS in the orbital explorer and 60 FPS in the transition viewer. The active count is shown when limited. Volume sampling and pixel resolution also cost GPU time. These frame rates are performance goals, not guarantees or physical oscillation frequencies. Hidden and stationary views do not drive upward adjustments.</p>
+    <h3>Cutaways reveal existing structure</h3>
+<p>Half, wedge and slice controls hide parts of the rendered volume. They do not collapse, renormalize or physically change the quantum state.</p>
+    <h3>Sampling changes visual detail</h3>
+<p>More ray steps and pixels improve detail; more tracers sample the same flow. Finite viewing bounds omit diffuse outer tails, a soft edge fade avoids a visible cutoff, and finite sampling can soften narrow nodes.</p>
     <p class="math-note">Visual inspiration: <a href="https://github.com/kavan010/Atoms" target="_blank" rel="noopener noreferrer">kavan010 / Atoms ↗</a> · <a href="https://youtu.be/OSAOh4L41Wg" target="_blank" rel="noopener noreferrer">Reference video ↗</a>. Equations and explanations above use the linked NIST and MIT references.</p>
-  </div>
-</details>
+ </div></details>
+</section>
 
+<section class="math-topic" id="math-topic-8" aria-labelledby="math-topic-title-8">
+ <header class="math-topic-heading"><span class="math-topic-number">08</span><h2 id="math-topic-title-8">One wavelength, many state pairs</h2></header>
+ <p class="math-topic-lead">One spectral line fixes an energy gap, not a unique pair of orbital shapes. In the displayed hydrogen model, 15 shell pairs give 15 distinct wavelengths.</p>
+ <div class="math-primary"><div class="equation">\[\begin{aligned}E_n&=-\frac{13.605693\,\mathrm{eV}}{n^2},\\[0.5em]\Delta E_{ab}&=13.605693\,\mathrm{eV}\left(\frac{1}{a^2}-\frac{1}{b^2}\right),\\[0.5em]\lambda_{ab}&=\frac{hc}{\Delta E_{ab}},\qquad hc=1239.841984332\,\mathrm{eV\,nm}.\end{aligned}\]</div>
+<div class="equation">\[N_{\mathrm{lines}}=\binom{6}{2}=15\]</div>
+</div>
+ <details class="math-deep-dive"><summary><span>Derivation &amp; details</span><small>Rydberg relation and complete pair counts</small></summary><div class="math-section-body">
+ <h3>Energy difference to wavelength</h3>
+<p>Subtract the two bound-state energies and equate the result to a photon’s \(h\nu=hc/\lambda\). The lower shell has the more negative energy, so \(E_b-E_a>0\) for \(b>a\).</p>
+<div class="equation">\[\frac1{\lambda_{ab}}=\frac{13.605693\,\mathrm{eV}}{hc}\left(\frac1{a^2}-\frac1{b^2}\right).\]</div>
+<p>For \(a=2\), \(b=3\), the gap is approximately \(1.890\,\mathrm{eV}\), giving a model vacuum wavelength near \(656.1\,\mathrm{nm}\). All allowed orbital pairs between those shells share that gap. Counting shell pairs gives \(6\cdot5/2=15\); counting magnetic channels additionally requires the angular selection rules.</p>
+ <h3>Shell degeneracy and spectral series</h3>
+ <div class="equation">\[g_n=\sum_{\ell=0}^{n-1}(2\ell+1)=n^2,\qquad\sum_{n=1}^{6}n^2=91\]</div>
+    <p>Let \(a=n_{\mathrm{lower}}\) and \(b=n_{\mathrm{upper}}\), with \(a\lt b\). These shell indices identify the positive gap and vacuum wavelength in the main equation.</p>
 
-<details class="math-section">
-  <summary><span>08</span> One wavelength, many state pairs</summary>
-  <div class="math-section-body">
-    <p>In this spin-free Coulomb model, energy depends only on \(n\). Every allowed \(\ell,m\) within a shell has the same energy. A shell contains \(n^2\) independent spatial states; the real and complex orbitals in the atlas are two bases of that same space.</p>
-    <div class="equation">\[g_n=\sum_{\ell=0}^{n-1}(2\ell+1)=n^2,\qquad\sum_{n=1}^{6}n^2=91\]</div>
-    <p>Let \(a=n_{\mathrm{lower}}\) and \(b=n_{\mathrm{upper}}\), with \(a\lt b\). Each shell pair has one positive energy gap and one vacuum wavelength in the displayed approximation:</p>
-    <div class="equation">\[\begin{aligned}E_n&=-\frac{13.605693\,\mathrm{eV}}{n^2},\\[0.5em]\Delta E_{ab}&=13.605693\,\mathrm{eV}\left(\frac{1}{a^2}-\frac{1}{b^2}\right),\\[0.5em]\lambda_{ab}&=\frac{hc}{\Delta E_{ab}},\qquad hc=1239.841984332\,\mathrm{eV\,nm}.\end{aligned}\]</div>
     <p>The 15 shell pairs through \(n=6\) have 15 distinct gaps. Lyman, Balmer, Paschen, Brackett and Pfund end at \(a=1,2,3,4,5\), respectively. The spectrum stops at \(n=6\); each physical series continues beyond the displayed lines toward its series limit.</p>
-    <div class="equation">\[N_{\mathrm{lines}}=\binom{6}{2}=15\]</div>
+
     <p>A fixed \(\Delta n=b-a\) groups several wavelengths; it does not determine a wavelength. For example, \(1\leftrightarrow2\) and \(5\leftrightarrow6\) both change \(n\) by one, but have very different gaps. A selected wavelength identifies the shell pair, then the subshell and magnetic-channel controls identify its spatial states.</p>
-    <p><strong>Counting the allowed pairs.</strong> For a fixed \(a\lt b\), the electric-dipole rule \(\Delta\ell=\pm1\) permits \(a\) upward-\(\ell\) branches and \(a-1\) downward-\(\ell\) branches. A branch connecting \(\ell\) and \(\ell+1\) contains \(3(2\ell+1)\) magnetic channels, one for every allowed lower \(m\) and \(q=0,\pm1\).</p>
+    <h3>Counting the allowed pairs</h3>
+<p>For a fixed \(a\lt b\), the electric-dipole rule \(\Delta\ell=\pm1\) permits \(a\) upward-\(\ell\) branches and \(a-1\) downward-\(\ell\) branches. A branch connecting \(\ell\) and \(\ell+1\) contains \(3(2\ell+1)\) magnetic channels, one for every allowed lower \(m\) and \(q=0,\pm1\).</p>
     <div class="equation">\[\begin{aligned}N_{\mathrm{subshell}}(a,b)&=2a-1,\\[0.4em]N_{\mathrm{channels}}(a,b)&=3\!\sum_{\ell=0}^{a-1}(2\ell+1)+3\!\sum_{\ell=1}^{a-1}(2\ell-1)\\[0.4em]&=3\left[a^2+(a-1)^2\right].\end{aligned}\]</div>
     <table><thead><tr><th>Series</th><th>Lines</th><th>Subshell pairs per line</th><th>Channels per line</th></tr></thead><tbody><tr><td>Lyman</td><td>5</td><td>1</td><td>3</td></tr><tr><td>Balmer</td><td>4</td><td>3</td><td>15</td></tr><tr><td>Paschen</td><td>3</td><td>5</td><td>39</td></tr><tr><td>Brackett</td><td>2</td><td>7</td><td>75</td></tr><tr><td>Pfund</td><td>1</td><td>9</td><td>123</td></tr></tbody></table>
     <div class="equation">\[\begin{aligned}N_{\mathrm{subshell,total}}&=\sum_{a=1}^{5}(6-a)(2a-1)=55,\\[0.4em]N_{\mathrm{channels,total}}&=3\sum_{a=1}^{5}(6-a)\left[a^2+(a-1)^2\right]=465.\end{aligned}\]</div>
@@ -107,73 +175,112 @@
     <table><thead><tr><th>\(\Delta n\)</th><th>Lines</th><th>Most channels in one line</th><th>Total channels</th></tr></thead><tbody><tr><td>1</td><td>5</td><td>123</td><td>255</td></tr><tr><td>2</td><td>4</td><td>75</td><td>132</td></tr><tr><td>3</td><td>3</td><td>39</td><td>57</td></tr><tr><td>4</td><td>2</td><td>15</td><td>18</td></tr><tr><td>5</td><td>1</td><td>3</td><td>3</td></tr></tbody></table>
     <p>Each count treats absorption and the reverse emission as one reversible pair. Without selection rules, shells \(a\) and \(b\) would have \(a^2b^2\) possible spatial-state pairs; most have a zero electric-dipole matrix element. The 465 channels are all the electric-dipole-allowed pairs in this finite model, not all possible atomic processes.</p>
     <p class="math-note">Model wavelengths are vacuum values for a fixed proton. Reduced mass, fine structure, the Lamb shift, hyperfine structure and external fields are omitted. Measured hydrogen wavelengths and splittings therefore differ slightly. <a href="https://physics.nist.gov/Pubs/AtSpec/node01.html" target="_blank" rel="noopener noreferrer">NIST · Energy and vacuum wavelength ↗</a></p>
-  </div>
-</details>
+ </div></details>
+</section>
 
-<details class="math-section">
-  <summary><span>09</span> Selection rules, polarization and coupling</summary>
-  <div class="math-section-body">
-    <p>Light couples to the electron through its electric dipole. In the long-wavelength approximation, \(\hat{\mathbf d}=-e\mathbf r\) and the interaction is \(\hat H'=-\hat{\mathbf d}\cdot\mathbf E(t)\). Its spherical spatial components are</p>
-    <div class="equation">\[r_0=z,\qquad r_{\pm1}=\mp\frac{x\pm\mathrm i y}{\sqrt2}=r\sqrt{\frac{4\pi}{3}}\,Y_1^{\pm1},\qquad r_0=r\sqrt{\frac{4\pi}{3}}\,Y_1^0.\]</div>
-    <p>Write the lower state as \(|a,\ell,m\rangle\) and the upper state as \(|b,L,M\rangle\). The channel label is always \(q=M-m\): the change in the atom's magnetic quantum number during absorption. Nonzero dipole coupling requires</p>
-    <div class="equation">\[L=\ell\pm1,\qquad q=M-m\in\{-1,0,+1\},\qquad |m|\le\ell,\quad |M|\le L.\]</div>
+<section class="math-topic" id="math-topic-9" aria-labelledby="math-topic-title-9">
+ <header class="math-topic-heading"><span class="math-topic-number">09</span><h2 id="math-topic-title-9">Selection rules, polarization and coupling</h2></header>
+ <p class="math-topic-lead">Electric-dipole selection rules identify allowed pairs. Their matrix elements determine coupling strength; a nonzero coupling is not a transition probability.</p>
+ <div class="math-primary"><div class="equation">\[L=\ell\pm1,\qquad q=M-m\in\{-1,0,+1\},\qquad |m|\le\ell,\quad |M|\le L.\]</div>
+<div class="equation">\[S_c=\left|I_{a\ell,bL}\right|^2\left|\mathcal A_c\right|^2,\qquad s_c=\frac{S_c}{\max_{c'\in\mathcal C_{ab}}S_{c'}}.\]</div>
+</div>
+ <details class="math-deep-dive"><summary><span>Derivation &amp; details</span><small>Selection rules, angular overlap and strength</small></summary><div class="math-section-body">
+ <h3>Why the dipole rules follow</h3>
+<p>In the long-wavelength approximation, the electron’s dipole is \(\hat{\mathbf d}=-e\mathbf r\), with interaction \(\hat H'= -\hat{\mathbf d}\cdot\mathbf E(t)\). Multiplying a position-operator component by \(-e\) gives the corresponding dipole component.</p>
+<p>The azimuthal part of the angular overlap contains \(\mathrm e^{\mathrm i(m+q-M)\varphi}\). Its integral over a full turn is zero unless \(M=m+q\). The rank-one dipole has \(q=0,\pm1\), giving \(|\Delta m|\le1\).</p>
+<div class="equation">\[\int_0^{2\pi}\mathrm e^{\mathrm i(m+q-M)\varphi}\,\mathrm d\varphi=2\pi\,\delta_{M,m+q}.\]</div>
+<p>Angular-momentum addition allows \(L=\ell-1,\ell,\ell+1\). The odd parity of \(\mathbf r\) requires opposite parities for the two states, excluding \(L=\ell\) and leaving \(\Delta\ell=\pm1\). Separating radial and angular factors then turns the squared dipole amplitude into the strength \(S_c\) in the main equation.</p>
+ <h3>Dipole components and polarization</h3>
+ <div class="equation">\[r_0=z,\qquad r_{\pm1}=\mp\frac{x\pm\mathrm i y}{\sqrt2}=r\sqrt{\frac{4\pi}{3}}\,Y_1^{\pm1},\qquad r_0=r\sqrt{\frac{4\pi}{3}}\,Y_1^0.\]</div>
+    <p>Write the lower state as \(|a,\ell,m\rangle\) and the upper state as \(|b,L,M\rangle\). The channel label is always \(q=M-m\): the change in the atom's magnetic quantum number during absorption. Nonzero coupling obeys the selection rules shown in the main equation.</p>
+
     <p>Parity changes because the dipole operator is odd. There is no additional electric-dipole rule restricting \(\Delta n\). Same-shell changes have zero photon energy in this model and are not finite-wavelength spectral lines.</p>
     <table><thead><tr><th>Channel</th><th>Absorption</th><th>Polarization relative to \(z\)</th></tr></thead><tbody><tr><td>\(\pi\)</td><td>\(q=0\)</td><td>Electric field along the quantization axis</td></tr><tr><td>\(\sigma^+\)</td><td>\(q=+1\)</td><td>Circular component that raises the atom's \(m\)</td></tr><tr><td>\(\sigma^-\)</td><td>\(q=-1\)</td><td>Circular component that lowers the atom's \(m\)</td></tr></tbody></table>
     <p>These labels specify coupling components, not an observer-dependent clockwise or counterclockwise arrow. For propagation along \(z\), the two circular polarizations address the \(\sigma\) channels; a \(\pi\) field needs a propagation direction transverse to \(z\). Other field orientations are combinations of components. During emission along the same reversible channel, the atom changes \(m\) by \(-q\).</p>
-    <p><strong>Magnetic-sign symmetry.</strong> Simultaneously reversing both magnetic numbers preserves the complex-state densities and dipole strength while reversing their probability currents: \((m,M,q)\mapsto(-m,-M,-q)\). The sign selector \(\sigma=\pm1\) switches these partners. For \(q=0\), the cards show one nonnegative representative with actual magnetic numbers \(m=\sigma |m|\) and \(M=\sigma |M|\). Zero remains zero. Here \(q=\Delta m=M-m\). The magnetic-change controls choose \(|\Delta m|=0\) or \(|\Delta m|=1\). For \(|\Delta m|=1\), the table uses the \(q=+1\) reference pairs. The negative sign reverses both reference magnetic numbers and gives physical \(q=-1\); the cards, their order and selection stay fixed, while their displayed magnetic signs update to the actual states. For \(|\Delta m|=0\), the table uses nonnegative magnetic representatives. Only changing the polarization magnitude changes the table. This groups symmetry partners without discarding physical channels. The + button uses the reference pair, not necessarily two positive magnetic numbers. For example, \(5p,-1\leftrightarrow6s,0\) has reference \(q=+1\); reversing both signs gives \(5p,+1\leftrightarrow6s,0\) with \(q=-1\). An s orbital always has \(m=0\). The animation labels show the actual signed states and signed \(q\). For two zero magnetic numbers, both sign choices represent the same channel. Across all 15 lines, 260 symmetry-grouped cards represent 465 signed channels; the 55 zero-to-zero channels are counted only once. A selected-orbital filter can exclude a reversed partner; clear that filter to access it.</p>
-    <p><strong>Radial overlap and angular coupling.</strong> Separating variables gives one radial integral for a subshell pair and one angular factor for each magnetic channel:</p>
+    <h3>Magnetic-sign symmetry</h3>
+<p>Simultaneously reversing both magnetic numbers preserves the complex-state densities and dipole strength while reversing their probability currents: \((m,M,q)\mapsto(-m,-M,-q)\). The sign selector \(\sigma=\pm1\) switches these partners.</p>
+<p>For \(q=0\), the cards show one nonnegative representative with actual magnetic numbers \(m=\sigma |m|\) and \(M=\sigma |M|\). Zero remains zero. Here \(q=\Delta m=M-m\). The magnetic-change controls choose \(|\Delta m|=0\) or \(|\Delta m|=1\). For \(|\Delta m|=1\), the table uses the \(q=+1\) reference pairs. The negative sign reverses both reference magnetic numbers and gives physical \(q=-1\); the cards, their order and selection stay fixed, while their displayed magnetic signs update to the actual states. For \(|\Delta m|=0\), the table uses nonnegative magnetic representatives. Only changing the magnetic-change magnitude changes the table. This groups symmetry partners without discarding physical channels.</p>
+<p>The + button uses the reference pair, not necessarily two positive magnetic numbers. For example, \(5p,-1\leftrightarrow6s,0\) has reference \(q=+1\); reversing both signs gives \(5p,+1\leftrightarrow6s,0\) with \(q=-1\). An s orbital always has \(m=0\). The animation labels show the actual signed states. For two zero magnetic numbers, both sign choices represent the same channel.</p>
+<p>Across all 15 lines, 260 symmetry-grouped cards represent 465 signed channels; the 55 zero-to-zero channels are counted only once. A selected-orbital filter can exclude a reversed partner; clear that filter to access it.</p>
+    <h3>Radial overlap and angular coupling</h3>
+<p>Separating variables gives one radial integral for a subshell pair and one angular factor for each magnetic channel:</p>
     <div class="equation">\[\begin{aligned}\langle bLM|r_q|a\ell m\rangle&=I_{a\ell,bL}\,\mathcal A_{\ell m,L M}^{(q)},\\[0.5em]I_{a\ell,bL}&=\int_0^\infty R_{bL}(r)R_{a\ell}(r)r^3\,\mathrm dr,\\[0.5em]\mathcal A_{\ell m,L M}^{(q)}&=\sqrt{\frac{4\pi}{3}}\int (Y_L^M)^*Y_1^qY_\ell^m\,\mathrm d\Omega.\end{aligned}\]</div>
     <p>The radial functions are normalized as in section 03. The angular integral is a Gaunt coefficient; equivalently, using Wigner \(3j\) symbols,</p>
     <div class="equation">\[\mathcal A_{\ell m,L M}^{(q)}=(-1)^M\sqrt{(2L+1)(2\ell+1)}\begin{pmatrix}L&1&\ell\\0&0&0\end{pmatrix}\begin{pmatrix}L&1&\ell\\-M&q&m\end{pmatrix}.\]</div>
     <p>The code evaluates its square directly. For \(L=\ell+1\), set \(D=(2\ell+1)(2\ell+3)\):</p>
     <div class="equation">\[\left|\mathcal A_{\ell m,\ell+1,m+q}^{(q)}\right|^2=\begin{cases}\dfrac{(\ell+1)^2-m^2}{D},&q=0,\\[0.8em]\dfrac{(\ell+m+1)(\ell+m+2)}{2D},&q=+1,\\[0.8em]\dfrac{(\ell-m+1)(\ell-m+2)}{2D},&q=-1.\end{cases}\]</div>
     <p>The \(L=\ell-1\) result follows by interchanging the angular states and reversing \(q\); the squared magnitude is unchanged. The radial integrals use converged Simpson quadrature in units of \(a_0\), cached once per subshell pair.</p>
-    <p><strong>What the strength bars mean.</strong> Each bar measures the squared spatial dipole matrix element. Its relative value is normalized against the strongest magnetic channel on the same wavelength, including all subshells and all three polarization components:</p>
-    <div class="equation">\[S_c=\left|I_{a\ell,bL}\right|^2\left|\mathcal A_c\right|^2,\qquad s_c=\frac{S_c}{\max_{c'\in\mathcal C_{ab}}S_{c'}}.\]</div>
+    <h3>What dipole strength means</h3>
+<p>The readout measures the squared spatial dipole matrix element. The relative value is normalized against the strongest magnetic channel on the same wavelength, including all subshells and all three polarization components.</p>
+
     <p>\(S_c\) has units of \(a_0^2\); multiplying it by \(e^2\) gives the squared electric-dipole moment. Filters do not change the denominator. A relative value of one identifies the strongest channel at that wavelength; it is not a 100% transition probability.</p>
     <p>Observed line brightness also depends on the number of atoms in each state, the illuminating field, polarization, frequency, decay and observation geometry. Spontaneous-emission rates scale as \(\omega^3\) times dipole strength; emitted power also includes photon energy and upper-state population. Summing channels requires a specified population model. The spectrum therefore presents coupling strengths, not predicted measured intensities.</p>
     <p class="math-note"><a href="https://www.nist.gov/pml/atomic-spectroscopy-compendium-basic-ideas-notation-data-and-formulas/atomic-spectroscopy" target="_blank" rel="noopener noreferrer">NIST · Selection rules and line strengths ↗</a> · <a href="https://dlmf.nist.gov/34.3#vii" target="_blank" rel="noopener noreferrer">NIST DLMF · Gaunt integrals and angular coupling ↗</a></p>
-  </div>
-</details>
+ </div></details>
+</section>
 
-<details class="math-section">
-  <summary><span>10</span> Driven motion between two states</summary>
-  <div class="math-section-body">
-    <p>A resonant, coherent field can exchange population between two coupled states. For an ideal isolated pair, initially in the lower state and driven without decay, the rotating-wave approximation gives</p>
-    <div class="equation">\[P_u(t)=\sin^2\!\left(\frac{\Omega t}{2}\right),\qquad P_l(t)=1-P_u(t).\]</div>
-    <p>For a monochromatic field \(\mathbf E(t)=\operatorname{Re}[\boldsymbol{\mathcal E}\,\mathrm e^{-\mathrm i\omega t}]\), define \(\Omega=|\langle u|\hat{\mathbf d}\cdot\boldsymbol{\mathcal E}|l\rangle|/\hbar\). Thus physical Rabi rates depend on field amplitude, polarization and the channel's dipole matrix element. With one matched field component held fixed, \(\Omega\) scales as \(\sqrt{S_c}\).</p>
-    <p><strong>The display defaults to a 1.25-second cycle.</strong> The transition-speed control scales the visual cycle in five steps: 1/4×, 1/2×, 1×, 2× and 4× (5 to 0.3125 seconds), independently of circulation speed. This visual timing makes different shapes easy to compare and does not predict physical Rabi times or scale playback by the strength bars. The rising population illustrates absorption; the falling population illustrates stimulated emission. The repeating animation is not repeated spontaneous decay.</p>
+<section class="math-topic" id="math-topic-10" aria-labelledby="math-topic-title-10">
+ <header class="math-topic-heading"><span class="math-topic-number">10</span><h2 id="math-topic-title-10">Driven motion between two states</h2></header>
+ <p class="math-topic-lead">A resonant drive exchanges population between an isolated pair of states. The animation keeps that slow exchange and averages over the much faster optical oscillation.</p>
+ <div class="math-primary"><div class="equation">\[P_u(t)=\sin^2\!\left(\frac{\Omega t}{2}\right),\qquad P_l(t)=1-P_u(t).\]</div>
+<div class="equation">\[\bar\rho(\mathbf r,t)=[1-P_u(t)]|\psi_l(\mathbf r)|^2+P_u(t)|\psi_u(\mathbf r)|^2\]</div></div>
+ <details class="math-deep-dive"><summary><span>Derivation &amp; details</span><small>Two-state solution, optical averaging and scope</small></summary><div class="math-section-body">
+ <h3>Solving the resonant two-state problem</h3>
+<p>Choose the drive phase so the resonant rotating-frame coupling is real. With the atom initially in the lower state, the effective equations are</p>
+<div class="equation">\[\mathrm i\frac{\mathrm d}{\mathrm dt}\begin{pmatrix}c_l\\c_u\end{pmatrix}=\frac\Omega2\begin{pmatrix}0&1\\1&0\end{pmatrix}\begin{pmatrix}c_l\\c_u\end{pmatrix},\qquad\begin{pmatrix}c_l(0)\\c_u(0)\end{pmatrix}=\begin{pmatrix}1\\0\end{pmatrix}.\]</div>
+<p>Differentiating once more gives \(\ddot c_l=-(\Omega/2)^2c_l\). Thus \(c_l=\cos(\Omega t/2)\), \(c_u=-\mathrm i\sin(\Omega t/2)\), and taking squared magnitudes gives the population cycle. Its period is \(2\pi/\Omega\), distinct from the optical period \(2\pi/\omega\).</p>
+<p>Expanding the coherent density gives two population terms and an interference term. Averaging over many optical cycles removes the rapidly varying cross term, leaving the displayed mixture while preserving total probability.</p>
+ <h3>Driving field and visual time</h3>
+ <p>For a monochromatic field \(\mathbf E(t)=\operatorname{Re}[\boldsymbol{\mathcal E}\,\mathrm e^{-\mathrm i\omega t}]\), define \(\Omega=|\langle u|\hat{\mathbf d}\cdot\boldsymbol{\mathcal E}|l\rangle|/\hbar\). Thus physical Rabi rates depend on field amplitude, polarization and the channel's dipole matrix element. With one matched field component held fixed, \(\Omega\) scales as \(\sqrt{S_c}\).</p>
+    <h3>The display defaults to a 1.25-second cycle</h3>
+<p>The transition-speed control scales the visual cycle in five steps: 1/4×, 1/2×, 1×, 2× and 4× (5 to 0.3125 seconds), independently of circulation speed. This visual timing makes different shapes easy to compare and does not predict physical Rabi times or scale playback by dipole strength. Each descriptor’s border brightens toward white as its population grows. The rising upper-state population illustrates absorption; the falling population illustrates stimulated emission. The repeating animation is not repeated spontaneous decay.</p>
     <p>The coherent wavefunction contains two energy-dependent phases:</p>
     <div class="equation">\[\Psi(\mathbf r,t)=c_l(t)\psi_l(\mathbf r)\mathrm e^{-\mathrm iE_lt/\hbar}+c_u(t)\psi_u(\mathbf r)\mathrm e^{-\mathrm iE_ut/\hbar}.\]</div>
     <p>Its density has an interference term oscillating at the optical difference frequency. The transition cloud averages over that fast oscillation while retaining the slow populations:</p>
     <div class="equation">\[\begin{aligned}|\Psi|^2={}&|c_l|^2|\psi_l|^2+|c_u|^2|\psi_u|^2\\&+2\operatorname{Re}\!\left[c_l^*c_u\psi_l^*\psi_u\,\mathrm e^{-\mathrm i(E_u-E_l)t/\hbar}\right],\\[0.7em]\bar\rho(\mathbf r,t)={}&\bigl[1-P_u(t)\bigr]|\psi_l(\mathbf r)|^2+P_u(t)|\psi_u(\mathbf r)|^2.\end{aligned}\]</div>
     <p>The averaging assumes an interval long compared with the optical period and short compared with the population cycle. The two normalized distributions share one physical coordinate scale; a common visual exposure is applied after mixing. Both probabilities add to one, and the integrated density remains one.</p>
-    <p>Every selected channel uses the complex magnetic basis \(|n,\ell,m\rangle\). Opposite signs of \(m\) have identical density, so some different channels look the same in this averaged view even though their phase, current or polarization coupling differs. The state labels and strength bars retain that distinction. The atlas's real orbitals are superpositions of the complex states, not additional channels to be added to the count.</p>
-    <p><strong>Two-state scope.</strong> With degenerate magnetic sublevels, a real applied field can couple several states simultaneously. This view isolates one matrix element at a time; a wavelength alone does not prepare a unique channel. It omits multilevel coherent dynamics, spontaneous decay, decoherence, saturation in an ensemble and line broadening. Electric-quadrupole, magnetic-dipole, multiphoton and ionization processes are outside this electric-dipole, bound-state model. A dipole-forbidden transition can still occur by another mechanism.</p>
+    <p>Every selected channel uses the complex magnetic basis \(|n,\ell,m\rangle\). Opposite signs of \(m\) have identical density, so some different channels look the same in this averaged view even though their phase, current or polarization coupling differs. The state labels and dipole-strength readout retain that distinction. The atlas's real orbitals are superpositions of the complex states, not additional channels to be added to the count.</p>
+    <h3>Two-state scope</h3>
+<p>With degenerate magnetic sublevels, a real applied field can couple several states simultaneously. This view isolates one matrix element at a time; a wavelength alone does not prepare a unique channel. It omits multilevel coherent dynamics, spontaneous decay, decoherence, saturation in an ensemble and line broadening. Electric-quadrupole, magnetic-dipole, multiphoton and ionization processes are outside this electric-dipole, bound-state model. A dipole-forbidden transition can still occur by another mechanism.</p>
     <p class="math-note">Visible spectral colors are approximate; ultraviolet and infrared lines use blue interface markers, not visible photon colors. Each orbital card is a density cross section scaled independently to its own radius and peak density; the animated pair shares one spatial scale. The orbital cloud is a probability distribution; it does not depict an electron traveling between two surfaces. <a href="https://ocw.mit.edu/courses/6-728-applied-quantum-and-statistical-physics-fall-2006/16029f7c397abce618505381ec3a82dc_twolevel04.pdf" target="_blank" rel="noopener noreferrer">MIT · Coherently driven two-level systems ↗</a></p>
-  </div>
-</details>
+ </div></details>
+</section>
 
-
-<details class="math-section">
-  <summary><span>11</span> Viewing a transition: basis, phase and current</summary>
-  <div class="math-section-body">
-    <p>The transition viewer starts in <strong>Complex · Density · Cloud</strong>, with the whole distribution visible. Its appearance controls use the same blue density palette, cyclic phase palette, cutaways and particle shading as the orbital explorer. The selected spectral line, channel and population cycle remain independent of the camera, intensity and quality settings.</p>
-    <p><strong>Complex states and real-basis previews.</strong> Complex mode displays the two magnetic eigenstates named by the selected channel. Real orbitals replaces each endpoint by its normalized real counterpart from section 04: the positive index selects a cosine combination, the negative index a sine combination. This is a preview of different basis shapes in the same energy shells, not a claim that their coupling equals the selected complex channel's coupling.</p>
+<section class="math-topic" id="math-topic-11" aria-labelledby="math-topic-title-11">
+ <header class="math-topic-heading"><span class="math-topic-number">11</span><h2 id="math-topic-title-11">Viewing a transition: basis, phase and current</h2></header>
+ <p class="math-topic-lead">The transition preview separates basis choice, phase color and component circulation. These are views of the selected energy shells, while the reported coupling refers to the selected complex states.</p>
+ <div class="math-primary"><div class="equation">\[D_{\mathrm{real}}^{(q)}=U_u^\dagger D_{\mathrm{complex}}^{(q)}U_l.\]</div>
+<div class="equation">\[\mathbf j_{\mathrm{circ}}=(1-P)\mathbf j_l+P\mathbf j_u\]</div></div>
+ <details class="math-deep-dive"><summary><span>Derivation &amp; details</span><small>Basis transformations and current limitations</small></summary><div class="math-section-body">
+ <h3>Transform amplitudes before taking their magnitude</h3>
+<p>A real endpoint is a normalized linear combination of complex magnetic states. If \(|l'\rangle=\sum_m|l,m\rangle(U_l)_{ml'}\), and similarly for the upper state, inserting both expansions into \(\langle u'|r_q|l'\rangle\) gives \(U_u^\dagger D^{(q)}U_l\).</p>
+<p>The order matters: amplitudes can interfere, so transforming a table of already-squared strengths generally gives a different result. The real preview preserves shell energies and visualizes the alternative shapes; it does not recompute a physical drive between those real combinations.</p>
+<p>Likewise, the weighted circulation overlay is not the full transport current during population transfer. Taking the time derivative of the averaged density exposes the missing transfer term, derived below.</p>
+ <h3>Interpreting the transition preview</h3>
+ <h3>Complex states and real-basis previews</h3>
+<p>Complex mode displays the two magnetic eigenstates named by the selected channel. Real mode replaces each endpoint by its normalized real counterpart from section 04: the positive index selects a cosine combination, the negative index a sine combination. This is a preview of different basis shapes in the same energy shells, not a claim that their coupling equals the selected complex channel's coupling.</p>
     <p>The wavelength is unchanged because these combinations have the same shell energies. The displayed selection rules, polarization and strength continue to refer to the named <strong>complex</strong> states. A physical transition calculation between real combinations would transform the full matrix of dipole amplitudes before taking its squared magnitude:</p>
-    <div class="equation">\[D_{\mathrm{real}}^{(q)}=U_u^\dagger D_{\mathrm{complex}}^{(q)}U_l.\]</div>
+
     <p>The columns of \(U_l\) and \(U_u\) contain the real basis vectors expressed in their complex magnetic bases. The signed index in a real preview is not a definite value of angular momentum along \(z\). Real combinations add no independent states to the catalog.</p>
-    <p><strong>Component phase is a color convention.</strong> After optical averaging, the density is a population-weighted sum. This averaged representation has no unique single wavefunction phase to color; it does not assert that the underlying driven state has physically decohered. The cloud therefore colors each component's phase separately, then blends its colors according to local density. With \(p_l=1-P\), \(p_u=P\), \(\rho_k=|\psi_k|^2\), and a cyclic color map \(F\), the unshaded volume color is</p>
+    <h3>Component phase is a color convention</h3>
+<p>After optical averaging, the density is a population-weighted sum. This averaged representation has no unique single wavefunction phase to color; it does not assert that the underlying driven state has physically decohered. The cloud therefore colors each component's phase separately, then blends its colors according to local density. With \(p_l=1-P\), \(p_u=P\), \(\rho_k=|\psi_k|^2\), and a cyclic color map \(F\), the unshaded volume color is</p>
     <div class="equation">\[\mathbf C(\mathbf r)=\frac{p_l\rho_l(\mathbf r)F\!\bigl(\phi_l(\mathbf r)\bigr)+p_u\rho_u(\mathbf r)F\!\bigl(\phi_u(\mathbf r)\bigr)}{p_l\rho_l(\mathbf r)+p_u\rho_u(\mathbf r)},\qquad\bar\rho(\mathbf r)>0.\]</div>
     <p>Here \(\phi_k\) is the phase of one component in the display's chosen convention; each component particle carries its own phase color. Zero-density regions contribute no color. The palette wraps smoothly at \(-\pi\) and \(+\pi\). Blended colors are not the phase of a coherent superposition and do not restore the interference term omitted in section 10. Changing a component's arbitrary overall phase changes its colors without changing its density or coupling strength.</p>
-    <p><strong>Circulation is separate from population transfer.</strong> The tracers sample each endpoint distribution and circle according to that component's stationary current. Their population weights change with the cycle. They illustrate the component circulation field</p>
+    <h3>Circulation is separate from population transfer</h3>
+<p>The tracers sample each endpoint distribution and circle according to that component's stationary current. Their population weights change with the cycle. They illustrate the component circulation field</p>
     <div class="equation">\[\mathbf j_{\mathrm{circ}}=(1-P)\mathbf j_l+P\mathbf j_u,\qquad\mathbf j_k=\frac{\hbar}{m_e}\operatorname{Im}\!\left(\psi_k^*\nabla\psi_k\right).\]</div>
     <p>Each stationary complex component follows the azimuthal flow in section 06. Opposite magnetic signs circulate in opposite directions. A stationary real component, or a component with \(m=0\), has zero circulation. The moving samples do not travel from one orbital to the other.</p>
     <p>This overlay does not solve the full local probability transport of the driven atom. The distinction can be seen directly: each stationary current is divergence-free, whereas the chosen population interpolation changes the local density, giving</p>
     <div class="equation">\[\frac{\partial\bar\rho}{\partial t}+\nabla\!\cdot\mathbf j_{\mathrm{circ}}=\dot P\left(\rho_u-\rho_l\right).\]</div>
     <p>The right-hand side integrates to zero because both endpoint densities are normalized. It records the change of the displayed component weights; it is not creation or loss of an electron. The full driven quantum evolution conserves probability locally, but its transfer current and fast coherences are outside this averaged visualization. The circulation overlay alone must not be interpreted as that full current.</p>
-    <p><strong>Two independent visual clocks.</strong> The population slider and playback control set the ten-second absorption–stimulated-emission cycle. Flow speed and its pause control set the illustrative circulation and phase-color clock. Pausing one does not pause the other. These clocks are rescaled for viewing and do not measure physical transition times or relative optical phase.</p>
-    <p><strong>Geometry and lighting.</strong> Cloud mode integrates the mixed density along viewing rays. Sculpted particles draw samples from the endpoint distributions as shaded spheres, weighted by their populations. Sphere sizes, highlights and dense bright cores aid depth perception; they are not electron sizes or emitted light. Half, wedge and slice controls hide selected geometry without changing or renormalizing either state. Rotation, zoom, coordinate axes and adaptive quality change the view, not the spectrum or coupling calculation.</p>
+    <h3>Two independent visual clocks</h3>
+<p>The transition-speed control sets the absorption–stimulated-emission cycle. Flow speed and its pause control set the illustrative circulation and phase-color clock. Pausing one does not pause the other. These clocks are rescaled for viewing and do not measure physical transition times or relative optical phase.</p>
+    <h3>Geometry and lighting</h3>
+<p>Granular uses softly lit matte spheres. Cloud integrates the mixed density along viewing rays. Both sample the same optical-cycle-averaged distribution. Sphere sizes and highlights aid depth perception; they are not electron sizes or emitted light. Half, wedge and slice controls hide geometry without changing or renormalizing either state. Rotation, zoom, coordinate axes and the tracer limiter affect the view, not the spectrum or coupling.</p>
+    <h3>Component samples</h3>
+<p>For upper-state population \(P\), the active sample budget is divided between the two normalized endpoint distributions:</p>
+    <div class="equation">\[N_l\approx(1-P)N_{\mathrm{active}},\qquad N_u\approx P N_{\mathrm{active}}.\]</div>
+    <p>Both components share the density palette. Equal populations mean equal sample shares, not identical silhouettes or brightness at every point. Phase mode retains its cyclic rainbow.</p>
     <p class="math-note"><a href="https://ocw.mit.edu/courses/8-06-quantum-physics-iii-spring-2016/fc8347d83390a876ee665fbbfd9b2d7f_MIT8_06S16_chap3.pdf" target="_blank" rel="noopener noreferrer">MIT · Pure states and density matrices ↗</a> · <a href="https://ocw.mit.edu/courses/8-04-quantum-physics-i-spring-2016/d87c768c4e1181fde8d4366112169719_MIT8_04S16_LecNotes6.pdf" target="_blank" rel="noopener noreferrer">MIT · Probability current and conservation ↗</a></p>
-  </div>
-</details>
+ </div></details>
+</section>

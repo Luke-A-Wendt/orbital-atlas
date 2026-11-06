@@ -62,3 +62,55 @@ footer{flex-wrap:wrap}footer .author-credits{flex-basis:100%;display:flex;flex-d
 .scene .quantum-badge{margin-left:2px}
 .scene .scene-metrics{top:170px}
 @container(max-width:600px){.scene canvas{top:265px;height:calc(100% - 470px)}}
+
+.appearance-section .render-style{flex-wrap:wrap}.appearance-section .render-style button{flex:1 1 auto}
+
+/* Shared tracer controls retain the compact appearance-panel rhythm. */
+.tracer-controls{margin:12px 0 0}
+.cut-section>.toggle-line{margin-top:15px}
+
+.tracer-limit-note{margin:7px 0 14px;color:#8fa3bc;font-size:9px;line-height:1.6;min-height:1.6em}
+
+.appearance-section .render-style{margin-top:0;margin-bottom:9px}
+
+/* Cutaway controls stay directly beneath the animation at every width. */
+.workspace>.scene{grid-column:1;grid-row:1}
+.workspace>.controls{grid-column:2;grid-row:1 / span 2}
+.workspace>.cut-section{grid-column:1;grid-row:2;margin:0;padding:22px 28px;border-top:1px solid var(--line);border-bottom:0;background:#121315;min-width:0}
+.workspace>.cut-section .cut-options{max-width:420px}
+.workspace>.cut-section #cut-settings{max-width:420px}
+.workspace>.cut-section .toggle-line{max-width:420px}
+@media(max-width:780px){.workspace>.controls{grid-column:1;grid-row:3}.workspace>.cut-section{padding:20px}}
+
+/* Choose the orbital before entering the animation. */
+.workspace>.quantum-section{grid-column:1 / -1;grid-row:1;min-width:0;margin:0;padding:22px 28px;background:#121315;border-bottom:1px solid var(--line)}
+.workspace>.quantum-section .quantum-inputs,.workspace>.quantum-section .basis-switch{max-width:540px}
+.workspace>.scene{grid-row:2}
+.workspace>.cut-section{grid-row:3}
+.workspace>.controls{grid-row:2 / span 2}
+@media(max-width:780px){.workspace>.quantum-section{padding:20px}.workspace>.controls{grid-row:4;display:block}}
+
+.quantum-links{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px 20px;max-width:540px;margin-bottom:20px}.quantum-links .quantum-help{margin:0;text-align:left}
+
+.cut-more-options{max-width:420px;margin-top:16px;border-top:1px solid var(--line)}
+.cut-more-options>summary{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:15px 0 3px;list-style:none;cursor:pointer;color:#a8b5c3;font-size:12px}
+.cut-more-options>summary::-webkit-details-marker{display:none}
+.cut-more-options>summary::after{content:"⌄";font-size:16px;transition:transform .15s}
+.cut-more-options[open]>summary::after{transform:rotate(180deg)}
+.cut-more-content{padding-top:12px}
+
+.settings-heading{display:flex;align-items:center;gap:9px;margin-bottom:16px}
+.settings-heading>.section-label,.settings-heading>h3{margin:0}
+.settings-gear{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;padding:6px;border:1px solid transparent;border-radius:6px;color:#8c9ba9}
+.settings-gear svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linejoin:round}
+.settings-gear:hover,.settings-gear[aria-expanded="true"]{color:#b4d5f5;background:#a1c6f012;border-color:#a1c6f040}
+.cut-more-options{margin-top:0;border-top:0}
+.cut-more-options>summary[hidden]{display:none}
+.cut-more-options[open]{margin-top:18px;border-top:1px solid var(--line)}
+
+/* State metrics follow the magnetic label without a fixed-position gap. */
+.scene .scene-heading .scene-metrics{position:static;top:auto;left:auto;margin-top:10px}
+
+/* State metrics sit beneath the fullscreen control. */
+.scene-top-right{flex-wrap:wrap;justify-content:flex-end;max-width:150px}
+.scene .scene-top-right .scene-metrics{position:static;top:auto;left:auto;right:auto;flex:0 0 100%;width:150px;margin-top:6px;text-align:right;grid-template-columns:1fr;gap:13px}
