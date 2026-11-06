@@ -1,143 +1,61 @@
 # [Orbital Atlas](https://luke-a-wendt.github.io/orbital-atlas/)
 
-An interactive, self-contained atlas of the hydrogen atom: explore the shape of a wavefunction, see probability flow, and unfold the mathematics behind it.
+An interactive atlas of the hydrogen atom. Explore orbital shapes, watch transitions between energy states, and follow the mathematics behind the visualizations.
 
-## Explore the atom
+## Orbits
 
-- **91 spatial eigenstates** through principal quantum number 6, grouped into s, p, d, f, g, and h families.
-- **Drag, rotate, and zoom** the three-dimensional cloud on a mouse or touch screen.
-- **Whole, half, wedge, and slice views** reveal nested radial shells and nodal structure.
-- **Blue density and seamless cyclic-rainbow phase coloring**, complex and real orbital bases, and animated probability-current tracers.
-- **Cloud and sculpted-particle rendering** in a charcoal, gray, and blue interface.
-- **Adaptive GPU quality** from Efficient through Ultra, with high-quality shaded spheres and automatic adjustment to the device’s performance.
-- **Typeset mathematics** with scalable delimiters, radicals, and locally bundled math fonts.
+Explore hydrogen's **91 spatial eigenstates through principal quantum number 6**, across the s, p, d, f, g and h families. Choose the quantum numbers directly or select a shape from the orbital atlas.
 
-The opening scene is the whole **6f state with m = +1**. The cloud remains stationary while tracers illustrate circulating probability current. These are illustrative samples of a wavefunction, not solid electrons or measured electron trajectories.
+- Rotate and zoom the three-dimensional view with a mouse or touch screen.
+- Reveal shells and nodes with **Whole, Half, Wedge and Slice** views.
+- Switch between **Real** orbital shapes and **Complex** eigenstates.
+- View a luminous **Cloud** or individually shaded **Granular** probability samples.
+- Use blue-to-white **Density** shading or cyclic-rainbow **Phase** coloring.
+- Inspect bound-state energy, radial nodes and the radial probability distribution.
 
-## Completely local
+Complex states can show circulating probability-current tracers. Flow speed is adjustable from ¼× to 4×. Real starts in Cloud; Complex starts in Granular with a wedge cut. Each basis remembers its own Cloud/Granular choice during the session, while each rendering style retains its scene settings.
 
-The ready-to-use `index.html` contains the interface, renderer, mathematics, styles, and font data. It works from a local file without an internet connection, an earlier visit, a browser cache, a server, or an installation step. All computation takes place on your own device. The interactive scene requires WebGL 2 and graphics acceleration.
+## Spectra
 
-There are no passwords, API keys, account integrations, telemetry, remote compute calls, external font requests, or CDN dependencies in the exported website. Links to references and the hosted website open only when selected.
+Explore **15 spectral lines, 55 orbital pairs and 465 magnetic-state transition channels** between shells 1 through 6. The catalog covers the Lyman, Balmer, Paschen, Brackett and Pfund series.
 
-## Repository contents
+Select a wavelength by clicking a spectral line or dragging the snapping marker. Closely spaced lines remain individually selectable in the combined spectrum. Filter the available transitions, compare their dipole strengths, and choose a pair to bring its animation into view.
 
-| Path | Contents |
-| --- | --- |
-| `index.html` | Complete, standalone website; the file GitHub Pages serves |
-| `src/index.template.html` | Editable interface template |
-| `src/math-guide.tex.html` | Readable TeX source for the mathematics guide |
-| `src/math-fragments.tex.json` | Readable TeX source for interface symbols |
-| `src/assets/app.js` | Interface state, controls, atlas, and radial plot |
-| `src/assets/renderer.js` | Hydrogen wavefunctions, GPU rendering, motion, and quality control |
-| `src/assets/style.css` | Responsive dark interface |
-| `src/assets/math-guide.html` | Typeset equations and explanations |
-| `src/assets/math-typography.css` | Math layout and local font definitions |
-| `src/assets/math-fragments.json` | Pre-rendered math symbols used by the interface |
-| `src/assets/fonts/` | Bundled mathematical fonts |
-| `src/assets/licenses/` | Notices for bundled third-party typography assets |
-| `scripts/build-standalone.py` | Reproducible offline builder; uses Python's standard library |
-| `scripts/render-math.cjs` | Optional offline math typesetting tool |
-| `scripts/vendor/katex.cjs` | Bundled compiler used only when editing the TeX sources |
-| `DEPLOYMENT.md` | GitHub Pages, offline use, and source-editing instructions |
-| `RENDERING-NOTES.md` | Rendering techniques, adaptive quality, and scientific interpretation |
-| `.nojekyll` | Static publishing marker |
+The transition viewer shows population transfer between two orbital distributions on the same spatial scale. The state-card borders brighten with their respective populations, and the display alternates between absorption and stimulated emission. Transition speed is separate from tracer flow speed. The initial pair is **2p ↔ 3d, with m = 0 for both states**.
 
-# Rendering notes
+Dipole strength is reported in squared Bohr radii, with a percentage relative to the strongest channel at that wavelength. Filtering does not change that reference. The viewer shares the orbital explorer's Cloud/Granular rendering, cutaways and appearance controls.
 
-## What the reference project does
+## Math
 
-The source inspected was [kavan010/Atoms](https://github.com/kavan010/Atoms), specifically [`src/atom_raytracer.cpp`](https://github.com/kavan010/Atoms/blob/main/src/atom_raytracer.cpp) and [`src/atom_realtime.cpp`](https://github.com/kavan010/Atoms/blob/main/src/atom_realtime.cpp).
+An equation-first guide connects the pictures to their underlying model. Eleven topics cover hydrogen wavefunctions, quantum numbers, energy levels, radial and angular structure, probability density and current, spectral lines, selection rules, dipole coupling and driven transitions.
 
-The raytracer intersects a camera ray with spherical particles, chooses the closest sphere, computes its surface normal, and sends another ray toward a point light to determine shadowing. Surface color is multiplied by diffuse and ambient illumination. Its fire palette maps density from black/purple through red/orange/yellow to white. That combination explains the dimensional beads and bright high-density regions. The inspected implementation does not use emissive global illumination, reflections, path tracing, or bloom.
+Each topic presents its main equations followed by an expandable deep dive with concise derivations, worked details and interpretation. Links from the visualizations lead to the relevant explanations.
 
-It runs ray tests in ordinary GLSL 4.30 shaders, with a shader storage buffer of spheres. It does not invoke hardware ray-tracing APIs. Its per-pixel scans through all spheres and shadow candidates would be costly to port directly. The real-time source also constructs sphere meshes; the current fragment shader there outputs density color without using its computed lighting. The exact source revision used in the video is unknown.
+## Implementation
 
-No upstream license file was present in the inspected repository. This package uses independently written code and includes inspiration links rather than redistributing that project’s source.
+- **Local GPU rendering.** JavaScript and WebGL 2 evaluate and display the orbital distributions on the viewer's device. Cloud rendering integrates density along viewing rays; Granular rendering uses shaded sphere impostors with depth testing.
+- **Efficient transition rendering.** Cached radial lookup data and precomputed endpoint samples avoid resampling both orbitals on every animation frame. The Granular transition path skips the volume pass and uses one point vertex per sphere when the device supports its projected size, with a quad fallback for larger footprints.
+- **Adaptive tracer counts.** The tracer slider sets a desired maximum: up to 10,000 in Cloud and 200,000 in Granular. Active counts decrease under load and recover when performance allows. Granular targets 30 FPS without reducing resolution; Cloud targets 30 FPS in Orbits and 60 FPS in Spectra. Actual performance depends on the device.
+- **Calculated transition strengths.** Converged numerical radial integrals combine with algebraic angular factors to compute dipole matrix elements. Results are cached rather than integrated during animation.
+- **Responsive, self-contained pages.** Square viewers place controls alongside the animation on wider screens and underneath on smaller screens. The generated HTML pages embed their runtime resources, including shaders, styles, equations and fonts. They also work locally without a server or runtime CDN dependencies. Equations are pre-rendered with KaTeX and retain MathML.
 
-## Browser implementation
+## Scientific scope
 
-The underlying hydrogen wavefunctions are unchanged by the visual style. Radial Laguerre functions and angular spherical harmonics determine density; particles sample that distribution. Complex-state tracers follow the azimuthal probability-current field. Their visualization time is rescaled for visibility, not a laboratory time scale.
+The model uses nonrelativistic hydrogen with a fixed proton and no electron spin. The spectral catalog describes electric-dipole transitions; it does not include fine structure, external-field splitting, decay or line broadening.
 
-Cloud mode integrates the analytic density along viewing rays. The stationary density image is cached when the camera and rendering settings stay fixed, allowing the animated particle layer to update with much less work. Phase color depends on time and requires updates. Phase uses a vibrant cyclic rainbow in the volume, tracers, granular particles, and legend. Hue wraps every full turn, with smooth channel transitions and identical colors at −π and +π. This removes the artificial color seam at the phase boundary. The palette is evaluated directly in the GPU shader without a texture or external dependency. Density retains its blue-to-white map.
+Particles are probability samples, not solid electrons or measured trajectories. Brightness and particle size are visual mappings. Cutaways reveal existing structure without changing the quantum state.
 
-Granular particles use sphere impostors: the GPU reconstructs an analytic ray–sphere intersection inside each particle’s projected footprint, shades its normal, and uses depth testing so nearer surfaces hide farther ones. A density-dependent blue palette gives cold dark-blue edges and pale-blue/white high-density regions. These are illustrative probability samples, not literal solid electron balls. Lighting, exposure, and bright centers are visual mappings, not light emitted by a hydrogen eigenstate.
+The transition animation shows an optical-cycle-averaged, driven two-state population cycle at an adjustable illustrative speed. It is not a spontaneous-decay simulation. Its tracers show component circulation rather than the complete transport current of the driven state. Real-basis previews change the displayed shapes; reported coupling strengths remain those of the selected complex-state channel. Relative dipole strength is not a measured spectral intensity or an oscillator strength.
 
-Granular uses matte sphere impostors with local shading and depth testing. The renderer does not trace secondary shadow rays or simulate reflections, multiple light bounces, or global illumination.
+## Science references and visual inspiration
 
-Cloud and Granular remember separate requested tracer ceilings. Selecting Real in Cloud starts with zero tracers; selecting Complex starts with 5,000. Users can adjust either afterward. Granular starts with 200,000. Each style retains its cut settings, intensity, flow speed, auto rotation and axes. Basis and Density/Phase are shared across styles. The main explorer defaults to Granular with a wedge; the transition viewer retains Whole for Granular. Granular intensity and flow speed default to 2. Flow speed snaps to ¼×, ½×, 1×, 2× or 4×. Its control is shown only for Complex; flow runs continuously. A background limiter reduces active samples quickly and restores them gradually up to the selected ceiling. Granular targets 30 FPS in both viewers and never changes its raster resolution. Cloud retains adaptive resolution and targets 30 FPS in the main explorer and 60 FPS in the transition viewer. The requested slider setting is never overwritten by the limiter. Idle/hidden scenes do not drive upward adjustments. There is no remote rendering or external compute.
+- [NIST DLMF — Spherical harmonics](https://dlmf.nist.gov/14.30)
+- [NIST DLMF — Quantum mechanics and orthogonal polynomials](https://dlmf.nist.gov/18.39#ii)
+- [MIT OpenCourseWare — Hydrogen atom wavefunctions and orbitals](https://ocw.mit.edu/courses/5-111sc-principles-of-chemical-science-fall-2014/pages/unit-i-the-atom/lecture-6-hydrogen-atom-wavefunctions-orbitals/)
+- [MIT OpenCourseWare — Probability current and conservation](https://ocw.mit.edu/courses/8-04-quantum-physics-i-spring-2016/d87c768c4e1181fde8d4366112169719_MIT8_04S16_LecNotes6.pdf)
+- [NIST — Atomic energies and wavelengths](https://physics.nist.gov/Pubs/AtSpec/node01.html)
+- [NIST — Atomic spectroscopy, selection rules and line strengths](https://www.nist.gov/pml/atomic-spectroscopy-compendium-basic-ideas-notation-data-and-formulas/atomic-spectroscopy)
+- [NIST DLMF — Angular coupling identities](https://dlmf.nist.gov/34.3#vii)
+- [MIT OpenCourseWare — Driven two-level systems](https://ocw.mit.edu/courses/6-728-applied-quantum-and-statistical-physics-fall-2006/16029f7c397abce618505381ec3a82dc_twolevel04.pdf)
 
-Paused or stationary views reuse the displayed image until an interaction changes it, avoiding repeated GPU draws. A visible playback clock uses real elapsed time, excludes hidden-tab intervals, and does not silently pause because of an operating-system reduced-motion preference.
-
-## Interactive spectrum
-
-The spectrum enumerates every bound-state electric-dipole (E1) channel between principal shells 1 through 6 in the spin-free, fixed-proton model. Its 15 wavelengths span Lyman, Balmer, Paschen, Brackett and Pfund. A shell pair contains `2a − 1` subshell pairs and `3[a² + (a − 1)²]` magnetic channels, where `a` is the lower principal quantum number. The complete catalog has 55 subshell pairs and 465 reversible magnetic-state pairs. Absorption and reverse emission are counted once. A fixed difference in principal quantum number contains several wavelengths; it does not identify one line.
-
-The `transitions.js` data module generates the catalog deterministically. Stable channel IDs identify the two complex magnetic states. A cached array for each shell pair supports inexpensive independent subshell and polarization filters. The absorption convention is `q = m_upper − m_lower`; the atom's magnetic-number change reverses during emission. Real atlas orbitals are alternative basis combinations, not extra independent states to count.
-
-Each channel's coupling strength is the squared spatial dipole matrix element, in Bohr-radius squared. Normalized hydrogen radial functions are integrated with composite Simpson quadrature, doubling the sample count to convergence; the exponential tail is bounded well beyond the relevant radial support. One signed radial overlap is cached for each of the 55 subshell pairs. Exact algebraic spherical-component angular factors supply the magnetic-state dependence, without per-frame integration. Each relative strength is normalized against the strongest channel on the same wavelength across all subshells and all polarizations. Filtering does not renormalize these percentages. These values are not measured line intensities, branching probabilities, or oscillator strengths: population, frequency, field polarization and observation geometry also matter.
-
-The separate cloud view shows an optical-cycle-averaged, resonantly driven two-state population. Its density is `(1 − P)` times the normalized lower-state density plus `P` times the normalized upper-state density, with `P = sin²(π × cycle)`. Both distributions use the same physical coordinate scale and a common exposure after mixing. The display uses the same adjustable slowed cycle for every channel, independent of dipole strength; physical Rabi frequencies would depend on the dipole amplitude and applied field. Its return leg represents stimulated emission under continued driving. This is not a periodic spontaneous-decay model or an electron trajectory.
-
-Complex states with opposite magnetic numbers have the same probability density but opposite circulation. Channels can therefore share cloud shapes while differing in magnetic labels, phase and coupling. The viewer isolates one channel at a time; a real field may simultaneously couple multiple degenerate sublevels. Multilevel dynamics, spin, external fields, decay, broadening, multiphoton processes and forbidden-transition mechanisms are outside this visualization.
-
-The transition viewer defaults to the 2p–3d pair with both magnetic numbers zero, Real, Density, Cloud and Whole with tracers off. It offers the same basis, color, cloud/granular style, intensity, current samples, flow speed, cut rotation/position, camera, axes and tracer ceilings. Scene settings persist when the selected line or magnetic pair changes. The population cycle has a separate clock from flow and phase-color animation.
-
-Real orbitals is a basis-shape preview. Each endpoint is replaced by the corresponding normalized cosine or sine combination of signed magnetic states. The preview changes displayed density and makes its stationary component circulation zero; it does not recalculate the chosen complex channel's polarization or dipole strength. A physical real-basis coupling calculation would transform the complete dipole-amplitude matrix before squaring. The preview is labeled explicitly so these different interpretations remain separate.
-
-The optical-cycle-averaged density has no single wavefunction phase. In Phase mode, the volume blends the two component colors using their local population-weighted densities. Individual endpoint particles carry their own component phase colors. This preserves the cyclic rainbow convention without assigning a fictitious global phase to a mixture or reintroducing interference. Phase colors depend on the chosen component-phase convention and are not an observable interference pattern.
-
-Current samples illustrate population-weighted stationary component circulation. Their signed magnetic numbers set direction; real components and m = 0 do not circulate. They are not paths carrying an electron from one shape to the other. In particular, the weighted stationary currents are divergence-free, while changing the population changes local density by Pdot × (rho_upper − rho_lower). The guide explains that this overlay is not the full transport current of the driven quantum state. Both endpoint distributions remain normalized, so their population mixture integrates to one.
-
-Compact radial-amplitude lookup textures and analytic spherical-harmonic angular factors keep density evaluation local to the GPU. Endpoint samples are prepared when the state pair or basis changes; population changes adjust their contributions without CPU resampling on every frame. Cloud and sphere shading use the mixed density and a common exposure. Sphere impostors give the granular view depth-tested surfaces and local lighting. Only the visible viewer renders; a fully paused view redraws when its controls change. Population cycling, touch rotation and zoom remain available alongside series, subshell and magnetic-channel selection. Model wavelengths are vacuum values calculated from the atlas's fixed-proton energy scale, not measured air wavelengths or fine-structure multiplets. Ultraviolet and infrared lines have explicitly illustrative interface colors.
-
-The mathematics guide derives the energy model, degeneracy, all catalog counts, selection rules, polarization convention, radial/angular matrix elements, relative-strength normalization, coherent population cycle, optical averaging, basis previews, component-phase coloring and the limits of the current overlay. Primary references include [NIST's energy and wavelength relation](https://physics.nist.gov/Pubs/AtSpec/node01.html), [NIST's selection rules and line-strength discussion](https://www.nist.gov/pml/atomic-spectroscopy-compendium-basic-ideas-notation-data-and-formulas/atomic-spectroscopy), [NIST DLMF's angular coupling identities](https://dlmf.nist.gov/34.3#vii), and [MIT's driven two-level treatment](https://ocw.mit.edu/courses/6-728-applied-quantum-and-statistical-physics-fall-2006/16029f7c397abce618505381ec3a82dc_twolevel04.pdf).
-
-## Offline packaging and mathematics
-
-The distributed `index.html` embeds the interface, GPU shaders, mathematics, fonts, and license notices. It runs from a local file on its first use, without fetching resources or relying on a service-worker cache. Its content security policy blocks network connections and external runtime resources. Reference links remain ordinary optional links.
-
-Equations and interface symbols are pre-rendered with KaTeX and retain accessible MathML. Included local fonts make glyph shape and scalable delimiters consistent across supported browsers. The readable TeX sources and bundled optional math compiler are included for offline editing; using the website does not run that compiler or require Node.js. KaTeX code/CSS and font licenses are preserved separately.
-
-## Scope and interpretation
-
-- Hydrogen with a fixed proton, nonrelativistic, without spin or external fields.
-- All spatial states for n = 1 through 6; both complex and real bases.
-- Complex ±m have the same density and opposite currents. Real stationary states and m = 0 have zero current.
-- Cutaways only hide geometry; they do not collapse or renormalize the quantum state.
-- Brightness is rescaled for each orbital, with nonlinear exposure and a finite viewing radius. Colors are not an absolute cross-orbital probability scale.
-- Sphere sizes are chosen for legibility. They are not the physical radius of an electron.
-
-## Physics validation
-
-All 465 channels were checked against independent enumeration, including selection rules, uniqueness, polarization partitions, symmetry and normalization. Every radial overlap was compared with a 70-digit analytic exponential-polynomial integral; the maximum scaled discrepancy was below `1.9 × 10⁻¹³`. Independently integrated angular factors agreed within `6.2 × 10⁻¹⁶`. The summed `1s → 2p` oscillator-strength benchmark is `0.41619671798`. These numerical checks validate the finite hydrogen model and matrix elements; they do not imply that omitted physical effects are simulated.
-
-No claim is made that the site has been tested on physical Samsung S9 or Pixel 9 devices. Browser layout, interaction and shader checks are separate from the numerical physics validation.
-
-## Granular appearance
-
-Granular mode uses the tracer-count budget and depth buffer, with matte beads. In the transition viewer it renders only the particles, avoiding a second full-volume ray march on every population update. Orbital sampling and current remain the same.
-
-The transition viewer uses the same blue density palette for both components; phase retains its cyclic rainbow. Counts are weighted by their respective populations.
-
-The transition limiter uses a roughly 33.3 ms frame budget in Granular and 16.7 ms in Cloud, with GPU timing when available. Without GPU timers, it probes for extra tracers after sustained frame pacing near the style’s target. Slider values are requested ceilings in both styles, never overwritten by active counts. Hardware, display refresh and volume cost can still prevent reaching the target.
-
-
-## Pages and navigation
-
-Orbits, Spectra and Math have separate static entrypoints (`orbits.html`, `spectra.html`, `math.html`); `index.html` opens Orbits. Each file embeds its runtime resources. Normal tab navigation updates the URL and switches the active page without discarding viewer settings; direct links, reloads and browser Back/Forward also select the corresponding page. The orbital renderer and atlas thumbnails initialize only when Orbits is first opened, and inactive pages do not run their animations.
-
-Both viewers use square animation surfaces with controls in a right sidebar on wide windows and underneath on narrow windows. Orbits places Flow speed before Look inside; they share a row when the controls container is wide enough. Spectra keeps Real/Complex beside Transition speed. Both viewers expose appearance choices and cutaway selection directly, with tracer/intensity and cut/rotation/axes adjustments in section gears. Spectra places the transition animation and its controls before the wavelength selector and allowed-pair grid. Choosing a pair returns to the animation. The wavelength marker remains mounted during pointer capture and advances one line per equal drag interval, making tightly clustered lines selectable; arrow keys, Home and End also select exact lines. Math presents eleven equation-first topics, with initially closed derivations and worked details. Topic anchors `math.html#math-topic-1` through `math.html#math-topic-11` support links from the viewers.
-
-
-## Transition particle throughput
-
-The transition Granular path uses a single point vertex per sphere when its projected footprint fits the device point-size limit. The fragment shader still performs the analytic ray–sphere intersection, matte shading and depth write. Close-up views and devices with insufficient point-size support retain the instanced-quad path. This removes repeated per-corner wavefunction evaluations without changing the density distribution.
-
-Granular starts at its own requested tracer ceiling when selected. Its limiter changes only particle count to target 30 FPS; raster resolution remains fixed at its initial device tier. After sustained headroom, it probes upward toward the requested count. Cloud remembers its adaptive raster tier separately. The slider remains the requested maximum, not a guarantee on every device.
-
-# Science and inspiration
-
-The physics model is nonrelativistic hydrogen with a fixed proton, without spin or external fields. The in-app mathematics explains normalized radial functions, spherical harmonics, the Born rule, and probability current, with links to NIST and MIT references.
-
-Visual inspiration comes from [kavan010/Atoms](https://github.com/kavan010/Atoms) and [the accompanying video](https://youtu.be/OSAOh4L41Wg). The orbital renderer is independently implemented; the original C++ source is not redistributed. Bundled typography carries its included license notices.
+Visual inspiration: [kavan010/Atoms](https://github.com/kavan010/Atoms) and [the accompanying video](https://youtu.be/OSAOh4L41Wg). The browser renderer is independently implemented; the original C++ source is not redistributed. Bundled KaTeX assets and fonts retain their included license notices.
