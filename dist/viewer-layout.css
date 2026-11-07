@@ -233,3 +233,39 @@
 /* Color is a secondary Appearance setting; style keeps the full row. */
 .appearance-choices{grid-template-columns:minmax(0,1fr)}
 .appearance-more-options .cut-more-content>.segmented{margin:6px 0 12px}
+
+/* Fit the complete square inside the visible viewport, including short windows.
+   Keep a small scroll margin so the border and viewer controls remain reachable. */
+.workspace,.spectrum-panel>.spectrum-view{
+ width:100%;max-width:calc(100svh - 32px + clamp(260px,23vw,340px));
+ margin-inline:auto;
+}
+.workspace>.scene,.spectrum-view>.spectrum-stage{max-height:calc(100svh - 32px)}
+@media(max-width:860px){
+ .workspace,.spectrum-panel>.spectrum-view{max-width:100%}
+ .workspace>.scene,.spectrum-view>.spectrum-stage{
+  width:min(100%,calc(100svh - 24px));max-height:calc(100svh - 24px);justify-self:center
+ }
+}
+#scene:fullscreen,#spectrum-stage:fullscreen{max-height:none;width:100vw;height:100dvh}
+
+/* One settings gear per viewer; primary controls stay immediately accessible. */
+.workspace .controls .viewer-controls-heading,.spectrum-controls .viewer-controls-heading{justify-content:space-between;margin-bottom:8px}
+.workspace .controls .basis-section .basis-switch{margin-top:0}
+.workspace .controls .basis-section>.orbital-flow-control{padding:14px 0 0;margin:0;border:0}
+.workspace .controls .settings-heading>h3{margin:0;font-size:9px;font-weight:550;letter-spacing:1.3px;text-transform:uppercase}
+.workspace .controls>.viewer-settings,.spectrum-controls>.viewer-settings{margin:0;border:0;max-width:none}
+.workspace .controls>.viewer-settings[open],.spectrum-controls>.viewer-settings[open]{margin:0;border-bottom:1px solid var(--line)}
+.viewer-settings-content{padding:0 18px}
+.viewer-settings .settings-group{padding:16px 0;border-bottom:1px solid var(--line)}
+.viewer-settings .settings-group:last-child{border-bottom:0}
+.viewer-settings .settings-group>h3{margin:0 0 12px;font-size:9px;font-weight:550;text-transform:uppercase;letter-spacing:1.2px;color:#94a8bd}
+.viewer-settings .appearance-choices{grid-template-columns:minmax(0,1fr);gap:8px}
+.workspace .controls .viewer-settings .quantum-help{margin-top:8px}
+.viewer-links{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;padding:12px 18px}
+.workspace .controls .viewer-links .quantum-help{min-height:26px}
+.spectrum-collection-heading h3{margin:0;font-size:20px;font-weight:450;letter-spacing:-.3px}
+.spectrum-collection-heading p{margin:9px 0 0;font-size:12px;line-height:1.65;color:#8fa6bd}
+.spectrum-step-heading:has(.spectrum-collection-heading){margin-bottom:20px}
+@container viewer-controls (max-width:300px){.viewer-settings-content{padding:0 12px}.viewer-links{padding:10px 12px}}
+@container viewer-controls (min-width:560px){.viewer-settings-content{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px}.viewer-settings .settings-group{align-self:start}.viewer-settings .appearance-choices{grid-template-columns:minmax(0,1fr)}}

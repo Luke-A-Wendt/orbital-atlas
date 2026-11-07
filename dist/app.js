@@ -131,7 +131,7 @@ function sync(){
  else description=m?'A wave wrapped around the axis.<br>Probability flows through a steady cloud.':'A standing wave along the axis.<br>A cloud with zero probability current.';
  $('energy').textContent=`−${(13.605693/(n*n)).toFixed(3)} eV`;$('radial-nodes').textContent=radial;
  setSelected('[data-basis]','basis');setSelected('[data-mode]','mode');setSelected('[data-cut]','cut');setSelected('[data-render-style]','renderStyle');
- $('cut-settings').hidden=state.cut==='none';$('cut-offset-wrap').hidden=state.cut==='wedge';
+ $('look-inside').hidden=state.renderStyle==='cloud';$('cut-settings').hidden=state.renderStyle==='cloud'||state.cut==='none';$('cut-offset-wrap').hidden=state.cut==='wedge';
  $('cut-angle').value=state.cutAngle;$('cut-angle-value').value=`${state.cutAngle}°`;$('cut-offset').value=state.cutOffset;$('cut-offset-value').value=Math.abs(state.cutOffset)<.01?'center':`${state.cutOffset>0?'+':''}${Math.round(state.cutOffset*100)}%`;
  $('density').max=state.renderStyle==='cloud'?2:3;$('density').value=state.density;$('density-value').value=`${state.density.toFixed(2).replace(/0$/,'')}×`;
  $('flow-control').hidden=basis==='real';$('flow-control').parentElement.dataset.flowVisible=String(basis==='complex');

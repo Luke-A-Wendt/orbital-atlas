@@ -159,6 +159,11 @@ def build(root: Path, output: Path | None = None) -> tuple[Path, int]:
         page_html = page_html.replace(' data-page-link="orbits" aria-current="page"', ' data-page-link="orbits"')
         page_html = page_html.replace(f'data-page-link="{page}"><span class="page-tab-label"', f'data-page-link="{page}" aria-current="page"><span class="page-tab-label"')
         (output.parent / f"{page}.html").write_text(page_html, encoding="utf-8")
+    # GitHub Pages main/root uses the same self-contained pages as the dev site.
+    if output.parent == root / "dist":
+        for filename in ("index.html", "orbits.html", "spectra.html", "math.html"):
+            (root / filename).write_bytes((output.parent / filename).read_bytes())
+        (root / ".nojekyll").touch()
     return output, len(html.encode("utf-8"))
 
 

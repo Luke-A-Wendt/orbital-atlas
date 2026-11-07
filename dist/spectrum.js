@@ -135,7 +135,7 @@ export function initSpectrum(){
   const phase=view.mode==='phase',granular=view.renderStyle==='granular',real=view.basis==='real';
   element('view-label').textContent=(real?'REAL-BASIS PREVIEW':'COMPLEX')+' · '+(phase?'COMPONENT PHASE':granular?'GRANULAR DENSITY':'DENSITY CLOUD');
   element('density').max=view.renderStyle==='cloud'?2:3;element('density').value=view.density;element('density-value').value=view.density.toFixed(2).replace(/\.?0+$/,'')+'×';
-  element('cut-settings').hidden=view.cut==='none';element('cut-offset-wrap').hidden=view.cut==='wedge';
+  element('look-inside').hidden=view.renderStyle==='cloud';element('cut-settings').hidden=view.renderStyle==='cloud'||view.cut==='none';element('cut-offset-wrap').hidden=view.cut==='wedge';
   element('cut-angle').value=view.cutAngle;element('cut-angle-value').value=view.cutAngle+'°';
   element('cut-offset').value=view.cutOffset;element('cut-offset-value').value=Math.abs(view.cutOffset)<.01?'center':(view.cutOffset>0?'+':'')+Math.round(view.cutOffset*100)+'%';
   syncPerformance();
