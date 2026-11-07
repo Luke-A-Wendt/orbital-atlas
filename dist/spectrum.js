@@ -219,7 +219,6 @@ export function initSpectrum(){
   lineLayer.replaceChildren();axis.replaceChildren();
   const stops=Array.from({length:25},(_,i)=>`${wavelengthColor(min+(max-min)*i/24)} ${i/24*100}%`);
   track.style.setProperty('--spectrum-band',series===2?`linear-gradient(90deg,${stops.join(',')})`:'linear-gradient(90deg,#4272a3,#92b7e4)');
-  element('scale-note').textContent='Vacuum wavelength · '+(series===0?'logarithmic scale':'linear scale');
   ticks.forEach(value=>{const label=document.createElement('span');label.style.left=position(value)*100+'%';label.textContent=value+(value===max?' nm':'');axis.append(label);});
   const filtered=availableLines();
   for(const line of filtered){
@@ -256,7 +255,6 @@ export function initSpectrum(){
   const container=element('shapes');container.replaceChildren();
   const channels=(channelsByLine.get(currentLine.lowerN+'-'+currentLine.upperN)||[]).filter(c=>c.q===Math.abs(currentChannel.q)&&(c.q!==0||c.lower.m>=0)&&signedChannel(c)).sort((a,b)=>transitionStrength(a).strength-transitionStrength(b).strength);
   const seen=new Set();
-  element('shape-note').textContent=currentChannel.q===0?'Shared magnetic magnitude · sign applies to both states':'Actual magnetic numbers · sign reverses both states';
   for(const channel of channels){
    const actual=signedChannel(channel);const key=channel.id;if(seen.has(key))continue;seen.add(key);
    const button=document.createElement('button');button.type='button';button.className='spectrum-shape'+(actual.id===currentChannel.id?' selected':'');button.dataset.spectrumChannel=channel.id;button.setAttribute('aria-pressed',String(actual.id===currentChannel.id));
