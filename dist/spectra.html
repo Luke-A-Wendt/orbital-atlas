@@ -818,6 +818,75 @@ body[data-page="math"] [data-site-page]:not([data-site-page="math"]){display:non
 .spectrum-magnetic-note{font-size:11px;line-height:1.5;color:var(--muted)}
 @media(max-width:540px){.spectrum-magnetic-controls{gap:8px}.spectrum-magnetic-controls>.spectrum-menu-label{font-size:8px;letter-spacing:1px}.spectrum-magnetic-buttons,.spectrum-magnetic-controls .spectrum-q-filters{gap:4px}.spectrum-magnetic-controls .spectrum-q-filters button{min-width:35px;padding:7px 5px}.spectrum-magnetic-note{font-size:10px}}
 
+/* Shared page shell: every heading and outer panel follows the same edges. */
+:root{
+ --viewer-sidebar:clamp(260px,23vw,340px);
+ --page-panel-width:calc(100svh - 32px + var(--viewer-sidebar));
+ --panel-surface:#121619;
+ --panel-border:#2b3540;
+ --panel-radius:12px;
+ --control-surface:#0e0f10;
+ --control-active:#2c2f32;
+ --control-active-border:#7e8894;
+ --control-text:#949ca5;
+ --control-selected-text:#bed8f4;
+}
+main>.site-page{width:100%;max-width:var(--page-panel-width);margin-inline:auto}
+.site-page .intro{padding:37px 0 30px;margin:0}
+.workspace,.spectrum-panel>.spectrum-view{max-width:none;grid-template-columns:minmax(0,1fr) var(--viewer-sidebar)}
+/* The animation has its own frame, rather than a wider frame around the whole spectrum. */
+#spectrum .spectrum-panel{border:0;border-radius:0;background:transparent;overflow:visible}
+.workspace,.spectrum-panel>.spectrum-view,.spectrum-collection-panel,#orbital-atlas,.math-topic{
+ border:1px solid var(--panel-border);border-radius:var(--panel-radius);
+ background:var(--panel-surface);overflow:hidden
+}
+.spectrum-collection-panel,#orbital-atlas{margin-top:24px}
+#spectra-page .spectrum-collection-panel>.spectrum-selector{border-top:0}
+.spectrum-collection-panel>.spectrum-selector,.spectrum-collection-panel>.spectrum-selection,
+.spectrum-collection-panel>.spectrum-pair-selection{background:var(--panel-surface);border-color:var(--panel-border)}
+.workspace>.controls,.spectrum-view>.spectrum-controls{background:var(--panel-surface);border-color:var(--panel-border)}
+.spectrum-controls>.spectrum-states{border-color:var(--panel-border)}
+.workspace .controls .control-section,.spectrum-controls .spectrum-view-control-group,
+.viewer-settings .settings-group{border-color:var(--panel-border)}
+.workspace .controls .settings-heading>h3,.spectrum-controls .settings-heading>h3,
+.workspace .controls .settings-heading>.section-label,.spectrum-controls .settings-heading>.section-label{
+ color:var(--muted);font-size:9px;font-weight:550;letter-spacing:1.3px;text-transform:uppercase
+}
+/* Use one control palette in both animation sidebars. */
+.workspace .controls .segmented,.spectrum-controls .segmented{background:var(--control-surface);border-color:var(--panel-border)}
+.workspace .controls .segmented button,.spectrum-controls .segmented button{color:var(--control-text)}
+.workspace .controls .segmented button.selected,.spectrum-controls .segmented button.selected{
+ background:var(--control-active);color:var(--control-selected-text);box-shadow:0 0 0 1px #3b424b
+}
+.workspace .controls .cut-options button,.spectrum-controls .cut-options button{
+ background:#16181a;border-color:var(--panel-border);color:var(--control-text)
+}
+.workspace .controls .cut-options button.selected,.spectrum-controls .cut-options button.selected{
+ background:var(--control-active);border-color:var(--control-active-border);color:var(--control-selected-text)
+}
+.scene .icon-button,.spectrum-stage .spectrum-view-tools button{
+ background:#101112bb;border-color:var(--panel-border);color:#c7cbd0;border-radius:5px
+}
+.scene .icon-button:hover,.spectrum-stage .spectrum-view-tools button:hover{
+ color:var(--accent);border-color:#697685;background:#202225
+}
+#math-page #math-content{width:100%;max-width:none;padding:0;margin:0}
+.math-topic-nav a{background:var(--control-surface);border-color:var(--panel-border);color:var(--control-selected-text)}
+.math-deep-dive,.math-deep-dive[open]>summary{border-color:var(--panel-border)}
+.math-deep-dive[open]>summary{background:var(--control-active)}
+@media(max-width:860px){
+ :root{--page-panel-width:calc(100svh - 22px)}
+ .workspace,.spectrum-panel>.spectrum-view{grid-template-columns:minmax(0,1fr)}
+ .workspace>.scene,.spectrum-view>.spectrum-stage{width:100%}
+}
+@media(max-width:780px){.site-page .intro{padding:27px 0 24px}}
+
+/* Slightly quieter navigation and page titles on every screen. */
+.page-tabs .page-tab-label{font-size:clamp(16px,1.5vw,22px)}
+.site-page .intro h1{font-size:clamp(24px,2.15vw,34px)}
+@media(max-width:780px){.page-tabs .page-tab-label{font-size:17px}.site-page .intro h1{font-size:26px}}
+@media(max-width:420px){.page-tabs .page-tab-label{font-size:16px}.site-page .intro h1{font-size:24px}}
+
 </style>
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; font-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
 </head>
@@ -848,7 +917,7 @@ body[data-page="math"] [data-site-page]:not([data-site-page="math"]){display:non
    <div class="scene-bottom"><div class="density-key"><span id="legend-title">PROBABILITY DENSITY</span><div id="legend-gradient"></div><div class="legend-labels"><span id="legend-low">low</span><span id="legend-high">high</span></div></div><div class="gesture-hint"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 10a5 5 0 1 0 2-4M3 4v4h4"/></svg> Drag to rotate <b>·</b> Scroll to zoom</div><div class="render-status"><i></i><span id="render-status">GPU</span></div></div>
   </div>
   <aside class="controls" aria-label="Orbital controls">
- <section class="control-section basis-section"><div class="settings-heading viewer-controls-heading"><span class="section-label">VIEW</span><button class="settings-gear" type="button" data-settings-target="viewer-settings" aria-controls="viewer-settings" aria-expanded="false" aria-label="Orbital settings" title="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.000 12.000L19.932 13.044L21.659 14.588L21.239 15.827L18.928 16.000L18.347 16.870L17.657 17.657L16.870 18.347L17.000 20.660L15.827 21.239L14.071 19.727L13.044 19.932L12.000 20.000L10.956 19.932L9.412 21.659L8.173 21.239L8.000 18.928L7.130 18.347L6.343 17.657L5.653 16.870L3.340 17.000L2.761 15.827L4.273 14.071L4.068 13.044L4.000 12.000L4.068 10.956L2.341 9.412L2.761 8.173L5.072 8.000L5.653 7.130L6.343 6.343L7.130 5.653L7.000 3.340L8.173 2.761L9.929 4.273L10.956 4.068L12.000 4.000L13.044 4.068L14.588 2.341L15.827 2.761L16.000 5.072L16.870 5.653L17.657 6.343L18.347 7.130L20.660 7.000L21.239 8.173L19.727 9.929L19.932 10.956Z"/><circle cx="12" cy="12" r="3"/></svg></button></div><div class="basis-switch segmented" aria-label="Orbital basis"><button class="selected" data-basis="complex">Complex</button><button data-basis="real">Real</button></div></section>
+ <section class="control-section basis-section"><div class="settings-heading viewer-controls-heading"><span class="section-label">VIEW</span><button class="settings-gear" type="button" data-settings-target="viewer-settings" aria-controls="viewer-settings" aria-expanded="false" aria-label="Orbital settings" title="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.000 12.000L19.932 13.044L21.659 14.588L21.239 15.827L18.928 16.000L18.347 16.870L17.657 17.657L16.870 18.347L17.000 20.660L15.827 21.239L14.071 19.727L13.044 19.932L12.000 20.000L10.956 19.932L9.412 21.659L8.173 21.239L8.000 18.928L7.130 18.347L6.343 17.657L5.653 16.870L3.340 17.000L2.761 15.827L4.273 14.071L4.068 13.044L4.000 12.000L4.068 10.956L2.341 9.412L2.761 8.173L5.072 8.000L5.653 7.130L6.343 6.343L7.130 5.653L7.000 3.340L8.173 2.761L9.929 4.273L10.956 4.068L12.000 4.000L13.044 4.068L14.588 2.341L15.827 2.761L16.000 5.072L16.870 5.653L17.657 6.343L18.347 7.130L20.660 7.000L21.239 8.173L19.727 9.929L19.932 10.956Z"/><circle cx="12" cy="12" r="3"/></svg></button></div><div class="basis-switch segmented" aria-label="Orbital basis"><button data-basis="real">Real</button><button class="selected" data-basis="complex">Complex</button></div></section>
  <section class="control-section cut-section" id="look-inside"><div class="settings-heading"><h3>Look inside</h3></div><div class="cut-options"><button data-cut="none" title="Complete orbital"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="10"/></svg><span>Whole</span></button><button data-cut="half" title="Remove half the orbital"><svg viewBox="0 0 32 32"><path d="M16 6a10 10 0 0 0 0 20Z"/><path class="dashed" d="M16 6a10 10 0 0 1 0 20"/></svg><span>Half</span></button><button class="selected" data-cut="wedge" title="Remove a quarter wedge"><svg viewBox="0 0 32 32"><path d="M16 16V6A10 10 0 1 0 26 16Z"/></svg><span>Wedge</span></button><button data-cut="slice" title="Thin cross section"><svg viewBox="0 0 32 32"><ellipse cx="16" cy="16" rx="4" ry="11"/><path class="dashed" d="M15 6a10 10 0 1 1 0 20"/></svg><span>Slice</span></button></div></section>
  <details class="viewer-settings cut-more-options" id="viewer-settings"><summary hidden>Settings</summary><div class="viewer-settings-content">
 <section class="control-section orbital-flow-control" id="flow-control" aria-label="Flow speed">
@@ -884,10 +953,10 @@ body[data-page="math"] [data-site-page]:not([data-site-page="math"]){display:non
     <aside class="spectrum-controls" aria-label="Transition controls">
  <div class="spectrum-states" aria-label="Orbital basis">
 
-  <section class="spectrum-basis-control"><div class="settings-heading viewer-controls-heading"><span class="section-label">VIEW</span><button class="settings-gear" type="button" data-settings-target="spectrum-viewer-settings" aria-controls="spectrum-viewer-settings" aria-expanded="false" aria-label="Transition settings" title="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.000 12.000L19.932 13.044L21.659 14.588L21.239 15.827L18.928 16.000L18.347 16.870L17.657 17.657L16.870 18.347L17.000 20.660L15.827 21.239L14.071 19.727L13.044 19.932L12.000 20.000L10.956 19.932L9.412 21.659L8.173 21.239L8.000 18.928L7.130 18.347L6.343 17.657L5.653 16.870L3.340 17.000L2.761 15.827L4.273 14.071L4.068 13.044L4.000 12.000L4.068 10.956L2.341 9.412L2.761 8.173L5.072 8.000L5.653 7.130L6.343 6.343L7.130 5.653L7.000 3.340L8.173 2.761L9.929 4.273L10.956 4.068L12.000 4.000L13.044 4.068L14.588 2.341L15.827 2.761L16.000 5.072L16.870 5.653L17.657 6.343L18.347 7.130L20.660 7.000L21.239 8.173L19.727 9.929L19.932 10.956Z"/><circle cx="12" cy="12" r="3"/></svg></button></div><div class="segmented" role="group" aria-label="Transition orbital basis"><button class="selected" data-spectrum-view-basis="complex" aria-pressed="true">Complex</button><button data-spectrum-view-basis="real" aria-pressed="false">Real</button></div></section>
+  <section class="spectrum-basis-control"><div class="settings-heading viewer-controls-heading"><span class="section-label">VIEW</span><button class="settings-gear" type="button" data-settings-target="spectrum-viewer-settings" aria-controls="spectrum-viewer-settings" aria-expanded="false" aria-label="Transition settings" title="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.000 12.000L19.932 13.044L21.659 14.588L21.239 15.827L18.928 16.000L18.347 16.870L17.657 17.657L16.870 18.347L17.000 20.660L15.827 21.239L14.071 19.727L13.044 19.932L12.000 20.000L10.956 19.932L9.412 21.659L8.173 21.239L8.000 18.928L7.130 18.347L6.343 17.657L5.653 16.870L3.340 17.000L2.761 15.827L4.273 14.071L4.068 13.044L4.000 12.000L4.068 10.956L2.341 9.412L2.761 8.173L5.072 8.000L5.653 7.130L6.343 6.343L7.130 5.653L7.000 3.340L8.173 2.761L9.929 4.273L10.956 4.068L12.000 4.000L13.044 4.068L14.588 2.341L15.827 2.761L16.000 5.072L16.870 5.653L17.657 6.343L18.347 7.130L20.660 7.000L21.239 8.173L19.727 9.929L19.932 10.956Z"/><circle cx="12" cy="12" r="3"/></svg></button></div><div class="segmented" role="group" aria-label="Transition orbital basis"><button data-spectrum-view-basis="real" aria-pressed="false">Real</button><button class="selected" data-spectrum-view-basis="complex" aria-pressed="true">Complex</button></div></section>
  </div>
  <p class="spectrum-view-notice" id="spectrum-view-notice" role="status" hidden></p>
- <section class="spectrum-view-control-group spectrum-cut-panel" id="spectrum-look-inside" hidden><div class="settings-heading"><h3>Look inside</h3></div><div class="cut-options" role="group" aria-label="Transition cutaway"><button class="selected" data-spectrum-view-cut="none" aria-pressed="true" title="Complete orbitals"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="10"/></svg><span>Whole</span></button><button data-spectrum-view-cut="half" aria-pressed="false" title="Remove half the orbitals"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 6a10 10 0 0 0 0 20Z"/><path class="dashed" d="M16 6a10 10 0 0 1 0 20"/></svg><span>Half</span></button><button data-spectrum-view-cut="wedge" aria-pressed="false" title="Remove a quarter wedge"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 16V6A10 10 0 1 0 26 16Z"/></svg><span>Wedge</span></button><button data-spectrum-view-cut="slice" aria-pressed="false" title="Thin cross section"><svg viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="16" cy="16" rx="4" ry="11"/><path class="dashed" d="M15 6a10 10 0 1 1 0 20"/></svg><span>Slice</span></button></div></section>
+ <section class="spectrum-view-control-group spectrum-cut-panel" id="spectrum-look-inside" hidden><div class="settings-heading"><h3>Look inside</h3></div><div class="cut-options" role="group" aria-label="Transition cutaway"><button data-spectrum-view-cut="none" aria-pressed="false" title="Complete orbitals"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="10"/></svg><span>Whole</span></button><button class="selected" data-spectrum-view-cut="half" aria-pressed="true" title="Remove half the orbitals"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 6a10 10 0 0 0 0 20Z"/><path class="dashed" d="M16 6a10 10 0 0 1 0 20"/></svg><span>Half</span></button><button data-spectrum-view-cut="wedge" aria-pressed="false" title="Remove a quarter wedge"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 16V6A10 10 0 1 0 26 16Z"/></svg><span>Wedge</span></button><button data-spectrum-view-cut="slice" aria-pressed="false" title="Thin cross section"><svg viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="16" cy="16" rx="4" ry="11"/><path class="dashed" d="M15 6a10 10 0 1 1 0 20"/></svg><span>Slice</span></button></div></section>
  <details class="viewer-settings cut-more-options" id="spectrum-viewer-settings"><summary hidden>Settings</summary><div class="viewer-settings-content">
 <div class="spectrum-rate-control"><label for="spectrum-rate">TRANSITION SPEED</label><div class="spectrum-rate-buttons"><output id="spectrum-rate-value" for="spectrum-rate">1×</output></div><input id="spectrum-rate" type="range" min="0" max="4" step="1" value="2" aria-label="Transition speed"><p id="spectrum-rate-period">1.25 seconds per cycle</p></div>
 <section class="spectrum-view-control-group spectrum-flow-control" id="spectrum-flow-control" aria-label="Flow speed" hidden>
@@ -902,6 +971,7 @@ body[data-page="math"] [data-site-page]:not([data-site-page="math"]){display:non
  <button class="spectrum-view-math" data-open-math data-math-section="11">About this view ↗</button>
 </aside>
    </div>
+   <div class="spectrum-collection-panel">
    <div class="spectrum-selector">
     <div class="spectrum-step-heading"><div class="spectrum-collection-heading"><span class="eyebrow">THE HYDROGEN SPECTRUM</span><h2>Choose a spectral line.</h2><p class="atlas-note">15 spectral lines. 55 orbital pairs. 465 ways to exchange a photon.</p></div></div>
     <div class="spectrum-toolbar"><div class="spectrum-series" role="group" aria-label="Hydrogen spectral series"><button data-spectrum-series="0" class="selected" aria-pressed="true">All <small>15</small></button><button data-spectrum-series="1" aria-pressed="false">Lyman</button><button data-spectrum-series="2" aria-pressed="false">Balmer</button><button data-spectrum-series="3" aria-pressed="false">Paschen</button><button data-spectrum-series="4" aria-pressed="false">Brackett</button><button data-spectrum-series="5" aria-pressed="false">Pfund</button></div></div>
@@ -923,6 +993,7 @@ body[data-page="math"] [data-site-page]:not([data-site-page="math"]){display:non
     <div class="spectrum-step-heading"><h3>Choose an orbital pair</h3></div>
     <div class="spectrum-shapes" id="spectrum-shapes" role="group" aria-label="Dipole-allowed orbital pairs"></div>
 
+   </div>
    </div>
   </div>
  </section>
@@ -2311,7 +2382,7 @@ class SpectrumRenderer {
   this.state={basis:'complex',mode:'density',renderStyle:'cloud',separateColors:false,cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:.025,speed:.5,animate:true,autoRotate:false,axes:false};
   this.activeParticleAmount=this.state.particleAmount;
   this.population=0;this.time=0;this.visible=false;this.dead=false;this.contextLost=false;this.dirty=true;this.raf=0;
-  this.camera={yaw:.58,pitch:.34,distance:2.55};this.pointers=new Map();
+  this.camera={yaw:.58,pitch:.34,distance:3};this.pointers=new Map();
   const touch=typeof matchMedia==='function'&&matchMedia('(pointer: coarse)').matches;
   this.tier=touch||(typeof navigator!=='undefined'&&navigator.hardwareConcurrency<6)?1:2;
   // Cloud may adapt its raster tier; Granular always returns to this fixed tier.
@@ -2407,6 +2478,8 @@ class SpectrumRenderer {
   if(!valid(lower)||!valid(upper))throw new Error('Spectrum states require integer quantum numbers with 1 ≤ n ≤ 6, 0 ≤ ℓ < n, and −ℓ ≤ m ≤ ℓ.');
   this.lower={n:lower.n,l:lower.l,m:lower.m??0};this.upper={n:upper.n,l:upper.l,m:upper.m??0};
   this.extent=2.15*Math.max(lower.n,upper.n)**2+3;this.time=0;
+  // Fit the shared unit-radius support of both endpoints, with room for particles.
+  this.camera.distance=Math.max(3,this.camera.distance);
   this.radialData=new Float32Array(spectrumTableSize*2);this.references=[0,0];this.angularNorm=[0,0];
   for(const [channel,state] of [this.lower,this.upper].entries()){
    const angular=spectrumAngularParameters(state.l,state.m);this.angularNorm[channel]=angular.norm;let peak=0,massPeak=0,densityAtMass=0;
@@ -2455,7 +2528,7 @@ class SpectrumRenderer {
   if(this.visible===!!visible)return;this.visible=!!visible;this.resetTiming();
   if(this.visible){this.resize();this.requestDraw();}else{cancelAnimationFrame(this.raf);this.raf=0;}
  }
- resetView(){this.camera={yaw:.58,pitch:.34,distance:2.55};this.requestDraw();}
+ resetView(){this.camera={yaw:.58,pitch:.34,distance:3};this.requestDraw();}
  zoomBy(factor){if(Number.isFinite(factor)&&factor>0){this.camera.distance=spectrumClamp(this.camera.distance*factor,.15,6);this.requestDraw();}}
  resetTiming(){
   this.lastDraw=0;this.lastDrawPopulation=null;this.lastCameraSignature=null;this.frames=[];this.gpuTimes=[];this.healthySince=null;this.slowSince=null;this.longFrames=0;this.warmUntil=performance.now()+500;this.decreaseCount=0;this.decreaseBaseline=0;
@@ -2479,7 +2552,7 @@ class SpectrumRenderer {
   if(!map.has(name))map.set(name,this.gl.getUniformLocation(program,name));const location=map.get(name);if(location!==null)this.gl[kind](location,...values);
  }
  cameraUniforms(program){
-  const camera=this.camera,distance=camera.distance*Math.max(1,.95/(this.canvas.width/this.canvas.height));
+  const camera=this.camera,distance=camera.distance*Math.max(1,1/(this.canvas.width/this.canvas.height));
   const ce=Math.cos(camera.pitch),se=Math.sin(camera.pitch),sy=Math.sin(camera.yaw),cy=Math.cos(camera.yaw);
   this.uniform(program,'uCamera','uniform3f',sy*ce*distance,cy*ce*distance,se*distance);this.uniform(program,'uRight','uniform3f',cy,-sy,0);this.uniform(program,'uUp','uniform3f',-sy*se,-cy*se,ce);this.uniform(program,'uForward','uniform3f',-sy*ce,-cy*ce,-se);
   this.uniform(program,'uResolution','uniform2f',this.canvas.width,this.canvas.height);this.uniform(program,'uFocal','uniform1f',2.45);this.uniform(program,'uCameraDistance','uniform1f',distance);
@@ -2517,7 +2590,7 @@ class SpectrumRenderer {
  canUseSpherePoints(){
   // All generated samples lie inside the unit sphere. Bound the largest
   // projected sprite, including doubled footprints at clipped viewport edges.
-  const distance=this.camera.distance*Math.max(1,.95/(this.canvas.width/this.canvas.height));
+  const distance=this.camera.distance*Math.max(1,1/(this.canvas.width/this.canvas.height));
   const radius=spectrumTiers[this.tier].radius*.95*1.18,minDepth=distance-1;
   if(minDepth<=radius+.015)return false;
   const bound=radius*1.04*(1.+1/(minDepth-radius));
@@ -2644,15 +2717,15 @@ function initSpectrum(){
  let transitionRate=1,sigma=1;
  let series=0,cycle=0,playing=true,visible=false,previousTime=null,raf=0,renderer=null;
  let currentLine=null,currentSubshell=null,currentChannel=null,stateFilter=null,qFilter='all',lastUiTime=0,engineFailed=false;
- const view={basis:'complex',mode:'density',renderStyle:'granular',cut:'wedge',cutAngle:0,cutOffset:0,density:2,particleAmount:1,speed:2,animate:true,autoRotate:false,axes:false};
+ const view={basis:'complex',mode:'density',renderStyle:'granular',cut:'half',cutAngle:0,cutOffset:0,density:2,particleAmount:1,speed:2,animate:true,autoRotate:false,axes:false};
  // Basis and color mode are shared; Cloud and Granular retain their other presets.
- const modeSettingKeys=['cut','cutAngle','cutOffset','density','particleAmount','speed','autoRotate','axes'];
+ const modeSettingKeys=['density','particleAmount','speed','autoRotate','axes'];
  const defaultModeSettings={cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:0,speed:.5,animate:true,autoRotate:false,axes:false};
  const modeSettings={cloud:{...defaultModeSettings},granular:{...defaultModeSettings,density:2,particleAmount:1,speed:2}};
  const lastPositiveTracers={cloud:.025,granular:1};
  const flowSpeeds=[.25,.5,1,2,4],flowSpeedLabels=['¼×','½×','1×','2×','4×'];
  const nearestFlowSpeed=value=>flowSpeeds.reduce((best,speed)=>Math.abs(speed-value)<Math.abs(best-value)?speed:best,flowSpeeds[0]);
- const basisStyles={real:'cloud',complex:'granular'};
+ const basisStyles={real:'granular',complex:'granular'};
  const initializedBases=new Set([view.basis]);
  let cloudBasis=view.basis;
  let lastPerformance=null;
@@ -2788,10 +2861,6 @@ function initSpectrum(){
   if(next.basis&&next.basis!==view.basis){
    basisStyles[view.basis]=view.renderStyle;
    if(!next.renderStyle)next.renderStyle=basisStyles[next.basis];
-   if(!initializedBases.has(next.basis)){
-    if(!('cut' in next))next.cut=next.basis==='complex'?'wedge':'none';
-    initializedBases.add(next.basis);
-   }
   }
   const nextStyle=next.renderStyle||view.renderStyle;
    if(nextStyle!==view.renderStyle){
@@ -3098,11 +3167,11 @@ document.querySelectorAll('[data-math]').forEach(element => { element.innerHTML 
 const family = ['s','p','d','f','g','h'];
 const state = {n:6,l:3,m:1,basis:'complex',mode:'density',renderStyle:'granular',cut:'wedge',cutAngle:0,cutOffset:0,density:2,particleAmount:1,speed:2,animate:true,autoRotate:false,axes:false};
 // Basis and color are shared across Cloud and Granular; scene controls retain their presets.
-const modeSettingKeys=['cut','cutAngle','cutOffset','density','particleAmount','speed','autoRotate','axes'];
+const modeSettingKeys=['density','particleAmount','speed','autoRotate','axes'];
  const defaultModeSettings={basis:'complex',mode:'density',cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:.025,speed:.5,animate:true,autoRotate:false,axes:false};
  const modeSettings={cloud:{...defaultModeSettings},granular:{...defaultModeSettings,cut:'wedge',density:2,particleAmount:1,speed:2}};
  const lastPositiveTracers={cloud:.025,granular:1};
- const basisStyles={real:'cloud',complex:'granular'};
+ const basisStyles={real:'granular',complex:'granular'};
  const initializedBases=new Set([state.basis]);
  let cloudBasis='complex';
  const flowSpeeds=[.25,.5,1,2,4],flowLabels=['¼×','½×','1×','2×','4×'];
@@ -3112,7 +3181,7 @@ const modeSettingKeys=['cut','cutAngle','cutOffset','density','particleAmount','
 const blueGradient = paletteGradient(densityPalette), rainbowGradient = paletteGradient(phasePalette);
 const initial = new URLSearchParams(location.hash.slice(1));
 if(initial.has('n')){state.n=Math.round(Math.max(1,Math.min(6,+initial.get('n')||6)));state.l=Math.round(Math.max(0,Math.min(state.n-1,+initial.get('l')||0)));state.m=Math.round(Math.max(-state.l,Math.min(state.l,+initial.get('m')||0)));if(initial.get('basis')==='real')state.basis='real';}
-if(state.basis==='real'){Object.assign(state,{renderStyle:'cloud',cut:'none',density:1,particleAmount:0,speed:.5});cloudBasis='real';initializedBases.clear();initializedBases.add('real');}
+if(state.basis==='real'){Object.assign(state,{renderStyle:'granular',cut:'none',density:2,particleAmount:1,speed:2});cloudBasis='real';initializedBases.clear();initializedBases.add('real');}
 let renderer;
 let firstFrame=true;
 let atlasReady=false;
@@ -3146,7 +3215,7 @@ function exploreState(target){
  const {n,l,m}=target;
  if(![n,l,m].every(Number.isInteger)||n<1||n>6||l<0||l>=n||Math.abs(m)>l)return false;
  window.orbitalPages?.go('orbits',{scroll:false});
- update({n,l,m,basis:'complex'});
+ update({n,l,m});
  renderer?.resetView();
  $('scene').scrollIntoView({behavior:'smooth',block:'center'});
  $('orbital-canvas').focus({preventScroll:true});
@@ -3161,10 +3230,6 @@ function update(partial){
  if(switchingBasis){
   basisStyles[state.basis]=state.renderStyle;
   if(!partial.renderStyle)partial.renderStyle=basisStyles[partial.basis];
-  if(!initializedBases.has(partial.basis)){
-   if(!('cut' in partial))partial.cut=partial.basis==='complex'?'wedge':'none';
-   initializedBases.add(partial.basis);
-  }
  }
 
  delete partial.autoTracers;delete partial.targetFps;delete partial.separateColors;
@@ -3276,7 +3341,7 @@ function renderAtlas(){
   const states=[];for(let l=0;l<n;l++){if(atlasFamily!=='all'&&+atlasFamily!==l)continue;for(let m=0;m<=l;m++)states.push([n,l,m]);}
   if(!states.length)continue;total+=states.length;
   const section=document.createElement('section');section.className='atlas-shell-group';section.innerHTML=`<h3 class="shell-title"><span class="shell-number">${mathHTML(`n_${n}`)}</span><span>${(13.605693/(n*n)).toFixed(3)} eV binding energy</span></h3>`;const row=document.createElement('div');row.className='atlas-row';
-  for(const [n,l,m] of states){const b=document.createElement('button');b.className='atlas-card';b.dataset.state=`${n},${l},${m}`;b.setAttribute('aria-label',`Explore ${n}${family[l]}, n ${n}, l ${l}, absolute m ${m}`);const img=document.createElement('img');img.alt='';img.width=120;img.height=120;b.append(img);const title=document.createElement('strong');title.textContent=`${n}${family[l]}`;const small=document.createElement('small');small.innerHTML=mathHTML(`atlas_${l}_${m}`);b.append(title,small);b.addEventListener('click',()=>{update({n,l,m,basis:'complex'});renderer?.resetView();$('scene').scrollIntoView({behavior:'smooth',block:'center'});});row.append(b);queue.push(()=>{img.src=thumbnail(n,l,m);});}
+  for(const [n,l,m] of states){const b=document.createElement('button');b.className='atlas-card';b.dataset.state=`${n},${l},${m}`;b.setAttribute('aria-label',`Explore ${n}${family[l]}, n ${n}, l ${l}, absolute m ${m}`);const img=document.createElement('img');img.alt='';img.width=120;img.height=120;b.append(img);const title=document.createElement('strong');title.textContent=`${n}${family[l]}`;const small=document.createElement('small');small.innerHTML=mathHTML(`atlas_${l}_${m}`);b.append(title,small);b.addEventListener('click',()=>{update({n,l,m});renderer?.resetView();$('scene').scrollIntoView({behavior:'smooth',block:'center'});});row.append(b);queue.push(()=>{img.src=thumbnail(n,l,m);});}
   section.append(row);$('atlas-grid').append(section);
  }
  if(!total)$('atlas-grid').innerHTML='<p class="atlas-empty">This family starts in a higher shell. Choose another shell to explore it.</p>';
@@ -3298,10 +3363,7 @@ function drawRadial(){
 sync();drawRadial();
 initSpectrum();
 $('state-transitions')?.addEventListener('click',()=>{
- if(state.basis==='real'&&state.m!==0){
-  update({basis:'complex'});
-  toast('Showing the complex eigenstate with this magnetic quantum number.');
- }
+
  window.spectrumApp?.exploreState({n:state.n,l:state.l,m:state.m});
 });
 initPageNavigation();

@@ -253,7 +253,7 @@ export class SpectrumRenderer {
   this.state={basis:'complex',mode:'density',renderStyle:'cloud',separateColors:false,cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:.025,speed:.5,animate:true,autoRotate:false,axes:false};
   this.activeParticleAmount=this.state.particleAmount;
   this.population=0;this.time=0;this.visible=false;this.dead=false;this.contextLost=false;this.dirty=true;this.raf=0;
-  this.camera={yaw:.58,pitch:.34,distance:2.55};this.pointers=new Map();
+  this.camera={yaw:.58,pitch:.34,distance:3};this.pointers=new Map();
   const touch=typeof matchMedia==='function'&&matchMedia('(pointer: coarse)').matches;
   this.tier=touch||(typeof navigator!=='undefined'&&navigator.hardwareConcurrency<6)?1:2;
   // Cloud may adapt its raster tier; Granular always returns to this fixed tier.
@@ -349,6 +349,8 @@ export class SpectrumRenderer {
   if(!valid(lower)||!valid(upper))throw new Error('Spectrum states require integer quantum numbers with 1 ≤ n ≤ 6, 0 ≤ ℓ < n, and −ℓ ≤ m ≤ ℓ.');
   this.lower={n:lower.n,l:lower.l,m:lower.m??0};this.upper={n:upper.n,l:upper.l,m:upper.m??0};
   this.extent=2.15*Math.max(lower.n,upper.n)**2+3;this.time=0;
+  // Fit the shared unit-radius support of both endpoints, with room for particles.
+  this.camera.distance=Math.max(3,this.camera.distance);
   this.radialData=new Float32Array(spectrumTableSize*2);this.references=[0,0];this.angularNorm=[0,0];
   for(const [channel,state] of [this.lower,this.upper].entries()){
    const angular=spectrumAngularParameters(state.l,state.m);this.angularNorm[channel]=angular.norm;let peak=0,massPeak=0,densityAtMass=0;
@@ -397,7 +399,7 @@ export class SpectrumRenderer {
   if(this.visible===!!visible)return;this.visible=!!visible;this.resetTiming();
   if(this.visible){this.resize();this.requestDraw();}else{cancelAnimationFrame(this.raf);this.raf=0;}
  }
- resetView(){this.camera={yaw:.58,pitch:.34,distance:2.55};this.requestDraw();}
+ resetView(){this.camera={yaw:.58,pitch:.34,distance:3};this.requestDraw();}
  zoomBy(factor){if(Number.isFinite(factor)&&factor>0){this.camera.distance=spectrumClamp(this.camera.distance*factor,.15,6);this.requestDraw();}}
  resetTiming(){
   this.lastDraw=0;this.lastDrawPopulation=null;this.lastCameraSignature=null;this.frames=[];this.gpuTimes=[];this.healthySince=null;this.slowSince=null;this.longFrames=0;this.warmUntil=performance.now()+500;this.decreaseCount=0;this.decreaseBaseline=0;
@@ -421,7 +423,7 @@ export class SpectrumRenderer {
   if(!map.has(name))map.set(name,this.gl.getUniformLocation(program,name));const location=map.get(name);if(location!==null)this.gl[kind](location,...values);
  }
  cameraUniforms(program){
-  const camera=this.camera,distance=camera.distance*Math.max(1,.95/(this.canvas.width/this.canvas.height));
+  const camera=this.camera,distance=camera.distance*Math.max(1,1/(this.canvas.width/this.canvas.height));
   const ce=Math.cos(camera.pitch),se=Math.sin(camera.pitch),sy=Math.sin(camera.yaw),cy=Math.cos(camera.yaw);
   this.uniform(program,'uCamera','uniform3f',sy*ce*distance,cy*ce*distance,se*distance);this.uniform(program,'uRight','uniform3f',cy,-sy,0);this.uniform(program,'uUp','uniform3f',-sy*se,-cy*se,ce);this.uniform(program,'uForward','uniform3f',-sy*ce,-cy*ce,-se);
   this.uniform(program,'uResolution','uniform2f',this.canvas.width,this.canvas.height);this.uniform(program,'uFocal','uniform1f',2.45);this.uniform(program,'uCameraDistance','uniform1f',distance);
@@ -459,7 +461,7 @@ export class SpectrumRenderer {
  canUseSpherePoints(){
   // All generated samples lie inside the unit sphere. Bound the largest
   // projected sprite, including doubled footprints at clipped viewport edges.
-  const distance=this.camera.distance*Math.max(1,.95/(this.canvas.width/this.canvas.height));
+  const distance=this.camera.distance*Math.max(1,1/(this.canvas.width/this.canvas.height));
   const radius=spectrumTiers[this.tier].radius*.95*1.18,minDepth=distance-1;
   if(minDepth<=radius+.015)return false;
   const bound=radius*1.04*(1.+1/(minDepth-radius));

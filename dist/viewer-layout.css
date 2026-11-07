@@ -285,3 +285,72 @@
 .spectrum-magnetic-controls .spectrum-q-filters button{min-width:52px;min-height:36px;padding:7px 10px}
 .spectrum-magnetic-note{font-size:11px;line-height:1.5;color:var(--muted)}
 @media(max-width:540px){.spectrum-magnetic-controls{gap:8px}.spectrum-magnetic-controls>.spectrum-menu-label{font-size:8px;letter-spacing:1px}.spectrum-magnetic-buttons,.spectrum-magnetic-controls .spectrum-q-filters{gap:4px}.spectrum-magnetic-controls .spectrum-q-filters button{min-width:35px;padding:7px 5px}.spectrum-magnetic-note{font-size:10px}}
+
+/* Shared page shell: every heading and outer panel follows the same edges. */
+:root{
+ --viewer-sidebar:clamp(260px,23vw,340px);
+ --page-panel-width:calc(100svh - 32px + var(--viewer-sidebar));
+ --panel-surface:#121619;
+ --panel-border:#2b3540;
+ --panel-radius:12px;
+ --control-surface:#0e0f10;
+ --control-active:#2c2f32;
+ --control-active-border:#7e8894;
+ --control-text:#949ca5;
+ --control-selected-text:#bed8f4;
+}
+main>.site-page{width:100%;max-width:var(--page-panel-width);margin-inline:auto}
+.site-page .intro{padding:37px 0 30px;margin:0}
+.workspace,.spectrum-panel>.spectrum-view{max-width:none;grid-template-columns:minmax(0,1fr) var(--viewer-sidebar)}
+/* The animation has its own frame, rather than a wider frame around the whole spectrum. */
+#spectrum .spectrum-panel{border:0;border-radius:0;background:transparent;overflow:visible}
+.workspace,.spectrum-panel>.spectrum-view,.spectrum-collection-panel,#orbital-atlas,.math-topic{
+ border:1px solid var(--panel-border);border-radius:var(--panel-radius);
+ background:var(--panel-surface);overflow:hidden
+}
+.spectrum-collection-panel,#orbital-atlas{margin-top:24px}
+#spectra-page .spectrum-collection-panel>.spectrum-selector{border-top:0}
+.spectrum-collection-panel>.spectrum-selector,.spectrum-collection-panel>.spectrum-selection,
+.spectrum-collection-panel>.spectrum-pair-selection{background:var(--panel-surface);border-color:var(--panel-border)}
+.workspace>.controls,.spectrum-view>.spectrum-controls{background:var(--panel-surface);border-color:var(--panel-border)}
+.spectrum-controls>.spectrum-states{border-color:var(--panel-border)}
+.workspace .controls .control-section,.spectrum-controls .spectrum-view-control-group,
+.viewer-settings .settings-group{border-color:var(--panel-border)}
+.workspace .controls .settings-heading>h3,.spectrum-controls .settings-heading>h3,
+.workspace .controls .settings-heading>.section-label,.spectrum-controls .settings-heading>.section-label{
+ color:var(--muted);font-size:9px;font-weight:550;letter-spacing:1.3px;text-transform:uppercase
+}
+/* Use one control palette in both animation sidebars. */
+.workspace .controls .segmented,.spectrum-controls .segmented{background:var(--control-surface);border-color:var(--panel-border)}
+.workspace .controls .segmented button,.spectrum-controls .segmented button{color:var(--control-text)}
+.workspace .controls .segmented button.selected,.spectrum-controls .segmented button.selected{
+ background:var(--control-active);color:var(--control-selected-text);box-shadow:0 0 0 1px #3b424b
+}
+.workspace .controls .cut-options button,.spectrum-controls .cut-options button{
+ background:#16181a;border-color:var(--panel-border);color:var(--control-text)
+}
+.workspace .controls .cut-options button.selected,.spectrum-controls .cut-options button.selected{
+ background:var(--control-active);border-color:var(--control-active-border);color:var(--control-selected-text)
+}
+.scene .icon-button,.spectrum-stage .spectrum-view-tools button{
+ background:#101112bb;border-color:var(--panel-border);color:#c7cbd0;border-radius:5px
+}
+.scene .icon-button:hover,.spectrum-stage .spectrum-view-tools button:hover{
+ color:var(--accent);border-color:#697685;background:#202225
+}
+#math-page #math-content{width:100%;max-width:none;padding:0;margin:0}
+.math-topic-nav a{background:var(--control-surface);border-color:var(--panel-border);color:var(--control-selected-text)}
+.math-deep-dive,.math-deep-dive[open]>summary{border-color:var(--panel-border)}
+.math-deep-dive[open]>summary{background:var(--control-active)}
+@media(max-width:860px){
+ :root{--page-panel-width:calc(100svh - 22px)}
+ .workspace,.spectrum-panel>.spectrum-view{grid-template-columns:minmax(0,1fr)}
+ .workspace>.scene,.spectrum-view>.spectrum-stage{width:100%}
+}
+@media(max-width:780px){.site-page .intro{padding:27px 0 24px}}
+
+/* Slightly quieter navigation and page titles on every screen. */
+.page-tabs .page-tab-label{font-size:clamp(16px,1.5vw,22px)}
+.site-page .intro h1{font-size:clamp(24px,2.15vw,34px)}
+@media(max-width:780px){.page-tabs .page-tab-label{font-size:17px}.site-page .intro h1{font-size:26px}}
+@media(max-width:420px){.page-tabs .page-tab-label{font-size:16px}.site-page .intro h1{font-size:24px}}

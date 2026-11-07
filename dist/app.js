@@ -9,11 +9,11 @@ document.querySelectorAll('[data-math]').forEach(element => { element.innerHTML 
 const family = ['s','p','d','f','g','h'];
 const state = {n:6,l:3,m:1,basis:'complex',mode:'density',renderStyle:'granular',cut:'wedge',cutAngle:0,cutOffset:0,density:2,particleAmount:1,speed:2,animate:true,autoRotate:false,axes:false};
 // Basis and color are shared across Cloud and Granular; scene controls retain their presets.
-const modeSettingKeys=['cut','cutAngle','cutOffset','density','particleAmount','speed','autoRotate','axes'];
+const modeSettingKeys=['density','particleAmount','speed','autoRotate','axes'];
  const defaultModeSettings={basis:'complex',mode:'density',cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:.025,speed:.5,animate:true,autoRotate:false,axes:false};
  const modeSettings={cloud:{...defaultModeSettings},granular:{...defaultModeSettings,cut:'wedge',density:2,particleAmount:1,speed:2}};
  const lastPositiveTracers={cloud:.025,granular:1};
- const basisStyles={real:'cloud',complex:'granular'};
+ const basisStyles={real:'granular',complex:'granular'};
  const initializedBases=new Set([state.basis]);
  let cloudBasis='complex';
  const flowSpeeds=[.25,.5,1,2,4],flowLabels=['¼×','½×','1×','2×','4×'];
@@ -23,7 +23,7 @@ const modeSettingKeys=['cut','cutAngle','cutOffset','density','particleAmount','
 const blueGradient = paletteGradient(densityPalette), rainbowGradient = paletteGradient(phasePalette);
 const initial = new URLSearchParams(location.hash.slice(1));
 if(initial.has('n')){state.n=Math.round(Math.max(1,Math.min(6,+initial.get('n')||6)));state.l=Math.round(Math.max(0,Math.min(state.n-1,+initial.get('l')||0)));state.m=Math.round(Math.max(-state.l,Math.min(state.l,+initial.get('m')||0)));if(initial.get('basis')==='real')state.basis='real';}
-if(state.basis==='real'){Object.assign(state,{renderStyle:'cloud',cut:'none',density:1,particleAmount:0,speed:.5});cloudBasis='real';initializedBases.clear();initializedBases.add('real');}
+if(state.basis==='real'){Object.assign(state,{renderStyle:'granular',cut:'none',density:2,particleAmount:1,speed:2});cloudBasis='real';initializedBases.clear();initializedBases.add('real');}
 let renderer;
 let firstFrame=true;
 let atlasReady=false;
@@ -57,7 +57,7 @@ function exploreState(target){
  const {n,l,m}=target;
  if(![n,l,m].every(Number.isInteger)||n<1||n>6||l<0||l>=n||Math.abs(m)>l)return false;
  window.orbitalPages?.go('orbits',{scroll:false});
- update({n,l,m,basis:'complex'});
+ update({n,l,m});
  renderer?.resetView();
  $('scene').scrollIntoView({behavior:'smooth',block:'center'});
  $('orbital-canvas').focus({preventScroll:true});
@@ -72,10 +72,6 @@ function update(partial){
  if(switchingBasis){
   basisStyles[state.basis]=state.renderStyle;
   if(!partial.renderStyle)partial.renderStyle=basisStyles[partial.basis];
-  if(!initializedBases.has(partial.basis)){
-   if(!('cut' in partial))partial.cut=partial.basis==='complex'?'wedge':'none';
-   initializedBases.add(partial.basis);
-  }
  }
 
  delete partial.autoTracers;delete partial.targetFps;delete partial.separateColors;
@@ -187,7 +183,7 @@ function renderAtlas(){
   const states=[];for(let l=0;l<n;l++){if(atlasFamily!=='all'&&+atlasFamily!==l)continue;for(let m=0;m<=l;m++)states.push([n,l,m]);}
   if(!states.length)continue;total+=states.length;
   const section=document.createElement('section');section.className='atlas-shell-group';section.innerHTML=`<h3 class="shell-title"><span class="shell-number">${mathHTML(`n_${n}`)}</span><span>${(13.605693/(n*n)).toFixed(3)} eV binding energy</span></h3>`;const row=document.createElement('div');row.className='atlas-row';
-  for(const [n,l,m] of states){const b=document.createElement('button');b.className='atlas-card';b.dataset.state=`${n},${l},${m}`;b.setAttribute('aria-label',`Explore ${n}${family[l]}, n ${n}, l ${l}, absolute m ${m}`);const img=document.createElement('img');img.alt='';img.width=120;img.height=120;b.append(img);const title=document.createElement('strong');title.textContent=`${n}${family[l]}`;const small=document.createElement('small');small.innerHTML=mathHTML(`atlas_${l}_${m}`);b.append(title,small);b.addEventListener('click',()=>{update({n,l,m,basis:'complex'});renderer?.resetView();$('scene').scrollIntoView({behavior:'smooth',block:'center'});});row.append(b);queue.push(()=>{img.src=thumbnail(n,l,m);});}
+  for(const [n,l,m] of states){const b=document.createElement('button');b.className='atlas-card';b.dataset.state=`${n},${l},${m}`;b.setAttribute('aria-label',`Explore ${n}${family[l]}, n ${n}, l ${l}, absolute m ${m}`);const img=document.createElement('img');img.alt='';img.width=120;img.height=120;b.append(img);const title=document.createElement('strong');title.textContent=`${n}${family[l]}`;const small=document.createElement('small');small.innerHTML=mathHTML(`atlas_${l}_${m}`);b.append(title,small);b.addEventListener('click',()=>{update({n,l,m});renderer?.resetView();$('scene').scrollIntoView({behavior:'smooth',block:'center'});});row.append(b);queue.push(()=>{img.src=thumbnail(n,l,m);});}
   section.append(row);$('atlas-grid').append(section);
  }
  if(!total)$('atlas-grid').innerHTML='<p class="atlas-empty">This family starts in a higher shell. Choose another shell to explore it.</p>';
@@ -209,10 +205,7 @@ function drawRadial(){
 sync();drawRadial();
 initSpectrum();
 $('state-transitions')?.addEventListener('click',()=>{
- if(state.basis==='real'&&state.m!==0){
-  update({basis:'complex'});
-  toast('Showing the complex eigenstate with this magnetic quantum number.');
- }
+
  window.spectrumApp?.exploreState({n:state.n,l:state.l,m:state.m});
 });
 initPageNavigation();

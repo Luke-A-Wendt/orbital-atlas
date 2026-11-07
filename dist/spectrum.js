@@ -16,15 +16,15 @@ export function initSpectrum(){
  let transitionRate=1,sigma=1;
  let series=0,cycle=0,playing=true,visible=false,previousTime=null,raf=0,renderer=null;
  let currentLine=null,currentSubshell=null,currentChannel=null,stateFilter=null,qFilter='all',lastUiTime=0,engineFailed=false;
- const view={basis:'complex',mode:'density',renderStyle:'granular',cut:'wedge',cutAngle:0,cutOffset:0,density:2,particleAmount:1,speed:2,animate:true,autoRotate:false,axes:false};
+ const view={basis:'complex',mode:'density',renderStyle:'granular',cut:'half',cutAngle:0,cutOffset:0,density:2,particleAmount:1,speed:2,animate:true,autoRotate:false,axes:false};
  // Basis and color mode are shared; Cloud and Granular retain their other presets.
- const modeSettingKeys=['cut','cutAngle','cutOffset','density','particleAmount','speed','autoRotate','axes'];
+ const modeSettingKeys=['density','particleAmount','speed','autoRotate','axes'];
  const defaultModeSettings={cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:0,speed:.5,animate:true,autoRotate:false,axes:false};
  const modeSettings={cloud:{...defaultModeSettings},granular:{...defaultModeSettings,density:2,particleAmount:1,speed:2}};
  const lastPositiveTracers={cloud:.025,granular:1};
  const flowSpeeds=[.25,.5,1,2,4],flowSpeedLabels=['¼×','½×','1×','2×','4×'];
  const nearestFlowSpeed=value=>flowSpeeds.reduce((best,speed)=>Math.abs(speed-value)<Math.abs(best-value)?speed:best,flowSpeeds[0]);
- const basisStyles={real:'cloud',complex:'granular'};
+ const basisStyles={real:'granular',complex:'granular'};
  const initializedBases=new Set([view.basis]);
  let cloudBasis=view.basis;
  let lastPerformance=null;
@@ -160,10 +160,6 @@ export function initSpectrum(){
   if(next.basis&&next.basis!==view.basis){
    basisStyles[view.basis]=view.renderStyle;
    if(!next.renderStyle)next.renderStyle=basisStyles[next.basis];
-   if(!initializedBases.has(next.basis)){
-    if(!('cut' in next))next.cut=next.basis==='complex'?'wedge':'none';
-    initializedBases.add(next.basis);
-   }
   }
   const nextStyle=next.renderStyle||view.renderStyle;
    if(nextStyle!==view.renderStyle){
