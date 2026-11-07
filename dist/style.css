@@ -101,7 +101,7 @@ footer{flex-wrap:wrap}footer .author-credits{flex-basis:100%;display:flex;flex-d
 
 .settings-heading{display:flex;align-items:center;gap:9px;margin-bottom:16px}
 .settings-heading>.section-label,.settings-heading>h3{margin:0}
-.settings-gear{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;padding:6px;border:1px solid transparent;border-radius:6px;color:#8c9ba9}
+.settings-gear{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;padding:6px;border:1px solid transparent;border-radius:50%;color:#8c9ba9}
 .settings-gear svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linejoin:round}
 .settings-gear:hover,.settings-gear[aria-expanded="true"]{color:#b4d5f5;background:#a1c6f012;border-color:#a1c6f040}
 .cut-more-options{margin-top:0;border-top:0}
