@@ -887,6 +887,42 @@ main>.site-page{width:100%;max-width:var(--page-panel-width);margin-inline:auto}
 @media(max-width:780px){.page-tabs .page-tab-label{font-size:17px}.site-page .intro h1{font-size:26px}}
 @media(max-width:420px){.page-tabs .page-tab-label{font-size:16px}.site-page .intro h1{font-size:24px}}
 
+.workspace .controls .viewer-links .quantum-help,.viewer-links .viewer-jump{font-size:12px;font-weight:550;line-height:1.5;color:var(--accent);text-align:left;min-height:36px;padding:4px 0}
+.spectrum-viewer-links{flex-direction:column;align-items:stretch;gap:2px}
+.jump-highlight{animation:orbital-jump-flash 2.4s ease-in-out 1}
+@keyframes orbital-jump-flash{0%,100%{box-shadow:inset 0 0 0 0 transparent}25%,55%{box-shadow:inset 0 0 0 3px white;border-color:white}}
+.spectrum-selection-handle.dot-pulse::before{animation:spectral-dot-pulse 2.4s ease-in-out 1}
+@keyframes spectral-dot-pulse{0%,100%{transform:scale(1)}30%,50%{transform:scale(2.6);background:white;box-shadow:0 0 18px #b8dcff99}}
+@media(prefers-reduced-motion:reduce){.spectrum-selection-handle.dot-pulse::before{animation:none;box-shadow:0 0 0 6px #d5eaff88}}
+.viewer-links button:hover{text-decoration:underline;text-underline-offset:3px}
+
+/* Matching navigation rows with destination-specific arrows. */
+.viewer-links,.spectrum-viewer-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:center}
+.workspace .controls .viewer-links .quantum-help,.viewer-links .viewer-jump{display:inline-flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;font-weight:550;line-height:1.5;min-height:40px;padding:6px 0;text-align:left}
+.viewer-link-arrow{font-size:17px;line-height:1;flex:none;color:var(--accent)}
+
+/* Keep each arrow attached to its own label with a single text space. */
+.workspace .controls .viewer-links .quantum-help,.viewer-links .viewer-jump{display:block;text-align:left}
+.viewer-link-arrow{font-size:1em;line-height:inherit}
+
+.viewer-links,.spectrum-viewer-links{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+
+/* Equal navigation columns with centered labels on both viewers. */
+.viewer-links,.spectrum-viewer-links{grid-template-columns:repeat(3,minmax(0,1fr));gap:0}
+.workspace .controls .viewer-links .quantum-help,.viewer-links .viewer-jump{text-align:center;width:100%}
+
+.math-page-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));max-width:340px;margin:0 auto 24px;gap:0}
+.math-page-links a{display:block;text-align:center;color:var(--accent);font-size:12px;font-weight:550;line-height:1.5;padding:10px 12px;min-height:40px}
+.math-page-links a:hover{text-decoration:underline;text-underline-offset:3px}
+
+/* Basis and cutaway choices read as one compact view control group. */
+.workspace .controls .basis-section,.spectrum-controls>.spectrum-states{border-bottom:0;padding-bottom:0}
+.workspace .controls #look-inside,.spectrum-controls #spectrum-look-inside{padding-top:10px}
+
+#math-page>.intro{align-items:center;flex-wrap:wrap;gap:12px 24px}
+#math-page .math-page-links{margin:0 0 0 auto;width:220px;max-width:100%;flex-shrink:0}
+@media(max-width:600px){#math-page .math-page-links{width:190px}}
+
 </style>
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; font-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
 </head>
@@ -896,11 +932,6 @@ main>.site-page{width:100%;max-width:var(--page-panel-width);margin-inline:auto}
 
  <span class="live-badge"><i></i> LIVE SIMULATION</span>
 </header>
-<nav class="page-tabs" aria-label="Main navigation">
- <a href="orbits.html" data-page-link="orbits" aria-current="page"><span class="page-tab-label">Orbits</span></a>
- <a href="spectra.html" data-page-link="spectra"><span class="page-tab-label">Spectra</span></a>
- <a href="math.html" data-page-link="math"><span class="page-tab-label">Math</span></a>
-</nav>
 <main>
  <div id="orbits-page" class="site-page" data-site-page="orbits">
  <div class="intro"><div><h1 id="orbits-title" tabindex="-1">The shape of <em>hydrogen.</em></h1></div></div>
@@ -918,7 +949,7 @@ main>.site-page{width:100%;max-width:var(--page-panel-width);margin-inline:auto}
   </div>
   <aside class="controls" aria-label="Orbital controls">
  <section class="control-section basis-section"><div class="settings-heading viewer-controls-heading"><span class="section-label">VIEW</span><button class="settings-gear" type="button" data-settings-target="viewer-settings" aria-controls="viewer-settings" aria-expanded="false" aria-label="Orbital settings" title="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.000 12.000L19.932 13.044L21.659 14.588L21.239 15.827L18.928 16.000L18.347 16.870L17.657 17.657L16.870 18.347L17.000 20.660L15.827 21.239L14.071 19.727L13.044 19.932L12.000 20.000L10.956 19.932L9.412 21.659L8.173 21.239L8.000 18.928L7.130 18.347L6.343 17.657L5.653 16.870L3.340 17.000L2.761 15.827L4.273 14.071L4.068 13.044L4.000 12.000L4.068 10.956L2.341 9.412L2.761 8.173L5.072 8.000L5.653 7.130L6.343 6.343L7.130 5.653L7.000 3.340L8.173 2.761L9.929 4.273L10.956 4.068L12.000 4.000L13.044 4.068L14.588 2.341L15.827 2.761L16.000 5.072L16.870 5.653L17.657 6.343L18.347 7.130L20.660 7.000L21.239 8.173L19.727 9.929L19.932 10.956Z"/><circle cx="12" cy="12" r="3"/></svg></button></div><div class="basis-switch segmented" aria-label="Orbital basis"><button data-basis="real">Real</button><button class="selected" data-basis="complex">Complex</button></div></section>
- <section class="control-section cut-section" id="look-inside"><div class="settings-heading"><h3>Look inside</h3></div><div class="cut-options"><button data-cut="none" title="Complete orbital"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="10"/></svg><span>Whole</span></button><button data-cut="half" title="Remove half the orbital"><svg viewBox="0 0 32 32"><path d="M16 6a10 10 0 0 0 0 20Z"/><path class="dashed" d="M16 6a10 10 0 0 1 0 20"/></svg><span>Half</span></button><button class="selected" data-cut="wedge" title="Remove a quarter wedge"><svg viewBox="0 0 32 32"><path d="M16 16V6A10 10 0 1 0 26 16Z"/></svg><span>Wedge</span></button><button data-cut="slice" title="Thin cross section"><svg viewBox="0 0 32 32"><ellipse cx="16" cy="16" rx="4" ry="11"/><path class="dashed" d="M15 6a10 10 0 1 1 0 20"/></svg><span>Slice</span></button></div></section>
+ <section class="control-section cut-section" id="look-inside" aria-label="Look inside"><div class="cut-options"><button data-cut="none" title="Complete orbital"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="10"/></svg><span>Whole</span></button><button data-cut="half" title="Remove half the orbital"><svg viewBox="0 0 32 32"><path d="M16 6a10 10 0 0 0 0 20Z"/><path class="dashed" d="M16 6a10 10 0 0 1 0 20"/></svg><span>Half</span></button><button class="selected" data-cut="wedge" title="Remove a quarter wedge"><svg viewBox="0 0 32 32"><path d="M16 16V6A10 10 0 1 0 26 16Z"/></svg><span>Wedge</span></button><button data-cut="slice" title="Thin cross section"><svg viewBox="0 0 32 32"><ellipse cx="16" cy="16" rx="4" ry="11"/><path class="dashed" d="M15 6a10 10 0 1 1 0 20"/></svg><span>Slice</span></button></div></section>
  <details class="viewer-settings cut-more-options" id="viewer-settings"><summary hidden>Settings</summary><div class="viewer-settings-content">
 <section class="control-section orbital-flow-control" id="flow-control" aria-label="Flow speed">
  <div class="flow-speed-heading"><label class="section-label" for="speed">FLOW SPEED</label><output id="speed-value" for="speed">2×</output></div>
@@ -929,7 +960,7 @@ main>.site-page{width:100%;max-width:var(--page-panel-width);margin-inline:auto}
 <section class="settings-group"><h3>Appearance</h3><div class="appearance-choices"><div class="segmented render-style" role="group" aria-label="Rendering style"><button data-render-style="cloud">Cloud</button><button class="selected" data-render-style="granular">Granular</button></div><div class="segmented" role="group" aria-label="Color"><button class="selected" data-mode="density">Density</button><button data-mode="phase">Phase</button></div></div><div class="tracer-controls"><label class="slider-label" for="particle-amount">Tracer amount <output id="particle-amount-value">200,000</output></label><input id="particle-amount" type="range" min="0" max="1" value="1" step="0.005" aria-label="Tracer amount"><p class="tracer-limit-note" id="tracer-status" hidden></p></div><label class="slider-label" for="density">Intensity <output id="density-value">2×</output></label><input id="density" type="range" min="0.2" max="3" value="2" step="0.05"></section>
 <section class="settings-group view-adjustments"><h3>View adjustments</h3><div id="cut-settings" hidden><label class="slider-label" for="cut-angle">Cut rotation <output id="cut-angle-value">0°</output></label><input id="cut-angle" type="range" min="0" max="360" value="0" step="1"><div id="cut-offset-wrap"><label class="slider-label" for="cut-offset">Cut position <output id="cut-offset-value">center</output></label><input id="cut-offset" type="range" min="-0.8" max="0.8" step="0.01" value="0"></div></div><label class="toggle-line" for="auto-rotate"><span>Auto rotate</span><input type="checkbox" id="auto-rotate" role="switch"></label><label class="toggle-line" for="show-axes"><span>Coordinate axes</span><input type="checkbox" id="show-axes" role="switch"></label></section>
 </div></details>
- <div class="viewer-links"><button class="quantum-help" data-open-atlas>Choose an orbital ↗</button><button class="quantum-help state-transitions" id="state-transitions">Transitions from this state ↗</button></div>
+ <div class="viewer-links"><button class="quantum-help" data-open-atlas><span>Orbit</span> <span class="viewer-link-arrow" aria-hidden="true">↓</span></button><button class="quantum-help state-transitions" id="state-transitions"><span>Spectra</span> <span class="viewer-link-arrow" aria-hidden="true">↗</span></button><button class="viewer-jump" data-open-math><span>Math</span> <span class="viewer-link-arrow" aria-hidden="true">↗</span></button></div>
 </aside>
  </section>
  <section class="discovery atlas-inline" id="orbital-atlas" aria-labelledby="atlas-title"><div class="discovery-heading"><div><span class="eyebrow">THE HYDROGEN COLLECTION</span><h2 id="atlas-title" tabindex="-1">Every state has a shape.</h2><p class="atlas-note">56 density shapes. 91 signed eigenstates. One electron.</p></div></div><div class="atlas-filters"><div id="family-filters" class="family-filters"><button data-family="all" class="selected">All orbitals</button><button data-family="0">s</button><button data-family="1">p</button><button data-family="2">d</button><button data-family="3">f</button><button data-family="4">g</button><button data-family="5">h</button></div><label>Shell <select id="atlas-shell"><option value="all">All shells</option><option value="1">Shell 1</option><option value="2">Shell 2</option><option value="3">Shell 3</option><option value="4">Shell 4</option><option value="5">Shell 5</option><option value="6">Shell 6</option></select></label></div><div id="atlas-grid"></div><div class="atlas-footer"><span>s · spherical &nbsp; p · polar &nbsp; d · double &nbsp; f · intricate &nbsp; g, h · higher harmonics</span><span>Labels: <span data-math="labels">n, ℓ, |m|</span></span></div></section>
@@ -956,7 +987,7 @@ main>.site-page{width:100%;max-width:var(--page-panel-width);margin-inline:auto}
   <section class="spectrum-basis-control"><div class="settings-heading viewer-controls-heading"><span class="section-label">VIEW</span><button class="settings-gear" type="button" data-settings-target="spectrum-viewer-settings" aria-controls="spectrum-viewer-settings" aria-expanded="false" aria-label="Transition settings" title="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.000 12.000L19.932 13.044L21.659 14.588L21.239 15.827L18.928 16.000L18.347 16.870L17.657 17.657L16.870 18.347L17.000 20.660L15.827 21.239L14.071 19.727L13.044 19.932L12.000 20.000L10.956 19.932L9.412 21.659L8.173 21.239L8.000 18.928L7.130 18.347L6.343 17.657L5.653 16.870L3.340 17.000L2.761 15.827L4.273 14.071L4.068 13.044L4.000 12.000L4.068 10.956L2.341 9.412L2.761 8.173L5.072 8.000L5.653 7.130L6.343 6.343L7.130 5.653L7.000 3.340L8.173 2.761L9.929 4.273L10.956 4.068L12.000 4.000L13.044 4.068L14.588 2.341L15.827 2.761L16.000 5.072L16.870 5.653L17.657 6.343L18.347 7.130L20.660 7.000L21.239 8.173L19.727 9.929L19.932 10.956Z"/><circle cx="12" cy="12" r="3"/></svg></button></div><div class="segmented" role="group" aria-label="Transition orbital basis"><button data-spectrum-view-basis="real" aria-pressed="false">Real</button><button class="selected" data-spectrum-view-basis="complex" aria-pressed="true">Complex</button></div></section>
  </div>
  <p class="spectrum-view-notice" id="spectrum-view-notice" role="status" hidden></p>
- <section class="spectrum-view-control-group spectrum-cut-panel" id="spectrum-look-inside" hidden><div class="settings-heading"><h3>Look inside</h3></div><div class="cut-options" role="group" aria-label="Transition cutaway"><button data-spectrum-view-cut="none" aria-pressed="false" title="Complete orbitals"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="10"/></svg><span>Whole</span></button><button class="selected" data-spectrum-view-cut="half" aria-pressed="true" title="Remove half the orbitals"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 6a10 10 0 0 0 0 20Z"/><path class="dashed" d="M16 6a10 10 0 0 1 0 20"/></svg><span>Half</span></button><button data-spectrum-view-cut="wedge" aria-pressed="false" title="Remove a quarter wedge"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 16V6A10 10 0 1 0 26 16Z"/></svg><span>Wedge</span></button><button data-spectrum-view-cut="slice" aria-pressed="false" title="Thin cross section"><svg viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="16" cy="16" rx="4" ry="11"/><path class="dashed" d="M15 6a10 10 0 1 1 0 20"/></svg><span>Slice</span></button></div></section>
+ <section class="spectrum-view-control-group spectrum-cut-panel" id="spectrum-look-inside" aria-label="Look inside" hidden><div class="cut-options" role="group" aria-label="Transition cutaway"><button data-spectrum-view-cut="none" aria-pressed="false" title="Complete orbitals"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="10"/></svg><span>Whole</span></button><button class="selected" data-spectrum-view-cut="half" aria-pressed="true" title="Remove half the orbitals"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 6a10 10 0 0 0 0 20Z"/><path class="dashed" d="M16 6a10 10 0 0 1 0 20"/></svg><span>Half</span></button><button data-spectrum-view-cut="wedge" aria-pressed="false" title="Remove a quarter wedge"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 16V6A10 10 0 1 0 26 16Z"/></svg><span>Wedge</span></button><button data-spectrum-view-cut="slice" aria-pressed="false" title="Thin cross section"><svg viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="16" cy="16" rx="4" ry="11"/><path class="dashed" d="M15 6a10 10 0 1 1 0 20"/></svg><span>Slice</span></button></div></section>
  <details class="viewer-settings cut-more-options" id="spectrum-viewer-settings"><summary hidden>Settings</summary><div class="viewer-settings-content">
 <div class="spectrum-rate-control"><label for="spectrum-rate">TRANSITION SPEED</label><div class="spectrum-rate-buttons"><output id="spectrum-rate-value" for="spectrum-rate">1×</output></div><input id="spectrum-rate" type="range" min="0" max="4" step="1" value="2" aria-label="Transition speed"><p id="spectrum-rate-period">1.25 seconds per cycle</p></div>
 <section class="spectrum-view-control-group spectrum-flow-control" id="spectrum-flow-control" aria-label="Flow speed" hidden>
@@ -968,7 +999,7 @@ main>.site-page{width:100%;max-width:var(--page-panel-width);margin-inline:auto}
 <section class="settings-group"><h3>Appearance</h3><div class="appearance-choices"><div class="segmented" role="group" aria-label="Transition rendering style"><button class="selected" data-spectrum-view-render-style="cloud" aria-pressed="true">Cloud</button><button data-spectrum-view-render-style="granular" aria-pressed="false">Granular</button></div><div class="segmented" role="group" aria-label="Transition color"><button class="selected" data-spectrum-view-mode="density" aria-pressed="true">Density</button><button data-spectrum-view-mode="phase" aria-pressed="false">Phase</button></div></div><div class="tracer-controls"><label class="slider-label" for="spectrum-particle-amount">Tracer amount <output id="spectrum-particle-amount-value">0</output></label><input id="spectrum-particle-amount" type="range" min="0" max="0.05" value="0" step="0.0005" aria-label="Tracer amount"><p class="tracer-limit-note" id="spectrum-tracer-status" hidden></p></div><label class="slider-label" for="spectrum-density">Intensity <output id="spectrum-density-value">1×</output></label><input id="spectrum-density" type="range" min="0.2" max="2" step="0.05" value="1"></section>
 <section class="settings-group view-adjustments"><h3>View adjustments</h3><div id="spectrum-cut-settings" hidden><label class="slider-label" for="spectrum-cut-angle">Cut rotation <output id="spectrum-cut-angle-value">0°</output></label><input id="spectrum-cut-angle" type="range" min="0" max="360" step="1" value="0"><div id="spectrum-cut-offset-wrap"><label class="slider-label" for="spectrum-cut-offset">Cut position <output id="spectrum-cut-offset-value">center</output></label><input id="spectrum-cut-offset" type="range" min="-0.8" max="0.8" step="0.01" value="0"></div></div><label class="toggle-line" for="spectrum-auto-rotate"><span>Auto rotate</span><input id="spectrum-auto-rotate" type="checkbox" role="switch"></label><label class="toggle-line" for="spectrum-show-axes"><span>Coordinate axes</span><input id="spectrum-show-axes" type="checkbox" role="switch"></label></section>
 </div></details>
- <button class="spectrum-view-math" data-open-math data-math-section="11">About this view ↗</button>
+ <div class="viewer-links spectrum-viewer-links"><button class="viewer-jump" id="spectrum-see-orbit"><span>Orbit</span> <span class="viewer-link-arrow" aria-hidden="true">↗</span></button><button class="viewer-jump" id="spectrum-see-pair"><span>Spectra</span> <span class="viewer-link-arrow" aria-hidden="true">↓</span></button><button class="viewer-jump" data-open-math><span>Math</span> <span class="viewer-link-arrow" aria-hidden="true">↗</span></button></div>
 </aside>
    </div>
    <div class="spectrum-collection-panel">
@@ -999,7 +1030,7 @@ main>.site-page{width:100%;max-width:var(--page-panel-width);margin-inline:auto}
  </section>
  </div>
  <section id="math-page" class="site-page math-page" data-site-page="math" aria-labelledby="math-title">
-  <div class="intro"><div><h1 id="math-title" tabindex="-1">The mathematics of <em>hydrogen.</em></h1></div></div>
+  <div class="intro"><div><h1 id="math-title" tabindex="-1">The mathematics of <em>hydrogen.</em></h1></div><nav class="math-page-links" aria-label="Explore hydrogen"><a href="orbits.html" data-page-link="orbits">Orbit <span class="viewer-link-arrow" aria-hidden="true">↗</span></a><a href="spectra.html" data-page-link="spectra">Spectra <span class="viewer-link-arrow" aria-hidden="true">↗</span></a></nav></div>
   <div id="math-content"><p class="math-intro">Hydrogen connects orbital shape, probability flow and light through one wavefunction. Each topic starts with its defining equations; expand the derivation to follow the steps, conventions and limits of the model.</p>
 
 <nav class="math-topic-nav" aria-label="Mathematics topics"><a href="#math-topic-1">States</a><a href="#math-topic-2">Dynamics</a><a href="#math-topic-3">Radial structure</a><a href="#math-topic-4">Angular shape</a><a href="#math-topic-5">Probability</a><a href="#math-topic-6">Current</a><a href="#math-topic-7">Rendering</a><a href="#math-topic-8">Spectra</a><a href="#math-topic-9">Coupling</a><a href="#math-topic-10">Transitions</a><a href="#math-topic-11">Viewing model</a></nav>
@@ -2836,7 +2867,7 @@ function initSpectrum(){
   const phase=view.mode==='phase',granular=view.renderStyle==='granular',real=view.basis==='real';
   element('view-label').textContent=(real?'REAL-BASIS PREVIEW':'COMPLEX')+' · '+(phase?'COMPONENT PHASE':granular?'GRANULAR DENSITY':'DENSITY CLOUD');
   element('density').max=view.renderStyle==='cloud'?2:3;element('density').value=view.density;element('density-value').value=view.density.toFixed(2).replace(/\.?0+$/,'')+'×';
-  element('look-inside').hidden=view.renderStyle==='cloud';element('cut-settings').hidden=view.renderStyle==='cloud'||view.cut==='none';element('cut-offset-wrap').hidden=view.cut==='wedge';
+  element('look-inside').hidden=false;element('cut-settings').hidden=view.cut==='none';element('cut-offset-wrap').hidden=view.cut==='wedge';
   element('cut-angle').value=view.cutAngle;element('cut-angle-value').value=view.cutAngle+'°';
   element('cut-offset').value=view.cutOffset;element('cut-offset-value').value=Math.abs(view.cutOffset)<.01?'center':(view.cutOffset>0?'+':'')+Math.round(view.cutOffset*100)+'%';
   syncPerformance();
@@ -3070,8 +3101,10 @@ function initSpectrum(){
   if(!Number.isInteger(candidate.n)||candidate.n<1||candidate.n>6||!Number.isInteger(candidate.l)||candidate.l<0||candidate.l>=candidate.n||!Number.isInteger(candidate.m)||Math.abs(candidate.m)>candidate.l)return false;
   finishLineDrag();
   stateFilter=candidate;series=0;updateStateFilter();
-  const available=lines.filter(line=>allChannels(line).length),line=available.includes(currentLine)?currentLine:available.find(item=>item.lowerN===2)||available[0];
-  window.orbitalPages?.go('spectra',{scroll:false});selectLine(line.lowerN,line.upperN);root.scrollIntoView({behavior:'smooth',block:'start'});element('title').focus({preventScroll:true});return true;
+  const examples=lines.flatMap(line=>allChannels(line).map(channel=>({line,channel})));
+  examples.sort((a,b)=>Number(sameState(b.channel.lower,candidate))-Number(sameState(a.channel.lower,candidate))||Number(b.channel.lower.m!==0||b.channel.upper.m!==0)-Number(a.channel.lower.m!==0||a.channel.upper.m!==0)||a.line.upperN-b.line.upperN);
+  const chosen=examples[0];if(!chosen)return false;
+  window.orbitalPages?.go('spectra',{scroll:false});selectLine(chosen.line.lowerN,chosen.line.upperN,chosen.channel.id);element('stage').scrollIntoView({behavior:'smooth',block:'center'});return true;
  }
  function clearStateFilter(){finishLineDrag();stateFilter=null;updateStateFilter();selectLine(currentLine.lowerN,currentLine.upperN,currentChannel.id);}
  for(const [attribute,key] of [['basis','basis'],['mode','mode'],['render-style','renderStyle'],['cut','cut']])root.querySelectorAll('[data-spectrum-view-'+attribute+']').forEach(button=>button.addEventListener('click',()=>setView({[key]:button.getAttribute('data-spectrum-view-'+attribute)})));
@@ -3117,6 +3150,11 @@ function initSpectrum(){
   if(!active){finishLineDrag();visible=false;renderer?.setVisible(false);cancelAnimationFrame(raf);raf=0;}
   else if(typeof IntersectionObserver==='undefined'){visible=true;ensureRenderer();renderer?.setVisible(!document.hidden);startFrame();}
  }
+ element('see-orbit').addEventListener('click',()=>window.orbitalApp?.exploreState({...currentChannel.lower}));
+ const pulse=(target,cls='jump-highlight')=>{if(!target)return;target.classList.remove(cls);void target.offsetWidth;target.classList.add(cls);setTimeout(()=>target.classList.remove(cls),2400);};
+ const showAllForCurrent=()=>{const id=currentChannel.id;finishLineDrag();series=0;stateFilter=null;updateStateFilter();selectLine(currentLine.lowerN,currentLine.upperN,id);};
+ element('see-pair').addEventListener('click',()=>{showAllForCurrent();const card=element('shapes').querySelector('.selected');if(card){card.scrollIntoView({behavior:'smooth',block:'center'});pulse(card);}});
+ element('see-line')?.addEventListener('click',()=>{showAllForCurrent();element('track').scrollIntoView({behavior:'smooth',block:'center'});pulse(selectionHandle,'dot-pulse');pulse(element('shapes').querySelector('.selected'));});
  const api={setPageActive,get view(){return {...view};},setView,get state(){return {view:{...view},sigma,transitionRate,series,lower:currentLine.lowerN,upper:currentLine.upperN,cycle,population:Math.sin(Math.PI*cycle)**2,playing,visible,wavelength:currentLine.wavelength,energy:currentLine.gap,line:{...currentLine},subshell:{...currentSubshell},channel:{...currentChannel,lower:{...currentChannel.lower},upper:{...currentChannel.upper}},qFilter,stateFilter:stateFilter?{...stateFilter}:null,availableChannelIds:visibleChannels().map(channel=>channel.id)};},setSigma,setTransitionRate,selectLine,selectSubshell,selectChannel,setSeries,setPolarization,setPlaying,exploreState,clearStateFilter,nextPair:()=>movePair(1),previousPair:()=>movePair(-1),get renderer(){return renderer;}};
  window.spectrumApp=api;return api;
 }
@@ -3285,7 +3323,7 @@ function sync(){
  else description=m?'A wave wrapped around the axis.<br>Probability flows through a steady cloud.':'A standing wave along the axis.<br>A cloud with zero probability current.';
  $('energy').textContent=`−${(13.605693/(n*n)).toFixed(3)} eV`;$('radial-nodes').textContent=radial;
  setSelected('[data-basis]','basis');setSelected('[data-mode]','mode');setSelected('[data-cut]','cut');setSelected('[data-render-style]','renderStyle');
- $('look-inside').hidden=state.renderStyle==='cloud';$('cut-settings').hidden=state.renderStyle==='cloud'||state.cut==='none';$('cut-offset-wrap').hidden=state.cut==='wedge';
+ $('look-inside').hidden=false;$('cut-settings').hidden=state.cut==='none';$('cut-offset-wrap').hidden=state.cut==='wedge';
  $('cut-angle').value=state.cutAngle;$('cut-angle-value').value=`${state.cutAngle}°`;$('cut-offset').value=state.cutOffset;$('cut-offset-value').value=Math.abs(state.cutOffset)<.01?'center':`${state.cutOffset>0?'+':''}${Math.round(state.cutOffset*100)}%`;
  $('density').max=state.renderStyle==='cloud'?2:3;$('density').value=state.density;$('density-value').value=`${state.density.toFixed(2).replace(/0$/,'')}×`;
  $('flow-control').hidden=basis==='real';$('flow-control').parentElement.dataset.flowVisible=String(basis==='complex');
@@ -3331,7 +3369,7 @@ function thumbnail(n,l,m){
  }
  ctx.putImageData(data,0,0);const src=canvas.toDataURL();thumbs.set(key,src);return src;
 }
-function highlightCards(){document.querySelectorAll('[data-state]').forEach(b=>{const active=state.basis==='complex'&&b.dataset.state===`${state.n},${state.l},${Math.abs(state.m)}`;b.classList.toggle('selected',active);b.setAttribute('aria-pressed',String(active));});}
+function highlightCards(){document.querySelectorAll('.atlas-card').forEach(b=>{const active=state.basis==='complex'&&b.dataset.state===`${state.n},${state.l},${Math.abs(state.m)}`;b.classList.toggle('selected',active);b.setAttribute('aria-pressed',String(active));});}
 let atlasFamily='all',atlasGeneration=0;
 function renderAtlas(){
  const gen=++atlasGeneration,shell=$('atlas-shell').value,queue=[];$('atlas-grid').replaceChildren();
@@ -3349,7 +3387,13 @@ function renderAtlas(){
 }
 document.querySelectorAll('[data-family]').forEach(b=>b.addEventListener('click',()=>{atlasFamily=b.dataset.family;document.querySelectorAll('[data-family]').forEach(v=>{v.classList.toggle('selected',v===b);v.setAttribute('aria-pressed',String(v===b));});renderAtlas();}));$('atlas-shell').addEventListener('change',renderAtlas);
 document.querySelectorAll('[data-open-atlas]').forEach(b=>b.addEventListener('click',()=>{
- window.orbitalPages.go('orbits',{scroll:false});$('orbital-atlas').scrollIntoView({behavior:'smooth',block:'start'});$('atlas-title').focus({preventScroll:true});
+ window.orbitalPages.go('orbits',{scroll:false});
+ atlasFamily='all';$('atlas-shell').value='all';
+ document.querySelectorAll('[data-family]').forEach(v=>{const active=v.dataset.family==='all';v.classList.toggle('selected',active);v.setAttribute('aria-pressed',String(active));});
+ renderAtlas();
+ const card=Array.from($('atlas-grid').querySelectorAll('.atlas-card')).find(b=>b.dataset.state===`${state.n},${state.l},${Math.abs(state.m)}`);
+ if(card){card.scrollIntoView({behavior:'smooth',block:'center'});card.classList.remove('jump-highlight');void card.offsetWidth;card.classList.add('jump-highlight');setTimeout(()=>card.classList.remove('jump-highlight'),2400);}
+
 }));
 document.querySelectorAll('[data-open-math]').forEach(b=>b.addEventListener('click',()=>showMathTopic(Number(b.dataset.mathSection))));
 // The complete mathematics guide is embedded by the standalone build.

@@ -127,7 +127,7 @@ function sync(){
  else description=m?'A wave wrapped around the axis.<br>Probability flows through a steady cloud.':'A standing wave along the axis.<br>A cloud with zero probability current.';
  $('energy').textContent=`−${(13.605693/(n*n)).toFixed(3)} eV`;$('radial-nodes').textContent=radial;
  setSelected('[data-basis]','basis');setSelected('[data-mode]','mode');setSelected('[data-cut]','cut');setSelected('[data-render-style]','renderStyle');
- $('look-inside').hidden=state.renderStyle==='cloud';$('cut-settings').hidden=state.renderStyle==='cloud'||state.cut==='none';$('cut-offset-wrap').hidden=state.cut==='wedge';
+ $('look-inside').hidden=false;$('cut-settings').hidden=state.cut==='none';$('cut-offset-wrap').hidden=state.cut==='wedge';
  $('cut-angle').value=state.cutAngle;$('cut-angle-value').value=`${state.cutAngle}°`;$('cut-offset').value=state.cutOffset;$('cut-offset-value').value=Math.abs(state.cutOffset)<.01?'center':`${state.cutOffset>0?'+':''}${Math.round(state.cutOffset*100)}%`;
  $('density').max=state.renderStyle==='cloud'?2:3;$('density').value=state.density;$('density-value').value=`${state.density.toFixed(2).replace(/0$/,'')}×`;
  $('flow-control').hidden=basis==='real';$('flow-control').parentElement.dataset.flowVisible=String(basis==='complex');
@@ -173,7 +173,7 @@ function thumbnail(n,l,m){
  }
  ctx.putImageData(data,0,0);const src=canvas.toDataURL();thumbs.set(key,src);return src;
 }
-function highlightCards(){document.querySelectorAll('[data-state]').forEach(b=>{const active=state.basis==='complex'&&b.dataset.state===`${state.n},${state.l},${Math.abs(state.m)}`;b.classList.toggle('selected',active);b.setAttribute('aria-pressed',String(active));});}
+function highlightCards(){document.querySelectorAll('.atlas-card').forEach(b=>{const active=state.basis==='complex'&&b.dataset.state===`${state.n},${state.l},${Math.abs(state.m)}`;b.classList.toggle('selected',active);b.setAttribute('aria-pressed',String(active));});}
 let atlasFamily='all',atlasGeneration=0;
 function renderAtlas(){
  const gen=++atlasGeneration,shell=$('atlas-shell').value,queue=[];$('atlas-grid').replaceChildren();
@@ -191,7 +191,13 @@ function renderAtlas(){
 }
 document.querySelectorAll('[data-family]').forEach(b=>b.addEventListener('click',()=>{atlasFamily=b.dataset.family;document.querySelectorAll('[data-family]').forEach(v=>{v.classList.toggle('selected',v===b);v.setAttribute('aria-pressed',String(v===b));});renderAtlas();}));$('atlas-shell').addEventListener('change',renderAtlas);
 document.querySelectorAll('[data-open-atlas]').forEach(b=>b.addEventListener('click',()=>{
- window.orbitalPages.go('orbits',{scroll:false});$('orbital-atlas').scrollIntoView({behavior:'smooth',block:'start'});$('atlas-title').focus({preventScroll:true});
+ window.orbitalPages.go('orbits',{scroll:false});
+ atlasFamily='all';$('atlas-shell').value='all';
+ document.querySelectorAll('[data-family]').forEach(v=>{const active=v.dataset.family==='all';v.classList.toggle('selected',active);v.setAttribute('aria-pressed',String(active));});
+ renderAtlas();
+ const card=Array.from($('atlas-grid').querySelectorAll('.atlas-card')).find(b=>b.dataset.state===`${state.n},${state.l},${Math.abs(state.m)}`);
+ if(card){card.scrollIntoView({behavior:'smooth',block:'center'});card.classList.remove('jump-highlight');void card.offsetWidth;card.classList.add('jump-highlight');setTimeout(()=>card.classList.remove('jump-highlight'),2400);}
+
 }));
 document.querySelectorAll('[data-open-math]').forEach(b=>b.addEventListener('click',()=>showMathTopic(Number(b.dataset.mathSection))));
 // The complete mathematics guide is embedded by the standalone build.

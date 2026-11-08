@@ -135,7 +135,7 @@ export function initSpectrum(){
   const phase=view.mode==='phase',granular=view.renderStyle==='granular',real=view.basis==='real';
   element('view-label').textContent=(real?'REAL-BASIS PREVIEW':'COMPLEX')+' · '+(phase?'COMPONENT PHASE':granular?'GRANULAR DENSITY':'DENSITY CLOUD');
   element('density').max=view.renderStyle==='cloud'?2:3;element('density').value=view.density;element('density-value').value=view.density.toFixed(2).replace(/\.?0+$/,'')+'×';
-  element('look-inside').hidden=view.renderStyle==='cloud';element('cut-settings').hidden=view.renderStyle==='cloud'||view.cut==='none';element('cut-offset-wrap').hidden=view.cut==='wedge';
+  element('look-inside').hidden=false;element('cut-settings').hidden=view.cut==='none';element('cut-offset-wrap').hidden=view.cut==='wedge';
   element('cut-angle').value=view.cutAngle;element('cut-angle-value').value=view.cutAngle+'°';
   element('cut-offset').value=view.cutOffset;element('cut-offset-value').value=Math.abs(view.cutOffset)<.01?'center':(view.cutOffset>0?'+':'')+Math.round(view.cutOffset*100)+'%';
   syncPerformance();
@@ -369,8 +369,10 @@ export function initSpectrum(){
   if(!Number.isInteger(candidate.n)||candidate.n<1||candidate.n>6||!Number.isInteger(candidate.l)||candidate.l<0||candidate.l>=candidate.n||!Number.isInteger(candidate.m)||Math.abs(candidate.m)>candidate.l)return false;
   finishLineDrag();
   stateFilter=candidate;series=0;updateStateFilter();
-  const available=lines.filter(line=>allChannels(line).length),line=available.includes(currentLine)?currentLine:available.find(item=>item.lowerN===2)||available[0];
-  window.orbitalPages?.go('spectra',{scroll:false});selectLine(line.lowerN,line.upperN);root.scrollIntoView({behavior:'smooth',block:'start'});element('title').focus({preventScroll:true});return true;
+  const examples=lines.flatMap(line=>allChannels(line).map(channel=>({line,channel})));
+  examples.sort((a,b)=>Number(sameState(b.channel.lower,candidate))-Number(sameState(a.channel.lower,candidate))||Number(b.channel.lower.m!==0||b.channel.upper.m!==0)-Number(a.channel.lower.m!==0||a.channel.upper.m!==0)||a.line.upperN-b.line.upperN);
+  const chosen=examples[0];if(!chosen)return false;
+  window.orbitalPages?.go('spectra',{scroll:false});selectLine(chosen.line.lowerN,chosen.line.upperN,chosen.channel.id);element('stage').scrollIntoView({behavior:'smooth',block:'center'});return true;
  }
  function clearStateFilter(){finishLineDrag();stateFilter=null;updateStateFilter();selectLine(currentLine.lowerN,currentLine.upperN,currentChannel.id);}
  for(const [attribute,key] of [['basis','basis'],['mode','mode'],['render-style','renderStyle'],['cut','cut']])root.querySelectorAll('[data-spectrum-view-'+attribute+']').forEach(button=>button.addEventListener('click',()=>setView({[key]:button.getAttribute('data-spectrum-view-'+attribute)})));
@@ -416,6 +418,11 @@ export function initSpectrum(){
   if(!active){finishLineDrag();visible=false;renderer?.setVisible(false);cancelAnimationFrame(raf);raf=0;}
   else if(typeof IntersectionObserver==='undefined'){visible=true;ensureRenderer();renderer?.setVisible(!document.hidden);startFrame();}
  }
+ element('see-orbit').addEventListener('click',()=>window.orbitalApp?.exploreState({...currentChannel.lower}));
+ const pulse=(target,cls='jump-highlight')=>{if(!target)return;target.classList.remove(cls);void target.offsetWidth;target.classList.add(cls);setTimeout(()=>target.classList.remove(cls),2400);};
+ const showAllForCurrent=()=>{const id=currentChannel.id;finishLineDrag();series=0;stateFilter=null;updateStateFilter();selectLine(currentLine.lowerN,currentLine.upperN,id);};
+ element('see-pair').addEventListener('click',()=>{showAllForCurrent();const card=element('shapes').querySelector('.selected');if(card){card.scrollIntoView({behavior:'smooth',block:'center'});pulse(card);}});
+ element('see-line')?.addEventListener('click',()=>{showAllForCurrent();element('track').scrollIntoView({behavior:'smooth',block:'center'});pulse(selectionHandle,'dot-pulse');pulse(element('shapes').querySelector('.selected'));});
  const api={setPageActive,get view(){return {...view};},setView,get state(){return {view:{...view},sigma,transitionRate,series,lower:currentLine.lowerN,upper:currentLine.upperN,cycle,population:Math.sin(Math.PI*cycle)**2,playing,visible,wavelength:currentLine.wavelength,energy:currentLine.gap,line:{...currentLine},subshell:{...currentSubshell},channel:{...currentChannel,lower:{...currentChannel.lower},upper:{...currentChannel.upper}},qFilter,stateFilter:stateFilter?{...stateFilter}:null,availableChannelIds:visibleChannels().map(channel=>channel.id)};},setSigma,setTransitionRate,selectLine,selectSubshell,selectChannel,setSeries,setPolarization,setPlaying,exploreState,clearStateFilter,nextPair:()=>movePair(1),previousPair:()=>movePair(-1),get renderer(){return renderer;}};
  window.spectrumApp=api;return api;
 }
