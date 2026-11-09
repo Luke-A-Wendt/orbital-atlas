@@ -70,6 +70,14 @@ export function densityAt(x,y,z,n,l,m,basis='complex') {
   return 2*a*a*f*f;
 }
 
+// Display normalization used by the standalone view and transition endpoints.
+export function orbitalDisplayReference(n,l,m){
+ const extent=orbitalExtent(n);let peakR=0,peakA=0,massPeak=0,densityAtMass=0;
+ for(let i=0;i<1500;i++){const r=extent*i/1499,d=radial(n,l,r)**2;peakR=Math.max(peakR,d);if(r*r*d>massPeak){massPeak=r*r*d;densityAtMass=d;}}
+ for(let i=0;i<600;i++)peakA=Math.max(peakA,angular(l,m,2*i/599-1)**2);
+ return Math.max(1e-20,peakR*peakA)/Math.max(1,.3*peakR/Math.max(1e-30,densityAtMass));
+}
+
 // All renderers evaluate the same normalized wavefunction. Optical transfer is artistic.
 const common = `
 precision highp float;
@@ -237,7 +245,7 @@ const INTRO_CAMERA={yaw:.63,pitch:.30,distance:2.80};
 export class OrbitalRenderer {
   constructor(canvas,{onStats=()=>{},onError=()=>{}}={}) {
     this.canvas=canvas;this.onStats=onStats;this.onError=onError;
-    this.state={n:6,l:3,m:1,basis:'complex',mode:'density',renderStyle:'cloud',cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:.025,speed:.5,animate:true,autoRotate:false,axes:false};
+    this.state={n:6,l:3,m:1,basis:'complex',mode:'density',renderStyle:'cloud',cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:.02,speed:.5,animate:true,autoRotate:false,axes:false};
     this.activeParticleAmount=this.state.particleAmount;
     this.camera={...INTRO_CAMERA};this.time=0;this.dead=false;this.points=new Map();
     this.touchDevice=typeof matchMedia==='function'&&matchMedia('(pointer: coarse)').matches;
@@ -294,10 +302,10 @@ export class OrbitalRenderer {
     const old=this.state;this.state={...old,...partial};const s=this.state;
   if(!!s.frontView!==!!old.frontView){this.camera.yaw=s.frontView?0:.63;this.camera.pitch=s.frontView?0:.30;}
     s.n=clamp(Math.round(s.n),1,6);s.l=clamp(Math.round(s.l),0,s.n-1);s.m=clamp(Math.round(s.m),-s.l,s.l);
-    s.density=clamp(s.density,.1,4);s.particleAmount=clamp(Number.isFinite(+s.particleAmount)?+s.particleAmount:old.particleAmount,0,1);s.speed=clamp(s.speed,.25,4);
+    s.density=clamp(s.density,.1,4);s.particleAmount=clamp(Number.isFinite(+s.particleAmount)?+s.particleAmount:old.particleAmount,0,2);s.speed=clamp(s.speed,.25,4);
     s.renderStyle=['sculpted','granular'].includes(s.renderStyle)?'granular':'cloud';
     delete s.autoTracers;delete s.targetFps;delete s.quality;
-    this.updateTracerCeiling(old.particleAmount,s.particleAmount);
+    s.particleAmount=Math.min(s.renderStyle==='cloud'?.08:2,s.particleAmount);this.updateTracerCeiling(old.particleAmount,s.particleAmount);
     if(old.renderStyle!==s.renderStyle){
       this.styleTiers[old.renderStyle]=this.tier;
       const nextTier=this.styleTiers[s.renderStyle];
@@ -324,9 +332,9 @@ export class OrbitalRenderer {
     for(let i=1;i<rc.length;i++)rc[i]/=radialSum;for(let i=1;i<ac.length;i++)ac[i]/=angularSum;
     const cacheKey=[n,l,basis,basis==='real'?m:q].join('|');this.particleCache??=new Map();
     let data=this.particleCache.get(cacheKey);
-    if(!data){data=new Float32Array(MAX_PARTICLES*4);let seed=761+n*919+l*313+q*51;
+    if(!data){data=new Float32Array(MAX_PARTICLES*2*4);let seed=761+n*919+l*313+q*51;
     const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)|0;return(seed>>>0)/4294967296;};
-    for(let i=0;i<MAX_PARTICLES;i++){const r=inverseCDF(rc,random()),c=inverseCDF(ac,random())*2-1;let ph=random()*TAU;if(basis==='real'&&m){for(let k=0;k<80;k++){ph=random()*TAU;const f=m>0?Math.cos(m*ph):Math.sin(-m*ph);if(random()<f*f)break;}}const index=i*4;data[index]=r;data[index+1]=c;data[index+2]=ph;data[index+3]=random();}
+    for(let i=0;i<MAX_PARTICLES*2;i++){const r=inverseCDF(rc,random()),c=inverseCDF(ac,random())*2-1;let ph=random()*TAU;if(basis==='real'&&m){for(let k=0;k<80;k++){ph=random()*TAU;const f=m>0?Math.cos(m*ph):Math.sin(-m*ph);if(random()<f*f)break;}}const index=i*4;data[index]=r;data[index+1]=c;data[index+2]=ph;data[index+3]=random();}
     this.particleCache.set(cacheKey,data);if(this.particleCache.size>3)this.particleCache.delete(this.particleCache.keys().next().value);}
     const gl=this.gl;gl.bindBuffer(gl.ARRAY_BUFFER,this.particleBuffer);gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);this.time=0;this.volumeKey='';this.lastDrawSignature='';this.resetPerformance(performance.now());
   }

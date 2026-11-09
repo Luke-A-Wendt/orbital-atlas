@@ -1,4 +1,4 @@
-import { colorMapGLSL, colorMapIndex } from './renderer.js';
+import { colorMapGLSL, colorMapIndex, orbitalDisplayReference, orbitalExtent } from './renderer.js';
 /** Two-state hydrogen renderer. Optical-cycle-averaged densities share one scale.
  * Phase color and tracers display the individual components, not a phase or
  * electron trajectory assigned to the mixed density. All distances are in a0.
@@ -11,7 +11,8 @@ precision highp int;
 ${colorMapGLSL}
 uniform sampler2D uRadial;
 uniform ivec2 uAngular,uMagnetic,uShells;
-uniform vec2 uAngularNorm;
+uniform vec2 uAngularNorm,uComponentScale;
+uniform float uCloudScale;
 uniform float uPopulation,uExposure,uTime,uExtent,uDensity,uCutAngle,uCutOffset;
 uniform int uTableSize,uBasis,uMode,uCut;
 uniform bool uSeparateColors;
@@ -31,6 +32,13 @@ vec2 amplitudes(vec3 p){
  return a;
 }
 float density(vec3 p){vec2 a=amplitudes(p);return mix(a.x*a.x,a.y*a.y,uPopulation)*uExposure;}
+vec2 cloudComponents(vec3 p){
+ vec2 a=amplitudes(p);
+ vec2 fade=vec2(1.)-smoothstep(vec2(.82),vec2(1.),vec2(length(p))/uComponentScale);
+ return a*a*fade*uExposure;
+}
+float cloudDensity(vec3 p){vec2 d=cloudComponents(p);return mix(d.x,d.y,uPopulation);}
+
 bool clipped(vec3 p){
  if(uCut==0)return false;float ca=cos(uCutAngle),sa=sin(uCutAngle);vec2 q=vec2(ca*p.x+sa*p.y,-sa*p.x+ca*p.y);
  if(uCut==1)return q.y>uCutOffset;if(uCut==2)return q.y>abs(q.x);return uCut==3&&abs(q.y-uCutOffset)>.028;
@@ -70,25 +78,25 @@ void main(){
  float start=max(0.,-b-sqrt(disc)),end=-b+sqrt(disc),stepSize=(end-start)/float(uSteps);
  float t=start+stepSize*hash(gl_FragCoord.xy),transmission=1.;vec3 color=vec3(0.);
  for(int i=0;i<260;i++){
-  if(i>=uSteps||transmission<.008)break;vec3 position=uCamera+ray*t;t+=stepSize;if(clipped(position))continue;
-  float fade=1.-smoothstep(.86,1.,length(position)),d=density(position)*fade;if(d<.000008)continue;
-  float opacity=1.-exp(-pow(d,.78)*stepSize*10.*uDensity);
+  if(i>=uSteps||transmission<.009)break;vec3 position=uCamera+ray*t;t+=stepSize;if(clipped(position))continue;
+  float d=cloudDensity(position);if(d<.000015)continue;
+  float opacity=1.-exp(-pow(d,.78)*stepSize*uCloudScale*9.*uDensity);
   vec3 shade=uMode==1?phaseColor(position):densityColor(d);
   if(uSeparateColors&&uMode==0){
-   vec2 a=amplitudes(position),componentDensity=a*a*uExposure*fade;
+   vec2 componentDensity=cloudComponents(position);
    // Each cloud keeps its own density support and a population-scaled optical
    // depth. Integrate both contributions at the same location without assigning
    // the entire volume a single population-mixed tint.
-   vec2 opticalDepth=pow(max(componentDensity,vec2(0.)),vec2(.78))*vec2(1.-uPopulation,uPopulation)*stepSize*10.*uDensity;
+   vec2 opticalDepth=pow(max(componentDensity,vec2(0.)),vec2(.78))*vec2(1.-uPopulation,uPopulation)*stepSize*uCloudScale*9.*uDensity;
    float totalDepth=opticalDepth.x+opticalDepth.y;
    opacity=1.-exp(-totalDepth);
    shade=(componentColor(0)*opticalDepth.x+componentColor(1)*opticalDepth.y)/max(1.e-35,totalDepth);
   }
-  float dl=density(position+vec3(-.018,-.023,.028))*fade;
+  float dl=cloudDensity(position+vec3(-.018,-.023,.028)/uCloudScale);
   shade*=clamp(.85+(d-dl)/max(.045,d)*1.1,.45,1.2);
   color+=transmission*opacity*shade;transmission*=1.-opacity;
  }
- color=pow(vec3(1.)-exp(-color*2.15),vec3(.87))*uVolumeStrength;
+ color=pow(vec3(1.)-exp(-color*1.9),vec3(.87))*uVolumeStrength;
  outColor=vec4(color+background*transmission,1.);
 }`;
 const spectrumCopyFragment=`#version 300 es
@@ -140,7 +148,7 @@ ${spectrumSphereCommon}
 layout(location=0) in vec2 aCorner;layout(location=1) in vec4 aParticle;
 void main(){
  vec3 p=particlePosition(aParticle);float fraction=clamp(uVisibleCount-float(gl_InstanceID),0.,1.);
- float radius=uSphereRadius*(.82+.36*aParticle.w)*pow(fraction,1./3.);
+ float radius=uSphereRadius*(uComponent==0?uComponentScale.x:uComponentScale.y)*(.82+.36*aParticle.w)*pow(fraction,1./3.);
  vec3 rel=p-uCamera;vec3 center=vec3(dot(rel,uRight),dot(rel,uUp),dot(rel,uForward));
  if(radius<=0.||clipped(p)||center.z<=radius+.015){gl_Position=vec4(2.,2.,2.,1.);vCenter=vec3(0.);vRadius=0.;vColor=vec3(0.);return;}
  float bound=radius*1.04*(1.+length(center.xy)/max(.015,center.z-radius));vec3 plane=center+vec3(aCorner*bound,0.);
@@ -152,7 +160,7 @@ ${spectrumSphereCommon}
 layout(location=1) in vec4 aParticle;
 void main(){
  vec3 p=particlePosition(aParticle);float fraction=clamp(uVisibleCount-float(gl_VertexID),0.,1.);
- float radius=uSphereRadius*(.82+.36*aParticle.w)*pow(fraction,1./3.);
+ float radius=uSphereRadius*(uComponent==0?uComponentScale.x:uComponentScale.y)*(.82+.36*aParticle.w)*pow(fraction,1./3.);
  vec3 rel=p-uCamera;vec3 center=vec3(dot(rel,uRight),dot(rel,uUp),dot(rel,uForward));
  vRadius=0.;vCenter=vec3(0.);vColor=vec3(0.);gl_Position=vec4(2.,2.,2.,1.);gl_PointSize=1.;
  if(radius<=0.||clipped(p)||center.z<=radius+.015)return;
@@ -253,7 +261,7 @@ function spectrumInverseCDF(cdf,u){
 export class SpectrumRenderer {
  constructor(canvas,{onError=()=>{},onStats=()=>{}}={}){
   this.canvas=canvas;this.onError=onError;this.onStats=onStats;
-  this.state={basis:'complex',mode:'density',renderStyle:'cloud',separateColors:false,cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:.025,speed:.5,animate:true,autoRotate:false,axes:false};
+  this.state={basis:'complex',mode:'density',renderStyle:'cloud',separateColors:false,cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:.02,speed:.5,animate:true,autoRotate:false,axes:false};
   this.activeParticleAmount=this.state.particleAmount;
   this.population=0;this.time=0;this.visible=false;this.dead=false;this.contextLost=false;this.dirty=true;this.raf=0;
   this.camera={yaw:.58,pitch:.34,distance:3};this.pointers=new Map();
@@ -335,8 +343,8 @@ export class SpectrumRenderer {
   s.basis=s.basis==='real'?'real':'complex';s.mode=s.mode==='phase'?'phase':'density';s.renderStyle=['sculpted','granular'].includes(s.renderStyle)?'granular':'cloud';
   s.separateColors=false;
   s.cut=['none','half','wedge','slice'].includes(s.cut)?s.cut:'none';delete s.targetFps;delete s.autoTracers;delete s.quality;
-  for(const [name,min,max] of [['density',.1,4],['particleAmount',0,1],['speed',.25,4],['cutAngle',0,360],['cutOffset',-.8,.8]])s[name]=spectrumClamp(Number.isFinite(+s[name])?+s[name]:old[name],min,max);
-  for(const name of ['animate','autoRotate','axes','separateColors'])s[name]=!!s[name];this.state=s;this.updateTracerCeiling(old.particleAmount,s.particleAmount);
+  for(const [name,min,max] of [['density',.1,4],['particleAmount',0,2],['speed',.25,4],['cutAngle',0,360],['cutOffset',-.8,.8]])s[name]=spectrumClamp(Number.isFinite(+s[name])?+s[name]:old[name],min,max);
+  for(const name of ['animate','autoRotate','axes','separateColors'])s[name]=!!s[name];this.state=s;s.particleAmount=Math.min(s.renderStyle==='cloud'?.08:2,s.particleAmount);this.updateTracerCeiling(old.particleAmount,s.particleAmount);
   // Each rendering style keeps its own raster quality and tracer ceiling.
   if(s.renderStyle!==old.renderStyle){
    this.styleTiers[old.renderStyle]=this.tier;
@@ -357,12 +365,12 @@ export class SpectrumRenderer {
   this.camera.distance=Math.max(3,this.camera.distance);
   this.radialData=new Float32Array(spectrumTableSize*2);this.references=[0,0];this.angularNorm=[0,0];
   for(const [channel,state] of [this.lower,this.upper].entries()){
-   const angular=spectrumAngularParameters(state.l,state.m);this.angularNorm[channel]=angular.norm;let peak=0,massPeak=0,densityAtMass=0;
+   const angular=spectrumAngularParameters(state.l,state.m);this.angularNorm[channel]=angular.norm;
    for(let i=0;i<spectrumTableSize;i++){
-    const r=this.extent*i/(spectrumTableSize-1),amplitude=spectrumRadial(state.n,state.l,r),d=amplitude*amplitude;
-    this.radialData[2*i+channel]=amplitude;peak=Math.max(peak,d);if(r*r*d>massPeak){massPeak=r*r*d;densityAtMass=d;}
+    const r=this.extent*i/(spectrumTableSize-1),amplitude=spectrumRadial(state.n,state.l,r);
+    this.radialData[2*i+channel]=amplitude;
    }
-   this.references[channel]=Math.max(1.e-30,Math.min(peak,densityAtMass/.3)*angular.peak);
+   this.references[channel]=orbitalDisplayReference(state.n,state.l,state.m);
   }
   this.uploadPair();this.prepareParticles();this.volumeKey='';this.resetTiming();this.requestDraw();
  }
@@ -383,9 +391,9 @@ export class SpectrumRenderer {
    for(let i=1;i<angularCDF.length;i++){const mass=spectrumAssociatedLegendre(state.l,q,2*i/(angularCDF.length-1)-1)**2;angularCDF[i]=angularCDF[i-1]+.5*(previous+mass);previous=mass;}
    for(let i=1;i<radialCDF.length;i++)radialCDF[i]/=radialCDF[radialCDF.length-1];
    for(let i=1;i<angularCDF.length;i++)angularCDF[i]/=angularCDF[angularCDF.length-1];
-   const data=new Float32Array(spectrumMaxParticles*4);let seed=761+state.n*919+state.l*313+q*51;
+   const data=new Float32Array(spectrumMaxParticles*2*4);let seed=761+state.n*919+state.l*313+q*51;
    const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)|0;return (seed>>>0)/4294967296;};
-   for(let i=0;i<spectrumMaxParticles;i++){
+   for(let i=0;i<spectrumMaxParticles*2;i++){
     const r=spectrumInverseCDF(radialCDF,random()),c=2*spectrumInverseCDF(angularCDF,random())-1;let phi=random()*Math.PI*2;
     if(this.state.basis==='real'&&state.m){do{phi=random()*Math.PI*2;}while(random()>(state.m>0?Math.cos(state.m*phi):Math.sin(-state.m*phi))**2);}
     const index=i*4;data[index]=r;data[index+1]=c;data[index+2]=phi;data[index+3]=random();
@@ -438,7 +446,11 @@ export class SpectrumRenderer {
   this.uniform(program,'uAngular','uniform2i',this.lower.l,this.upper.l);this.uniform(program,'uMagnetic','uniform2i',this.lower.m,this.upper.m);this.uniform(program,'uShells','uniform2i',this.lower.n,this.upper.n);this.uniform(program,'uAngularNorm','uniform2f',...this.angularNorm);
   this.uniform(program,'uPopulation','uniform1f',this.population);
   const refs=this.references.map((value,i)=>value*(s.basis==='real'&&[this.lower,this.upper][i].m?2:1));
-  this.uniform(program,'uExposure','uniform1f',1/Math.min(...refs));
+  // Population-weighted display exposure reaches each standalone endpoint.
+  this.uniform(program,'uExposure','uniform1f',1/((1-this.population)*refs[0]+this.population*refs[1]));
+  const scales=[orbitalExtent(this.lower.n)/this.extent,orbitalExtent(this.upper.n)/this.extent];
+  this.uniform(program,'uComponentScale','uniform2f',...scales);
+  this.uniform(program,'uCloudScale','uniform1f',1/((1-this.population)*scales[0]+this.population*scales[1]));
   for(const [key,value] of [['uExtent',this.extent],['uTime',this.time],['uDensity',s.density],['uCutAngle',s.cutAngle*Math.PI/180],['uCutOffset',s.cutOffset],['uCurrent',s.basis==='complex'?1:0]])this.uniform(program,key,'uniform1f',value);
   for(const [key,value] of [['uColorMap',colorMapIndex(s.colorMap)],['uBasis',s.basis==='real'?1:0],['uMode',s.mode==='phase'?1:0],['uSeparateColors',s.separateColors?1:0],['uCut',['none','half','wedge','slice'].indexOf(s.cut)]])this.uniform(program,key,'uniform1i',value);
   this.cameraUniforms(program);

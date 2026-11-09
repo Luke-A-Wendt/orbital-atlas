@@ -9,10 +9,10 @@ document.querySelectorAll('[data-math]').forEach(element => { element.innerHTML 
 const family = ['s','p','d','f','g','h'];
 const state = {n:6,l:3,m:1,basis:'complex',mode:'density',colorMap:'atlas',renderStyle:'granular',cut:'wedge',cutAngle:0,cutOffset:0,density:2,particleAmount:1,speed:2,animate:true,autoRotate:false,axes:false};
 // Basis and color are shared across Cloud and Granular; scene controls retain their presets.
-const modeSettingKeys=['density','particleAmount','speed','autoRotate','axes'];
- const defaultModeSettings={basis:'complex',mode:'density',cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:.025,speed:.5,animate:true,autoRotate:false,axes:false};
+const modeSettingKeys=['cut','density','particleAmount','speed','autoRotate','axes'];
+ const defaultModeSettings={basis:'complex',mode:'density',cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:.02,speed:.5,animate:true,autoRotate:false,axes:false};
  const modeSettings={cloud:{...defaultModeSettings},granular:{...defaultModeSettings,cut:'wedge',density:2,particleAmount:1,speed:2}};
- const lastPositiveTracers={cloud:.025,granular:1};
+ const lastPositiveTracers={cloud:.02,granular:1};
  const basisStyles={real:'granular',complex:'granular'};
  const initializedBases=new Set([state.basis]);
  let cloudBasis='complex';
@@ -64,7 +64,6 @@ function exploreState(target){
 }
 
 function setSelected(selector,key){document.querySelectorAll(selector).forEach(b=>{const active=b.dataset[key]===String(state[key]);b.classList.toggle('selected',active);b.setAttribute('aria-pressed',String(active));});}
-let lastGranularCut=state.cut;
 function update(partial){
  partial={...partial};
  if('colorMap' in partial)partial.colorMap=colorMaps[colorMapIndex(partial.colorMap)].id;
@@ -77,25 +76,20 @@ function update(partial){
  if(partial.renderStyle==='sculpted')partial.renderStyle='granular';
  if('renderStyle' in partial&&!['cloud','granular'].includes(partial.renderStyle))delete partial.renderStyle;
  const nextStyle=partial.renderStyle||state.renderStyle;
- if(state.renderStyle==='granular')lastGranularCut=state.cut;
- if(nextStyle==='cloud')partial.cut='none';
- else if(state.renderStyle==='cloud'&&!('cut' in partial))partial.cut=lastGranularCut;
-
  if(nextStyle!==state.renderStyle){
   for(const key of modeSettingKeys)modeSettings[state.renderStyle][key]=state[key];
   for(const key of modeSettingKeys)if(!(key in partial))partial[key]=modeSettings[nextStyle][key];
-  if(nextStyle==='granular'&&partial.particleAmount===0)partial.particleAmount=lastPositiveTracers.granular||1;
   lastPerformance=null;
  }
  const nextBasis=partial.basis||state.basis;
 
  if(Number.isFinite(partial.speed))partial.speed=snapFlow(partial.speed);
  if(Number.isFinite(partial.particleAmount)){
-  partial.particleAmount=Math.max(0,Math.min(nextStyle==='cloud'?.05:1,partial.particleAmount));
+  partial.particleAmount=Math.max(0,Math.min(nextStyle==='cloud'?.08:2,partial.particleAmount));
   if(partial.particleAmount>0)lastPositiveTracers[nextStyle]=partial.particleAmount;
   lastPerformance=null;
  }
-  if(Number.isFinite(partial.density))partial.density=Math.max(.2,Math.min(nextStyle==='cloud'?2:3,partial.density));
+  if(Number.isFinite(partial.density))partial.density=Math.max(.2,Math.min(4,partial.density));
  Object.assign(state,partial,{animate:true});basisStyles[state.basis]=state.renderStyle;state.n=Math.round(Math.max(1,Math.min(6,state.n)));state.l=Math.round(Math.max(0,Math.min(state.n-1,state.l)));state.m=Math.round(Math.max(-state.l,Math.min(state.l,state.m)));
  if(!renderer?.error)renderer?.setState(state);
  sync();
@@ -105,7 +99,11 @@ function update(partial){
 }
 function option(value,label){const o=document.createElement('option');o.value=value;o.textContent=label;return o;}
 function syncPerformance(){
- $('particle-amount').max=state.renderStyle==='cloud'?.05:1;$('particle-amount').step=state.renderStyle==='cloud'?.0005:.005;$('particle-amount').value=state.particleAmount;$('particle-amount-value').value=Math.round(state.particleAmount*200000).toLocaleString();
+ $('tracers-enabled').checked=state.particleAmount>0;
+ $('particle-amount').disabled=state.particleAmount===0;
+ $('particle-amount').nextElementSibling.querySelectorAll('span').forEach((tick,index)=>tick.hidden=false);
+
+ $('particle-amount').min=0;$('particle-amount').max=4;$('particle-amount').step=1;$('particle-amount').value=Math.max(0,flowSpeeds.indexOf((state.particleAmount||lastPositiveTracers[state.renderStyle])*(state.renderStyle==='cloud'?50:2)));$('particle-amount-value').value=flowLabels[flowSpeeds.indexOf((state.particleAmount||lastPositiveTracers[state.renderStyle])*(state.renderStyle==='cloud'?50:2))];
  $('particle-amount').setAttribute('aria-valuetext',Math.round(state.particleAmount*200000).toLocaleString()+' tracers');
  const requested=Math.round(state.particleAmount*200000),active=Number.isFinite(lastPerformance?.particles)?Math.min(requested,lastPerformance.particles):requested;
  $('tracer-status').hidden=!lastPerformance?.limited;
@@ -130,9 +128,9 @@ function sync(){
  else description=m?'A wave wrapped around the axis.<br>Probability flows through a steady cloud.':'A standing wave along the axis.<br>A cloud with zero probability current.';
  $('energy').textContent=`−${(13.605693/(n*n)).toFixed(3)} eV`;$('radial-nodes').textContent=radial;
  setSelected('[data-basis]','basis');setSelected('[data-mode]','mode');setSelected('[data-cut]','cut');setSelected('[data-render-style]','renderStyle');
- $('look-inside').hidden=state.renderStyle==='cloud';$('cut-settings').hidden=state.cut==='none';$('cut-offset-wrap').hidden=state.cut==='wedge';
+ $('look-inside').hidden=false;$('cut-settings').hidden=state.cut==='none';$('cut-offset-wrap').hidden=state.cut==='wedge';
  $('cut-angle').value=state.cutAngle;$('cut-angle-value').value=`${state.cutAngle}°`;$('cut-offset').value=state.cutOffset;$('cut-offset-value').value=Math.abs(state.cutOffset)<.01?'center':`${state.cutOffset>0?'+':''}${Math.round(state.cutOffset*100)}%`;
- $('density').max=state.renderStyle==='cloud'?2:3;$('density').value=state.density;$('density-value').value=`${state.density.toFixed(2).replace(/0$/,'')}×`;
+ $('density').min=0;$('density').max=4;$('density').step=1;$('density').value=flowSpeeds.indexOf(state.density);$('density').setAttribute('aria-valuetext',state.density+'×');$('density-value').value=flowLabels[flowSpeeds.indexOf(state.density)];
  $('flow-control').hidden=basis==='real';$('flow-control').parentElement.dataset.flowVisible=String(basis==='complex');
  const flowIndex=flowSpeeds.indexOf(state.speed);$('speed').value=flowIndex;$('speed-value').value=flowLabels[flowIndex];$('speed').setAttribute('aria-valuetext',flowLabels[flowIndex]+' flow speed');
  syncPerformance();
@@ -144,13 +142,14 @@ function sync(){
 for(const name of ['n','l','m'])$(name+'-select').addEventListener('change',e=>update({[name]:+e.target.value}));
 document.querySelectorAll('[data-render-style]').forEach(b=>b.addEventListener('click',()=>update({renderStyle:b.dataset.renderStyle})));
 for(const key of ['basis','mode','cut'])document.querySelectorAll(`[data-${key}]`).forEach(b=>b.addEventListener('click',()=>update({[key]:b.dataset[key]})));
-for(const [id,key] of [['density','density'],['cut-angle','cutAngle'],['cut-offset','cutOffset']])$(id).addEventListener('input',e=>update({[key]:+e.target.value}));
-$('particle-amount').addEventListener('input',e=>update({particleAmount:+e.target.value}));
+for(const [id,key] of [['density','density'],['cut-angle','cutAngle'],['cut-offset','cutOffset']])$(id).addEventListener('input',e=>update({[key]:key==='density'?flowSpeeds[+e.target.value]:+e.target.value}));
+$('tracers-enabled').addEventListener('change',e=>update({particleAmount:e.target.checked?lastPositiveTracers[state.renderStyle]:0}));
+$('particle-amount').addEventListener('input',e=>update({particleAmount:flowSpeeds[+e.target.value]/(state.renderStyle==='cloud'?50:2)}));
 $('auto-rotate').addEventListener('change',e=>update({autoRotate:e.target.checked}));
 $('show-axes').addEventListener('change',e=>update({axes:e.target.checked}));
 $('zoom-in').addEventListener('click',()=>renderer?.zoomBy(.86));$('zoom-out').addEventListener('click',()=>renderer?.zoomBy(1.16));
 $('speed').addEventListener('input',e=>update({speed:flowSpeeds[Math.max(0,Math.min(4,Math.round(+e.target.value)))]}));
-function resetSlidersAndView(){const granular=state.renderStyle==='granular';update({density:granular?2:1,particleAmount:granular?1:state.basis==='real'?0:.025,speed:granular?2:.5,cutAngle:0,cutOffset:0});renderer?.resetView();toast('View and sliders reset');}
+function resetSlidersAndView(){const granular=state.renderStyle==='granular';update({density:granular?2:1,particleAmount:granular?1:state.basis==='real'?0:.02,speed:granular?2:.5,cutAngle:0,cutOffset:0});renderer?.resetView();toast('View and sliders reset');}
 $('reset-view').addEventListener('click',resetSlidersAndView);
 $('orbital-canvas').addEventListener('keydown',e=>{
  if(!renderer?.camera)return;
@@ -271,8 +270,8 @@ initColorMapPickers();
 // Presets are explicit actions; subsequent manual changes remain editable.
 const viewPresets=[
  ['Blue sculpture · default',{basis:'complex',renderStyle:'granular',colorMap:'atlas',cut:'wedge',particleAmount:1,density:2}],
- ['Rainbow cloud',{basis:'real',renderStyle:'cloud',colorMap:'rainbow',cut:'none',particleAmount:0,density:1,autoRotate:false,axes:false,frontView:true}],
- ['Rainbow currents',{basis:'complex',renderStyle:'cloud',colorMap:'rainbow',cut:'none',particleAmount:.05,density:1,speed:4,autoRotate:false,axes:false},1],
+ ['Rainbow cloud',{basis:'real',renderStyle:'cloud',colorMap:'rainbow',cut:'slice',particleAmount:0,density:4,autoRotate:false,axes:false,frontView:true}],
+ ['Rainbow currents',{basis:'complex',renderStyle:'cloud',colorMap:'rainbow',cut:'none',particleAmount:.01,density:.5,speed:4,autoRotate:false,axes:false},1],
 ];
 document.querySelectorAll('.view-preset').forEach(select=>{
  viewPresets.forEach(([name],index)=>select.append(option(index,name)));
