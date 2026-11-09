@@ -1,3 +1,4 @@
+import { colorMapGLSL, colorMapIndex } from './renderer.js';
 /** Two-state hydrogen renderer. Optical-cycle-averaged densities share one scale.
  * Phase color and tracers display the individual components, not a phase or
  * electron trajectory assigned to the mixed density. All distances are in a0.
@@ -7,6 +8,7 @@ in vec2 aPosition;out vec2 vUv;void main(){vUv=aPosition*.5+.5;gl_Position=vec4(
 const spectrumCommon=`
 precision highp float;
 precision highp int;
+${colorMapGLSL}
 uniform sampler2D uRadial;
 uniform ivec2 uAngular,uMagnetic,uShells;
 uniform vec2 uAngularNorm;
@@ -34,12 +36,13 @@ bool clipped(vec3 p){
  if(uCut==1)return q.y>uCutOffset;if(uCut==2)return q.y>abs(q.x);return uCut==3&&abs(q.y-uCutOffset)>.028;
 }
 vec3 densityColor(float d){
+ if(uColorMap>0)return mappedDensityColor(d);
  d=clamp(d,0.,1.);vec3 color=mix(vec3(.012,.045,.20),vec3(.07,.32,.76),smoothstep(.001,.09,d));
  color=mix(color,vec3(.48,.76,1.),pow(d,.44));return mix(color,vec3(.93,.98,1.),smoothstep(.5,1.,d));
 }
 // Component identity is constant; population controls count and extinction.
 vec3 componentColor(int component){return component==0?vec3(.25,.55,1.):vec3(1.,.25,.60);}
-vec3 rainbowColor(float t){vec3 c=clamp(abs(fract(t+vec3(0.,2./3.,1./3.))*6.-3.)-1.,0.,1.);c=c*c*(3.-2.*c);return mix(vec3(.045),vec3(1.),c);}
+vec3 rainbowColor(float t){if(uColorMap>0)return mappedPhaseColor(t);vec3 c=clamp(abs(fract(t+vec3(0.,2./3.,1./3.))*6.-3.)-1.,0.,1.);c=c*c*(3.-2.*c);return mix(vec3(.045),vec3(1.),c);}
 vec3 componentPhase(vec3 p,float a,int component){
  int m=component==0?uMagnetic.x:uMagnetic.y,n=component==0?uShells.x:uShells.y;
  float ph=uBasis==0?float(m)*atan(p.y,p.x):0.;
@@ -436,11 +439,11 @@ export class SpectrumRenderer {
   const refs=this.references.map((value,i)=>value*(s.basis==='real'&&[this.lower,this.upper][i].m?2:1));
   this.uniform(program,'uExposure','uniform1f',1/Math.min(...refs));
   for(const [key,value] of [['uExtent',this.extent],['uTime',this.time],['uDensity',s.density],['uCutAngle',s.cutAngle*Math.PI/180],['uCutOffset',s.cutOffset],['uCurrent',s.basis==='complex'?1:0]])this.uniform(program,key,'uniform1f',value);
-  for(const [key,value] of [['uBasis',s.basis==='real'?1:0],['uMode',s.mode==='phase'?1:0],['uSeparateColors',s.separateColors?1:0],['uCut',['none','half','wedge','slice'].indexOf(s.cut)]])this.uniform(program,key,'uniform1i',value);
+  for(const [key,value] of [['uColorMap',colorMapIndex(s.colorMap)],['uBasis',s.basis==='real'?1:0],['uMode',s.mode==='phase'?1:0],['uSeparateColors',s.separateColors?1:0],['uCut',['none','half','wedge','slice'].indexOf(s.cut)]])this.uniform(program,key,'uniform1i',value);
   this.cameraUniforms(program);
  }
  volumeSignature(){
-  const s=this.state,c=this.camera;return [this.lower.n,this.lower.l,this.lower.m,this.upper.n,this.upper.l,this.upper.m,this.population,s.basis,s.mode,s.renderStyle,s.separateColors,s.cut,s.cutAngle,s.cutOffset,s.density,c.yaw,c.pitch,c.distance,this.tier,this.canvas.width,this.canvas.height,s.mode==='phase'?this.time:0].join('|');
+  const s=this.state,c=this.camera;return [this.lower.n,this.lower.l,this.lower.m,this.upper.n,this.upper.l,this.upper.m,this.population,s.basis,s.mode,s.colorMap,s.renderStyle,s.separateColors,s.cut,s.cutAngle,s.cutOffset,s.density,c.yaw,c.pitch,c.distance,this.tier,this.canvas.width,this.canvas.height,s.mode==='phase'?this.time:0].join('|');
  }
  drawVolume(){
   const gl=this.gl,s=this.state;

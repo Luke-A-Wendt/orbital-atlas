@@ -4,6 +4,11 @@ function pageFromLocation(){
  const file=location.pathname.split('/').pop();
  return file==='spectra.html'?'spectra':file==='math.html'?'math':'orbits';
 }
+function revealViewer(page,behavior='smooth'){
+ const mobile=window.matchMedia?.('(max-width:860px)').matches;
+ const target=document.querySelector(page==='orbits'?(mobile?'.workspace':'#scene'):(mobile?'.spectrum-view':'#spectrum-stage'));
+ target?.scrollIntoView({behavior,block:mobile?'start':'center'});
+}
 function showSitePage(page,{hash='',scroll=true,replace=false,historyUpdate=true,focus=true}={}){
  if(!pageNames[page])return false;
  document.body.dataset.page=page;
@@ -26,7 +31,7 @@ function showSitePage(page,{hash='',scroll=true,replace=false,historyUpdate=true
 export function showMathTopic(number){
  showSitePage('math',{hash:Number.isInteger(number)&&number>0?'#math-topic-'+number:''});
 }
-window.orbitalPages={go:showSitePage,get page(){return document.body.dataset.page;}};
+window.orbitalPages={go:showSitePage,revealViewer,get page(){return document.body.dataset.page;}};
 export function initPageNavigation(){
  document.querySelectorAll('[data-page-link]').forEach(link=>link.addEventListener('click',event=>{
   if(event.button>0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;

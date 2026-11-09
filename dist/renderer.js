@@ -4,8 +4,38 @@ const FACT = [1];
 for (let i = 1; i < 32; i++) FACT[i] = FACT[i-1] * i;
 const clamp = (v,lo,hi) => Math.max(lo,Math.min(hi,v));
 export function orbitalExtent(n) { return 2.15 * n * n + 3; }
+// Shared palette definitions drive the UI, CPU thumbnails and both GPU renderers.
+export const colorMaps=[
+ {id:'atlas',name:'Blue',colors:null},
+ {id:'grays',name:'Grays',colors:['#030507','#343638','#656769','#96989a','#c7c9cb','#ffffff']},
+ {id:'fire',name:'Fire',colors:['#080308','#580414','#ac1710','#ef6412','#ffbc38','#fff4c4']},
+ {id:'gold',name:'Gold',colors:['#080603','#3c2706','#80570b','#bd9028','#eac866','#fff4c5']},
+ {id:'copper',name:'Copper',colors:['#080404','#382017','#75442e','#b9754e','#e5aa7d','#ffe3bd']},
+ {id:'green',name:'Green',colors:['#020b08','#06452e','#087f51','#36b576','#8bdfad','#e8fff2']},
+ {id:'cyan',name:'Cyan',colors:['#02090e','#06394e','#08748a','#29afbe','#83dce2','#e8ffff']},
+ {id:'viridis',name:'Viridis',colors:['#440154','#414487','#2a788e','#22a884','#7ad151','#fde725']},
+ {id:'magma',name:'Magma',colors:['#000004','#3b0f70','#8c2981','#de4968','#fe9f6d','#fcfdbf']},
+ {id:'rainbow',name:'Rainbow',colors:['#480087','#1255ce','#00bdd0','#44c55c','#ffe53b','#e82b24']}
+];
+export function colorMapIndex(id){return Math.max(0,colorMaps.findIndex(map=>map.id===id));}
+const mapRGB=hex=>[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255);
+const colorMapRGB=colorMaps.map(map=>map.colors?.map(mapRGB));
+function mappedPalette(value,id){
+ const stops=colorMapRGB[colorMapIndex(id)],x=clamp(value,0,1)*(stops.length-1),i=Math.min(stops.length-2,Math.floor(x)),t=x-i;
+ return stops[i].map((v,c)=>v+(stops[i+1][c]-v)*t);
+}
+export const colorMapGLSL=`
+uniform int uColorMap;
+vec3 mappedDensityColor(float d){
+ float x=clamp(d,0.,1.)*5.;
+ ${colorMaps.slice(1).map((map,i)=>`if(uColorMap==${i+1}){${map.colors.slice(0,-1).map((hex,j)=>`if(x<=${(j+1).toFixed(1)})return mix(vec3(${mapRGB(hex).map(v=>v.toFixed(8)).join(',')}),vec3(${mapRGB(map.colors[j+1]).map(v=>v.toFixed(8)).join(',')}),x-${j.toFixed(1)});`).join('')}return vec3(${mapRGB(map.colors[5]).map(v=>v.toFixed(8)).join(',')});}`).join('\n')}
+ return vec3(1.);
+}
+vec3 mappedPhaseColor(float t){t=fract(t);return t<5./6.?mappedDensityColor(t*6./5.):mix(mappedDensityColor(1.),mappedDensityColor(0.),t*6.-5.);}
+`;
 // Density shading and its legend share this dark-blue → ice-white ramp.
-export function densityPalette(value) {
+export function densityPalette(value,id='atlas') {
+  if(colorMapIndex(id)>0)return mappedPalette(value,id);
   const d=clamp(value,0,1),smooth=(a,b)=>{const t=clamp((d-a)/(b-a),0,1);return t*t*(3-2*t);};
   const mix=(a,b,t)=>a.map((v,i)=>v+(b[i]-v)*t);
   let color=mix([.012,.045,.20],[.07,.32,.76],smooth(.001,.09));
@@ -13,7 +43,8 @@ export function densityPalette(value) {
   return mix(color,[.93,.98,1],smooth(.5,1));
 }
 // Cyclic rainbow with smooth hue transitions, identical at every full turn.
-export function phasePalette(value) {
+export function phasePalette(value,id='atlas') {
+  if(colorMapIndex(id)>0){const t=value-Math.floor(value);return t<5/6?mappedPalette(t*6/5,id):mappedPalette(1,id).map((v,i)=>v+(mappedPalette(0,id)[i]-v)*(t*6-5));}
   const t=value-Math.floor(value);
   return [0,2/3,1/3].map(offset=>{
     const h=t+offset-Math.floor(t+offset);
@@ -51,6 +82,7 @@ export function densityAt(x,y,z,n,l,m,basis='complex') {
 const common = `
 precision highp float;
 precision highp int;
+${colorMapGLSL}
 uniform int uN,uL,uM,uBasis,uMode,uCut;
 uniform float uExtent,uPeak,uTime,uDensity,uCutAngle,uCutOffset,uDisplayGain;
 uniform float uNorm;
@@ -74,12 +106,13 @@ bool clipped(vec3 p){
   return uCut==3&&abs(q.y-uCutOffset)>.028;
 }
 vec3 densityColor(float d){
+  if(uColorMap>0)return mappedDensityColor(d);
   d=clamp(d,0.,1.);
   vec3 color=mix(vec3(.012,.045,.20),vec3(.07,.32,.76),smoothstep(.001,.09,d));
   color=mix(color,vec3(.48,.76,1.),pow(d,.44));
   return mix(color,vec3(.93,.98,1.),smoothstep(.5,1.,d));
 }
-vec3 rainbowColor(float t){vec3 c=clamp(abs(fract(t+vec3(0.,2./3.,1./3.))*6.-3.)-1.,0.,1.);c=c*c*(3.-2.*c);return mix(vec3(.045),vec3(1.),c);}
+vec3 rainbowColor(float t){if(uColorMap>0)return mappedPhaseColor(t);vec3 c=clamp(abs(fract(t+vec3(0.,2./3.,1./3.))*6.-3.)-1.,0.,1.);c=c*c*(3.-2.*c);return mix(vec3(.045),vec3(1.),c);}
 vec3 phaseColor(vec3 p){float a=amplitude(p);if(uBasis==0&&uM<0&&abs(uM)%2==1)a=-a;float ph=float(uM)*atan(p.y,p.x);if(uBasis==1){if(uM>0)a*=cos(float(uM)*atan(p.y,p.x));if(uM<0)a*=sin(float(-uM)*atan(p.y,p.x));ph=0.;}if(a<0.)ph+=3.14159265;ph+=uTime*.115*float(uN*uN);return rainbowColor(ph/6.28318530+.5);}
 vec3 particlePosition(vec4 seed,float current){
   float r=seed.x,c=seed.y,s=sqrt(max(0.,1.-c*c));
@@ -332,13 +365,13 @@ export class OrbitalRenderer {
   }
   sharedUniforms(p){
     const s=this.state;
-    for(const [k,v] of [['uN',s.n],['uL',s.l],['uM',s.m],['uBasis',s.basis==='real'?1:0],['uMode',s.mode==='phase'?1:0],['uCut',['none','half','wedge','slice'].indexOf(s.cut)]])this.uniform(p,k,'uniform1i',v);
+    for(const [k,v] of [['uColorMap',colorMapIndex(s.colorMap)],['uN',s.n],['uL',s.l],['uM',s.m],['uBasis',s.basis==='real'?1:0],['uMode',s.mode==='phase'?1:0],['uCut',['none','half','wedge','slice'].indexOf(s.cut)]])this.uniform(p,k,'uniform1i',v);
     for(const [k,v] of [['uExtent',this.extent],['uPeak',this.peak],['uDisplayGain',this.displayGain],['uNorm',this.norm],['uTime',this.time],['uDensity',s.density],['uCutAngle',s.cutAngle*Math.PI/180],['uCutOffset',s.cutOffset]])this.uniform(p,k,'uniform1f',v);
     this.cameraUniforms(p);
   }
   volumeSignature(){
     const s=this.state,c=this.camera;
-    return [s.n,s.l,s.m,s.basis,s.mode,s.renderStyle,s.cut,s.cutAngle,s.cutOffset,s.density,c.yaw,c.pitch,c.distance,this.tier,this.canvas.width,this.canvas.height,s.mode==='phase'?this.time:0].join('|');
+    return [s.n,s.l,s.m,s.basis,s.mode,s.colorMap,s.renderStyle,s.cut,s.cutAngle,s.cutOffset,s.density,c.yaw,c.pitch,c.distance,this.tier,this.canvas.width,this.canvas.height,s.mode==='phase'?this.time:0].join('|');
   }
   drawVolume(){
     const gl=this.gl,s=this.state,key=this.volumeSignature();

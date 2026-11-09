@@ -1,4 +1,4 @@
-import { OrbitalRenderer, densityAt, orbitalExtent, densityPalette, phasePalette } from './renderer.js?v=7';
+import { OrbitalRenderer, densityAt, orbitalExtent, densityPalette, phasePalette, colorMaps, colorMapIndex } from './renderer.js?v=7';
 import { initSpectrum } from './spectrum.js';
 import { initPageNavigation, showMathTopic } from './pages.js';
 
@@ -7,7 +7,7 @@ const mathFragments = window.OrbitalMathFragments || {};
 const mathHTML = key => mathFragments[key] || key;
 document.querySelectorAll('[data-math]').forEach(element => { element.innerHTML = mathHTML(element.dataset.math); });
 const family = ['s','p','d','f','g','h'];
-const state = {n:6,l:3,m:1,basis:'complex',mode:'density',renderStyle:'granular',cut:'wedge',cutAngle:0,cutOffset:0,density:2,particleAmount:1,speed:2,animate:true,autoRotate:false,axes:false};
+const state = {n:6,l:3,m:1,basis:'complex',mode:'density',colorMap:'atlas',renderStyle:'granular',cut:'wedge',cutAngle:0,cutOffset:0,density:2,particleAmount:1,speed:2,animate:true,autoRotate:false,axes:false};
 // Basis and color are shared across Cloud and Granular; scene controls retain their presets.
 const modeSettingKeys=['density','particleAmount','speed','autoRotate','axes'];
  const defaultModeSettings={basis:'complex',mode:'density',cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:.025,speed:.5,animate:true,autoRotate:false,axes:false};
@@ -20,7 +20,6 @@ const modeSettingKeys=['density','particleAmount','speed','autoRotate','axes'];
  const snapFlow=value=>flowSpeeds.reduce((best,speed)=>Math.abs(speed-value)<Math.abs(best-value)?speed:best);
  let lastPerformance=null;
  const paletteGradient = palette => `linear-gradient(90deg,${Array.from({length:33},(_,i)=>`rgb(${palette(i/32).map(v=>Math.round(v*255)).join(',')}) ${i/32*100}%`).join(',')})`;
-const blueGradient = paletteGradient(densityPalette), rainbowGradient = paletteGradient(phasePalette);
 const initial = new URLSearchParams(location.hash.slice(1));
 if(initial.has('n')){state.n=Math.round(Math.max(1,Math.min(6,+initial.get('n')||6)));state.l=Math.round(Math.max(0,Math.min(state.n-1,+initial.get('l')||0)));state.m=Math.round(Math.max(-state.l,Math.min(state.l,+initial.get('m')||0)));if(initial.get('basis')==='real')state.basis='real';}
 if(state.basis==='real'){Object.assign(state,{renderStyle:'granular',cut:'none',density:2,particleAmount:1,speed:2});cloudBasis='real';initializedBases.clear();initializedBases.add('real');}
@@ -59,7 +58,7 @@ function exploreState(target){
  window.orbitalPages?.go('orbits',{scroll:false});
  update({n,l,m});
  renderer?.resetView();
- $('scene').scrollIntoView({behavior:'smooth',block:'center'});
+ window.orbitalPages?.revealViewer('orbits');
  $('orbital-canvas').focus({preventScroll:true});
  return true;
 }
@@ -67,12 +66,11 @@ function exploreState(target){
 function setSelected(selector,key){document.querySelectorAll(selector).forEach(b=>{const active=b.dataset[key]===String(state[key]);b.classList.toggle('selected',active);b.setAttribute('aria-pressed',String(active));});}
 function update(partial){
  partial={...partial};
+ if('colorMap' in partial)partial.colorMap=colorMaps[colorMapIndex(partial.colorMap)].id;
+ const paletteChanged=partial.colorMap!==undefined&&partial.colorMap!==state.colorMap;
  const explicitTracers=Object.prototype.hasOwnProperty.call(partial,'particleAmount');
  const switchingBasis=partial.basis&&partial.basis!==state.basis;
- if(switchingBasis){
-  basisStyles[state.basis]=state.renderStyle;
-  if(!partial.renderStyle)partial.renderStyle=basisStyles[partial.basis];
- }
+
 
  delete partial.autoTracers;delete partial.targetFps;delete partial.separateColors;
  if(partial.renderStyle==='sculpted')partial.renderStyle='granular';
@@ -85,10 +83,7 @@ function update(partial){
   lastPerformance=null;
  }
  const nextBasis=partial.basis||state.basis;
- if(nextStyle==='cloud'&&nextBasis!==cloudBasis){
-  if(!explicitTracers)partial.particleAmount=nextBasis==='real'?0:.025;
-  cloudBasis=nextBasis;
- }
+
  if(Number.isFinite(partial.speed))partial.speed=snapFlow(partial.speed);
  if(Number.isFinite(partial.particleAmount)){
   partial.particleAmount=Math.max(0,Math.min(nextStyle==='cloud'?.05:1,partial.particleAmount));
@@ -99,6 +94,8 @@ function update(partial){
  Object.assign(state,partial,{animate:true});basisStyles[state.basis]=state.renderStyle;state.n=Math.round(Math.max(1,Math.min(6,state.n)));state.l=Math.round(Math.max(0,Math.min(state.n-1,state.l)));state.m=Math.round(Math.max(-state.l,Math.min(state.l,state.m)));
  if(!renderer?.error)renderer?.setState(state);
  sync();
+ if(paletteChanged){thumbs.clear();document.querySelectorAll('.atlas-card').forEach(card=>{const [n,l,m]=card.dataset.state.split(',').map(Number);card.querySelector('img').src=thumbnail(n,l,m);});}
+ window.orbitalSharedSettings?.publish('orbits',state);
  if(['n','l','m','basis'].some(k=>k in partial)){try{if(document.body.dataset.page==='orbits')history.replaceState(history.state,'',`#n=${state.n}&l=${state.l}&m=${state.m}&basis=${state.basis}`);}catch{/* Some file viewers restrict history changes; the explorer still works. */}drawRadial();highlightCards();}
 }
 function option(value,label){const o=document.createElement('option');o.value=value;o.textContent=label;return o;}
@@ -110,6 +107,7 @@ function syncPerformance(){
  $('tracer-status').textContent=lastPerformance?.limited?`${active.toLocaleString()} active · limited to protect 30 FPS`:`Up to ${requested.toLocaleString()} tracers`;
 }
 function sync(){
+ window.syncColorMapPickers?.(state.colorMap);
  const {n,l,m,basis}=state;
  $('n-select').replaceChildren(...Array.from({length:6},(_,i)=>option(i+1,i+1)));$('n-select').value=n;
  $('l-select').replaceChildren(...Array.from({length:n},(_,i)=>option(i,`${i} · ${family[i]}`)));$('l-select').value=l;
@@ -135,8 +133,8 @@ function sync(){
  syncPerformance();
  $('auto-rotate').checked=state.autoRotate;$('show-axes').checked=state.axes;
  $('legend-title').textContent=state.mode==='phase'?'WAVEFUNCTION PHASE':'PROBABILITY DENSITY';$('legend-low').innerHTML=state.mode==='phase'?mathHTML('phase_low'):'low';$('legend-high').innerHTML=state.mode==='phase'?mathHTML('phase_high'):'high';
- $('legend-gradient').style.background=state.mode==='phase'?rainbowGradient:blueGradient;
- $('legend-gradient').title=state.mode==='phase'?'Cyclic rainbow represents phase angle. The colors at −π and +π match for a seamless wrap.':'Dark blue to white represents increasing probability density.';
+ $('legend-gradient').style.background=paletteGradient(v=>state.mode==='phase'?phasePalette(v,state.colorMap):densityPalette(v,state.colorMap));
+ $('legend-gradient').title=state.mode==='phase'?'Cyclic colors represent phase angle. The colors at −π and +π match for a seamless wrap.':'Selected color map represents increasing probability density.';
 }
 for(const name of ['n','l','m'])$(name+'-select').addEventListener('change',e=>update({[name]:+e.target.value}));
 document.querySelectorAll('[data-render-style]').forEach(b=>b.addEventListener('click',()=>update({renderStyle:b.dataset.renderStyle})));
@@ -160,16 +158,21 @@ if(matchMedia('(pointer: coarse)').matches)document.querySelector('.gesture-hint
 let toastTimeout;function toast(message){$('toast').textContent=message;$('toast').classList.add('visible');clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>$('toast').classList.remove('visible'),3200);}
 
 // Cross-sectional thumbnails use exactly the same analytic density as the volume.
-const thumbs=new Map();
-function thumbnail(n,l,m){
- const key=`${n}-${l}-${Math.abs(m)}`;if(thumbs.has(key))return thumbs.get(key);
- const canvas=document.createElement('canvas'),size=120;canvas.width=canvas.height=size;const ctx=canvas.getContext('2d'),data=ctx.createImageData(size,size),values=new Float32Array(size*size),extent=orbitalExtent(n)*.84;
- let peak=0;
- for(let y=0;y<size;y++)for(let x=0;x<size;x++){const v=densityAt((x+.5-size/2)/(size/2)*extent,0,(size/2-y-.5)/(size/2)*extent,n,l,Math.abs(m));values[y*size+x]=v;peak=Math.max(peak,v);}
+const thumbs=new Map(),thumbFields=new Map();
+function thumbnail(n,l,m,colorMap=state.colorMap){
+ const key=`${colorMap}-${n}-${l}-${Math.abs(m)}`;if(thumbs.has(key))return thumbs.get(key);
+ const canvas=document.createElement('canvas'),size=120;canvas.width=canvas.height=size;const ctx=canvas.getContext('2d'),data=ctx.createImageData(size,size),fieldKey=`${n}-${l}-${Math.abs(m)}`;
+ let field=thumbFields.get(fieldKey);
+ if(!field){
+  const values=new Float32Array(size*size),extent=orbitalExtent(n)*.84;let peak=0;
+  for(let y=0;y<size;y++)for(let x=0;x<size;x++){const v=densityAt((x+.5-size/2)/(size/2)*extent,0,(size/2-y-.5)/(size/2)*extent,n,l,Math.abs(m));values[y*size+x]=v;peak=Math.max(peak,v);}
+  field={values,peak};thumbFields.set(fieldKey,field);
+ }
+ const {values,peak}=field;
  const stops=[[0,5,10,24],[.19,12,34,80],[.43,35,94,181],[.72,99,167,240],[.9,181,220,255],[1,242,249,255]];
  for(let i=0;i<values.length;i++){
   const raw=values[i]/peak,t=Math.pow(raw,.38);let a=stops[0],b=stops[1];for(let j=1;j<stops.length;j++)if(t<=stops[j][0]){a=stops[j-1];b=stops[j];break;}
-  const f=Math.max(0,Math.min(1,(t-a[0])/(b[0]-a[0])));for(let c=1;c<4;c++)data.data[i*4+c-1]=a[c]*(1-f)+b[c]*f;data.data[i*4+3]=Math.min(255,t*850);
+  const f=Math.max(0,Math.min(1,(t-a[0])/(b[0]-a[0]))),color=colorMap==='atlas'?null:densityPalette(t,colorMap);for(let c=1;c<4;c++)data.data[i*4+c-1]=color?color[c-1]*255:a[c]*(1-f)+b[c]*f;data.data[i*4+3]=Math.min(255,t*850);
  }
  ctx.putImageData(data,0,0);const src=canvas.toDataURL();thumbs.set(key,src);return src;
 }
@@ -183,7 +186,7 @@ function renderAtlas(){
   const states=[];for(let l=0;l<n;l++){if(atlasFamily!=='all'&&+atlasFamily!==l)continue;for(let m=0;m<=l;m++)states.push([n,l,m]);}
   if(!states.length)continue;total+=states.length;
   const section=document.createElement('section');section.className='atlas-shell-group';section.innerHTML=`<h3 class="shell-title"><span class="shell-number">${mathHTML(`n_${n}`)}</span><span>${(13.605693/(n*n)).toFixed(3)} eV binding energy</span></h3>`;const row=document.createElement('div');row.className='atlas-row';
-  for(const [n,l,m] of states){const b=document.createElement('button');b.className='atlas-card';b.dataset.state=`${n},${l},${m}`;b.setAttribute('aria-label',`Explore ${n}${family[l]}, n ${n}, l ${l}, absolute m ${m}`);const img=document.createElement('img');img.alt='';img.width=120;img.height=120;b.append(img);const title=document.createElement('strong');title.textContent=`${n}${family[l]}`;const small=document.createElement('small');small.innerHTML=mathHTML(`atlas_${l}_${m}`);b.append(title,small);b.addEventListener('click',()=>{update({n,l,m});renderer?.resetView();$('scene').scrollIntoView({behavior:'smooth',block:'center'});});row.append(b);queue.push(()=>{img.src=thumbnail(n,l,m);});}
+  for(const [n,l,m] of states){const b=document.createElement('button');b.className='atlas-card';b.dataset.state=`${n},${l},${m}`;b.setAttribute('aria-label',`Explore ${n}${family[l]}, n ${n}, l ${l}, absolute m ${m}`);const img=document.createElement('img');img.alt='';img.width=120;img.height=120;b.append(img);const title=document.createElement('strong');title.textContent=`${n}${family[l]}`;const small=document.createElement('small');small.innerHTML=mathHTML(`atlas_${l}_${m}`);b.append(title,small);b.addEventListener('click',()=>{update({n,l,m});renderer?.resetView();window.orbitalPages?.revealViewer('orbits');});row.append(b);queue.push(()=>{img.src=thumbnail(n,l,m);});}
   section.append(row);$('atlas-grid').append(section);
  }
  if(!total)$('atlas-grid').innerHTML='<p class="atlas-empty">This family starts in a higher shell. Choose another shell to explore it.</p>';
@@ -222,3 +225,40 @@ document.querySelectorAll('[data-settings-target]').forEach(button=>{
  button.addEventListener('click',()=>{panel.open=!panel.open;button.setAttribute('aria-expanded',String(panel.open));});
  panel.addEventListener('toggle',()=>button.setAttribute('aria-expanded',String(panel.open)));
 });
+
+// Gear values are shared; basis, cutaway preset and selected states remain local.
+{
+ const keys=['renderStyle','mode','colorMap','density','particleAmount','speed','cutAngle','cutOffset','autoRotate','axes'];
+ let applying=false;
+ window.orbitalSharedSettings={publish(source,values){
+  if(applying)return;
+  const shared=Object.fromEntries(keys.map(key=>[key,values[key]]));
+  applying=true;
+  try{if(source==='orbits')window.spectrumApp?.setView(shared);else window.orbitalApp?.setState(shared);}finally{applying=false;}
+ }};
+ window.orbitalSharedSettings.publish('orbits',state);
+}
+
+// Native disclosure + buttons keep names and swatches available to touch and keyboard users.
+function initColorMapPickers(){
+ const pickers=[...document.querySelectorAll('[data-color-map-picker]')];
+ for(const picker of pickers){
+  const options=picker.querySelector('.color-map-options');
+  for(const map of colorMaps){
+   const button=document.createElement('button');button.type='button';button.setAttribute('data-color-map',map.id);button.className='color-map-option';
+   const name=document.createElement('span');name.textContent=map.name+(map.id==='atlas'?' · default':'');
+   const swatch=document.createElement('span');swatch.className='color-map-swatch';swatch.setAttribute('aria-hidden','true');swatch.style.background=paletteGradient(v=>densityPalette(v,map.id));
+   button.append(name,swatch);button.addEventListener('click',()=>{if(picker.dataset.colorMapPicker==='spectra')window.spectrumApp.setView({colorMap:map.id});else update({colorMap:map.id});picker.open=false;picker.querySelector('summary').focus();});options.append(button);
+  }
+  picker.addEventListener('keydown',event=>{if(event.key==='Escape'){picker.open=false;picker.querySelector('summary').focus();}});
+ }
+ window.syncColorMapPickers=id=>{for(const picker of pickers){
+  const map=colorMaps[colorMapIndex(id)];picker.querySelector('.color-map-name').textContent=map.name;picker.querySelector('summary').setAttribute('aria-label','Color map: '+map.name);
+  const preview=v=>state.mode==='phase'?phasePalette(v,map.id):densityPalette(v,map.id);
+  picker.querySelector('.color-map-current').style.background=paletteGradient(preview);
+  picker.querySelectorAll('[data-color-map]').forEach(button=>{const active=button.dataset.colorMap===map.id;button.setAttribute('aria-pressed',String(active));button.classList.toggle('selected',active);button.querySelector('.color-map-swatch').style.background=paletteGradient(v=>state.mode==='phase'?phasePalette(v,button.dataset.colorMap):densityPalette(v,button.dataset.colorMap));});
+ }};
+ document.addEventListener('click',event=>{for(const picker of pickers)if(!picker.contains(event.target))picker.open=false;});
+ window.syncColorMapPickers(state.colorMap);
+}
+initColorMapPickers();

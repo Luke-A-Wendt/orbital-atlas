@@ -18,7 +18,7 @@
 .math-deep-dive[open]>summary::after{content:'−'}
 .math-deep-dive>summary>small{font-size:10px;color:#839bb3}
 .math-deep-dive[open]>summary{background:#14202c;border-bottom:1px solid #263340}
-#math-content .math-deep-dive .math-section-body{padding:12px 28px 25px;color:#a9b7c8;font-size:12px;line-height:1.85}
+#math-content .math-deep-dive .math-section-body{padding:12px 28px 25px;color:#b6c5d5;font-size:14px;line-height:1.85}
 .math-deep-dive h3{font-size:14px;font-weight:500;color:#d0e3f6;margin:22px 0 10px}
 .math-deep-dive h3:first-child{margin-top:10px}
 #math-content .math-deep-dive .equation{overflow-x:auto;background:#090f16;border-left:2px solid #6383a5;padding:14px 17px;margin:18px 0;max-width:100%}
@@ -27,12 +27,28 @@
 #math-content table{display:block;overflow-x:auto;border-collapse:collapse;width:100%;font-size:11px;margin:20px 0}
 #math-content th,#math-content td{padding:9px 13px;text-align:left;border-bottom:1px solid #26313d;white-space:nowrap}
 #math-content th{color:#bdcfe1;font-weight:500}
+.math-roadmap{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:22px;margin:0 0 22px;padding:22px 0;border-block:1px solid var(--panel-border,#293440)}
+.math-roadmap-group{min-width:0}
+.math-roadmap-range{font:10px ui-monospace,monospace;color:#8098af}
+.math-roadmap h2{font-size:12px;line-height:1.5;font-weight:600;color:#d0e3f6;letter-spacing:0;margin:6px 0 9px}
+.math-roadmap ol{list-style:none;margin:0;padding:0}
+.math-roadmap li{margin:0}
+.math-roadmap a{display:block;padding:5px 0;font-size:11px;line-height:1.5;color:#9fc5ed;text-decoration:none}
+.math-roadmap a:hover{text-decoration:underline;text-underline-offset:3px;color:#fff}
+.math-reading-key{margin:0 0 30px;border:1px solid var(--panel-border,#293440);border-radius:8px;background:var(--control-surface,#10161e);font-size:12px;line-height:1.85;color:#a9b7c8}
+.math-reading-key>summary{padding:13px 18px;cursor:pointer;font-weight:500;color:#b9d4ef}
+.math-reading-key>div{padding:0 18px 10px}
+#math-content a:focus-visible,#math-content summary:focus-visible{outline:2px solid #b9dcff;outline-offset:4px;border-radius:3px}
+#math-content .math-section-body a{color:#a5c9ee;text-underline-offset:3px}
+@media(max-width:800px){.math-roadmap{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}}
 @media(max-width:600px){
  .math-topic-heading{padding:20px 18px 0;gap:10px}.math-topic-heading h2{font-size:20px}
  .math-topic-lead{margin:12px 18px 15px;font-size:12px}.math-primary{padding:0 14px 5px}
  #math-content .math-primary .equation{padding:13px 12px;font-size:12px}
  .math-deep-dive>summary{padding:14px 18px;position:relative;padding-right:40px;display:block}
  .math-deep-dive>summary>small{display:block;margin-top:2px}.math-deep-dive>summary::after{position:absolute;right:18px;top:17px}
- #math-content .math-deep-dive .math-section-body{padding:8px 18px 20px}
+ #math-content .math-deep-dive .math-section-body{padding:8px 18px 20px;font-size:13px}
  .math-topic-nav{gap:6px;margin-bottom:25px}.math-topic-nav a{font-size:10px;padding:7px 9px}
+ .math-roadmap{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 14px;padding:18px 0}
+ .math-roadmap a{padding:6px 0}.math-reading-key{margin-bottom:22px}
 }

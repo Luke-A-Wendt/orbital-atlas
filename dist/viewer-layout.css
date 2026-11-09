@@ -390,3 +390,43 @@ main>.site-page{width:100%;max-width:var(--page-panel-width);margin-inline:auto}
 #math-page>.intro{align-items:center;flex-wrap:wrap;gap:12px 24px}
 #math-page .math-page-links{margin:0 0 0 auto;width:220px;max-width:100%;flex-shrink:0}
 @media(max-width:600px){#math-page .math-page-links{width:190px}}
+
+.spectrum-stage-bottom .spectrum-animation-wavelength{display:block;margin-top:5px;color:var(--accent);font-size:11px;font-variant-numeric:tabular-nums}
+svg.viewer-link-arrow{display:inline-block;width:1em;height:1em;vertical-align:-.12em;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.site-header>.math-page-links{display:none;margin:0 0 0 auto;height:auto;width:220px;max-width:50%;gap:0}
+body[data-page="math"] .site-header>.math-page-links{display:grid}
+body[data-page="math"] .site-header>.live-badge{display:none}
+@media(max-width:860px){
+ :root{--page-panel-width:calc(100svh - 90px)}
+ .workspace,.spectrum-panel>.spectrum-view{scroll-margin-top:8px}
+ .workspace>.controls>.viewer-links,.spectrum-controls>.viewer-links{order:-1;border-bottom:1px solid var(--panel-border);padding-block:8px}
+}
+
+/* Wavelength shares the dipole-strength number typography. */
+.spectrum-stage-bottom .spectrum-animation-wavelength{font-family:var(--font);font-size:23px;font-weight:400;color:#dcecff}
+@container transition-viewer (max-width:600px){.spectrum-stage-bottom .spectrum-animation-wavelength{font-size:20px}}
+
+.spectrum-stage-bottom .spectrum-animation-wavelength>span{font:inherit;color:inherit}
+.spectrum-animation-wavelength>small{font-size:.75em;font-weight:inherit}
+
+.spectrum-animation-wavelength>small{font-size:13px}
+@container transition-viewer (max-width:600px){.spectrum-animation-wavelength>small{font-size:12px}}
+
+.spectrum-animation-wavelength>small{font-family:var(--font);font-size:10px;font-weight:400;color:#8fa1b9}
+@container transition-viewer (max-width:600px){.spectrum-animation-wavelength>small{font-size:8px}}
+
+/* Navigation leads the controls in the sidebar and below the mobile animation. */
+.workspace>.controls>.viewer-links,.spectrum-controls>.viewer-links{order:-1;border-bottom:1px solid var(--panel-border);padding-block:8px}
+
+/* Color-map choices show the actual ramp without relying on colored option text. */
+.color-map-field{margin:14px 0}.color-map-field>.slider-label{display:block;margin-bottom:7px}
+.color-map-picker{border:1px solid var(--panel-border,#354553);border-radius:6px;background:var(--control-surface,#10161e);min-width:0}
+.color-map-picker>summary,.color-map-option{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;box-sizing:border-box;color:var(--control-selected-text,#c4d7ea);font-size:11px;line-height:1.4;text-align:left;cursor:pointer}
+.color-map-picker>summary{list-style:none}.color-map-picker>summary::-webkit-details-marker{display:none}.color-map-picker>summary::after{content:'';width:6px;height:6px;flex-shrink:0;border-right:1px solid currentColor;border-bottom:1px solid currentColor;transform:rotate(45deg)}.color-map-picker[open]>summary::after{transform:rotate(225deg)}
+.color-map-name,.color-map-option>span:first-child{flex:0 0 105px;white-space:nowrap}
+.color-map-swatch{display:block;flex:1;min-width:36px;height:13px;border-radius:3px;border:1px solid #ffffff24}
+.color-map-options{max-height:265px;overflow-y:auto;overscroll-behavior:contain;border-top:1px solid var(--panel-border,#354553);padding:4px}
+.color-map-option{background:transparent;border:1px solid transparent;border-radius:4px;min-height:36px}
+.color-map-option:hover,.color-map-option.selected{background:#253747;border-color:#607c96}
+.color-map-picker summary:focus-visible,.color-map-option:focus-visible{outline:2px solid #b9dcff;outline-offset:-2px}
+@container viewer-controls (max-width:300px){.color-map-name,.color-map-option>span:first-child{flex-basis:90px}.color-map-picker>summary,.color-map-option{gap:7px;padding:9px 8px;font-size:10px}}
