@@ -1024,6 +1024,7 @@ body[data-page="math"] .site-header>.live-badge{display:none}
  <section class="control-section basis-section"><div class="settings-heading viewer-controls-heading"><span class="section-label">VIEW</span><button class="settings-gear" type="button" data-settings-target="viewer-settings" aria-controls="viewer-settings" aria-expanded="false" aria-label="Orbital settings" title="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.000 12.000L19.932 13.044L21.659 14.588L21.239 15.827L18.928 16.000L18.347 16.870L17.657 17.657L16.870 18.347L17.000 20.660L15.827 21.239L14.071 19.727L13.044 19.932L12.000 20.000L10.956 19.932L9.412 21.659L8.173 21.239L8.000 18.928L7.130 18.347L6.343 17.657L5.653 16.870L3.340 17.000L2.761 15.827L4.273 14.071L4.068 13.044L4.000 12.000L4.068 10.956L2.341 9.412L2.761 8.173L5.072 8.000L5.653 7.130L6.343 6.343L7.130 5.653L7.000 3.340L8.173 2.761L9.929 4.273L10.956 4.068L12.000 4.000L13.044 4.068L14.588 2.341L15.827 2.761L16.000 5.072L16.870 5.653L17.657 6.343L18.347 7.130L20.660 7.000L21.239 8.173L19.727 9.929L19.932 10.956Z"/><circle cx="12" cy="12" r="3"/></svg></button></div><div class="basis-switch segmented" aria-label="Orbital basis"><button data-basis="real">Real</button><button class="selected" data-basis="complex">Complex</button></div></section>
  <section class="control-section cut-section" id="look-inside" aria-label="Look inside"><div class="cut-options"><button data-cut="none" title="Complete orbital"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="10"/></svg><span>Whole</span></button><button data-cut="half" title="Remove half the orbital"><svg viewBox="0 0 32 32"><path d="M16 6a10 10 0 0 0 0 20Z"/><path class="dashed" d="M16 6a10 10 0 0 1 0 20"/></svg><span>Half</span></button><button class="selected" data-cut="wedge" title="Remove a quarter wedge"><svg viewBox="0 0 32 32"><path d="M16 16V6A10 10 0 1 0 26 16Z"/></svg><span>Wedge</span></button><button data-cut="slice" title="Thin cross section"><svg viewBox="0 0 32 32"><ellipse cx="16" cy="16" rx="4" ry="11"/><path class="dashed" d="M15 6a10 10 0 1 1 0 20"/></svg><span>Slice</span></button></div></section>
  <details class="viewer-settings cut-more-options" id="viewer-settings"><summary hidden>Settings</summary><div class="viewer-settings-content">
+<section class="settings-group preset-settings"><label class="slider-label">Preset<select class="view-preset" aria-label="View preset"><option value="">Choose a preset</option></select></label></section>
 <section class="control-section orbital-flow-control" id="flow-control" aria-label="Flow speed">
  <div class="flow-speed-heading"><label class="section-label" for="speed">FLOW SPEED</label><output id="speed-value" for="speed">2×</output></div>
  <input id="speed" type="range" min="0" max="4" value="3" step="1" aria-label="Flow speed">
@@ -1063,6 +1064,7 @@ body[data-page="math"] .site-header>.live-badge{display:none}
  <p class="spectrum-view-notice" id="spectrum-view-notice" role="status" hidden></p>
  <section class="spectrum-view-control-group spectrum-cut-panel" id="spectrum-look-inside" aria-label="Look inside" hidden><div class="cut-options" role="group" aria-label="Transition cutaway"><button data-spectrum-view-cut="none" aria-pressed="false" title="Complete orbitals"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="10"/></svg><span>Whole</span></button><button class="selected" data-spectrum-view-cut="half" aria-pressed="true" title="Remove half the orbitals"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 6a10 10 0 0 0 0 20Z"/><path class="dashed" d="M16 6a10 10 0 0 1 0 20"/></svg><span>Half</span></button><button data-spectrum-view-cut="wedge" aria-pressed="false" title="Remove a quarter wedge"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 16V6A10 10 0 1 0 26 16Z"/></svg><span>Wedge</span></button><button data-spectrum-view-cut="slice" aria-pressed="false" title="Thin cross section"><svg viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="16" cy="16" rx="4" ry="11"/><path class="dashed" d="M15 6a10 10 0 1 1 0 20"/></svg><span>Slice</span></button></div></section>
  <details class="viewer-settings cut-more-options" id="spectrum-viewer-settings"><summary hidden>Settings</summary><div class="viewer-settings-content">
+<section class="settings-group preset-settings"><label class="slider-label">Preset<select class="view-preset" aria-label="View preset"><option value="">Choose a preset</option></select></label></section>
 <div class="spectrum-rate-control"><label for="spectrum-rate">TRANSITION SPEED</label><div class="spectrum-rate-buttons"><output id="spectrum-rate-value" for="spectrum-rate">1×</output></div><input id="spectrum-rate" type="range" min="0" max="4" step="1" value="2" aria-label="Transition speed"><p id="spectrum-rate-period">1.25 seconds per cycle</p></div>
 <section class="spectrum-view-control-group spectrum-flow-control" id="spectrum-flow-control" aria-label="Flow speed" hidden>
  <div class="flow-speed-heading"><label class="section-label" for="spectrum-speed">FLOW SPEED</label><output id="spectrum-speed-value" for="spectrum-speed">½×</output></div>
@@ -1991,16 +1993,8 @@ function densityPalette(value,id='atlas') {
   color=mix(color,[.48,.76,1],d**.44);
   return mix(color,[.93,.98,1],smooth(.5,1));
 }
-// Cyclic rainbow with smooth hue transitions, identical at every full turn.
-function phasePalette(value,id='atlas') {
-  if(colorMapIndex(id)>0){const t=value-Math.floor(value);return t<5/6?mappedPalette(t*6/5,id):mappedPalette(1,id).map((v,i)=>v+(mappedPalette(0,id)[i]-v)*(t*6-5));}
-  const t=value-Math.floor(value);
-  return [0,2/3,1/3].map(offset=>{
-    const h=t+offset-Math.floor(t+offset);
-    const c=clamp(Math.abs(h*6-3)-1,0,1);
-    return .045+.955*c*c*(3-2*c);
-  });
-}
+// Phase uses the selected density ramp over each complete phase cycle.
+function phasePalette(value,id='atlas') { return densityPalette(value,id); }
 function laguerre(k,a,x) {
   if (!k) return 1;
   let p = 1, q = 1 + a - x;
@@ -2061,8 +2055,8 @@ vec3 densityColor(float d){
   color=mix(color,vec3(.48,.76,1.),pow(d,.44));
   return mix(color,vec3(.93,.98,1.),smoothstep(.5,1.,d));
 }
-vec3 rainbowColor(float t){if(uColorMap>0)return mappedPhaseColor(t);vec3 c=clamp(abs(fract(t+vec3(0.,2./3.,1./3.))*6.-3.)-1.,0.,1.);c=c*c*(3.-2.*c);return mix(vec3(.045),vec3(1.),c);}
-vec3 phaseColor(vec3 p){float a=amplitude(p);if(uBasis==0&&uM<0&&abs(uM)%2==1)a=-a;float ph=float(uM)*atan(p.y,p.x);if(uBasis==1){if(uM>0)a*=cos(float(uM)*atan(p.y,p.x));if(uM<0)a*=sin(float(-uM)*atan(p.y,p.x));ph=0.;}if(a<0.)ph+=3.14159265;ph+=uTime*.115*float(uN*uN);return rainbowColor(ph/6.28318530+.5);}
+vec3 rainbowColor(float t){return densityColor(t);}
+vec3 phaseColor(vec3 p){float a=amplitude(p);if(uBasis==0&&uM<0&&abs(uM)%2==1)a=-a;float ph=float(uM)*atan(p.y,p.x);if(uBasis==1){if(uM>0)a*=cos(float(uM)*atan(p.y,p.x));if(uM<0)a*=sin(float(-uM)*atan(p.y,p.x));ph=0.;}if(a<0.)ph+=3.14159265;ph+=uTime*.115*float(uN*uN);return rainbowColor(fract(ph/6.28318530+.5));}
 vec3 particlePosition(vec4 seed,float current){
   float r=seed.x,c=seed.y,s=sqrt(max(0.,1.-c*c));
   float omega=float(uM)*pow(float(uN),4.)*.23/max(.001,pow(r*uExtent*s,2.));
@@ -2691,14 +2685,14 @@ vec3 densityColor(float d){
 }
 // Component identity is constant; population controls count and extinction.
 vec3 componentColor(int component){return component==0?vec3(.25,.55,1.):vec3(1.,.25,.60);}
-vec3 rainbowColor(float t){if(uColorMap>0)return mappedPhaseColor(t);vec3 c=clamp(abs(fract(t+vec3(0.,2./3.,1./3.))*6.-3.)-1.,0.,1.);c=c*c*(3.-2.*c);return mix(vec3(.045),vec3(1.),c);}
+vec3 rainbowColor(float t){return densityColor(t);}
 vec3 componentPhase(vec3 p,float a,int component){
  int m=component==0?uMagnetic.x:uMagnetic.y,n=component==0?uShells.x:uShells.y;
  float ph=uBasis==0?float(m)*atan(p.y,p.x):0.;
  if(uBasis==0&&m<0&&abs(m)%2==1)a=-a;
  if(a<0.)ph+=3.14159265359;
  // A slowed illustrative component phase, matching the atlas convention.
- ph+=uTime*1.5*pow(float(min(uShells.x,uShells.y)),2.)/float(n*n);return rainbowColor(ph/6.28318530718+.5);
+ ph+=uTime*1.5*pow(float(min(uShells.x,uShells.y)),2.)/float(n*n);return rainbowColor(fract(ph/6.28318530718+.5));
 }
 vec3 phaseColor(vec3 p){
  vec2 a=amplitudes(p),weights=a*a*vec2(1.-uPopulation,uPopulation);
@@ -3360,7 +3354,7 @@ function initSpectrum(){
   const phase=view.mode==='phase',granular=view.renderStyle==='granular',real=view.basis==='real';
   element('view-label').textContent=(real?'REAL-BASIS PREVIEW':'COMPLEX')+' · '+(phase?'COMPONENT PHASE':granular?'GRANULAR DENSITY':'DENSITY CLOUD');
   element('density').max=view.renderStyle==='cloud'?2:3;element('density').value=view.density;element('density-value').value=view.density.toFixed(2).replace(/\.?0+$/,'')+'×';
-  element('look-inside').hidden=false;element('cut-settings').hidden=view.cut==='none';element('cut-offset-wrap').hidden=view.cut==='wedge';
+  element('look-inside').hidden=view.renderStyle==='cloud';element('cut-settings').hidden=view.cut==='none';element('cut-offset-wrap').hidden=view.cut==='wedge';
   element('cut-angle').value=view.cutAngle;element('cut-angle-value').value=view.cutAngle+'°';
   element('cut-offset').value=view.cutOffset;element('cut-offset-value').value=Math.abs(view.cutOffset)<.01?'center':(view.cutOffset>0?'+':'')+Math.round(view.cutOffset*100)+'%';
   syncPerformance();
@@ -3371,9 +3365,10 @@ function initSpectrum(){
   element('auto-rotate').checked=view.autoRotate;element('show-axes').checked=view.axes;
   element('legend-title').textContent=phase?'COMPONENT PHASE':'PROBABILITY DENSITY';
   element('legend-gradient').style.background=viewGradient(v=>phase?phasePalette(v,view.colorMap):densityPalette(v,view.colorMap));
-  element('legend-gradient').title=phase?'Cyclic colors show the component phases, blended by local population-weighted density. The colors at minus pi and plus pi match.':'Selected color map shows increasing probability density.';
+  element('legend-gradient').title=phase?'The selected palette maps component phase from minus pi to plus pi.':'Selected color map shows increasing probability density.';
   element('legend-low').innerHTML=phase?fragment('phase_low','−π'):'low';element('legend-high').innerHTML=phase?fragment('phase_high','+π'):'high';
  }
+let lastGranularCut=view.cut;
  function setView(partial){
   if(!partial||typeof partial!=='object')return false;
   const next={};
@@ -3385,6 +3380,10 @@ function initSpectrum(){
   if('cutAngle' in next)next.cutAngle=Math.round(next.cutAngle);
   for(const key of ['autoRotate','axes'])if(typeof partial[key]==='boolean')next[key]=partial[key];
   const nextStyle=next.renderStyle||view.renderStyle;
+ if(view.renderStyle==='granular')lastGranularCut=view.cut;
+ if(nextStyle==='cloud')next.cut='none';
+ else if(view.renderStyle==='cloud'&&!('cut' in next))next.cut=lastGranularCut;
+
    if(nextStyle!==view.renderStyle){
    for(const key of modeSettingKeys)modeSettings[view.renderStyle][key]=view[key];
    for(const key of modeSettingKeys)if(!(key in next))next[key]=modeSettings[nextStyle][key];
@@ -3778,6 +3777,7 @@ function exploreState(target){
 }
 
 function setSelected(selector,key){document.querySelectorAll(selector).forEach(b=>{const active=b.dataset[key]===String(state[key]);b.classList.toggle('selected',active);b.setAttribute('aria-pressed',String(active));});}
+let lastGranularCut=state.cut;
 function update(partial){
  partial={...partial};
  if('colorMap' in partial)partial.colorMap=colorMaps[colorMapIndex(partial.colorMap)].id;
@@ -3790,6 +3790,10 @@ function update(partial){
  if(partial.renderStyle==='sculpted')partial.renderStyle='granular';
  if('renderStyle' in partial&&!['cloud','granular'].includes(partial.renderStyle))delete partial.renderStyle;
  const nextStyle=partial.renderStyle||state.renderStyle;
+ if(state.renderStyle==='granular')lastGranularCut=state.cut;
+ if(nextStyle==='cloud')partial.cut='none';
+ else if(state.renderStyle==='cloud'&&!('cut' in partial))partial.cut=lastGranularCut;
+
  if(nextStyle!==state.renderStyle){
   for(const key of modeSettingKeys)modeSettings[state.renderStyle][key]=state[key];
   for(const key of modeSettingKeys)if(!(key in partial))partial[key]=modeSettings[nextStyle][key];
@@ -3839,7 +3843,7 @@ function sync(){
  else description=m?'A wave wrapped around the axis.<br>Probability flows through a steady cloud.':'A standing wave along the axis.<br>A cloud with zero probability current.';
  $('energy').textContent=`−${(13.605693/(n*n)).toFixed(3)} eV`;$('radial-nodes').textContent=radial;
  setSelected('[data-basis]','basis');setSelected('[data-mode]','mode');setSelected('[data-cut]','cut');setSelected('[data-render-style]','renderStyle');
- $('look-inside').hidden=false;$('cut-settings').hidden=state.cut==='none';$('cut-offset-wrap').hidden=state.cut==='wedge';
+ $('look-inside').hidden=state.renderStyle==='cloud';$('cut-settings').hidden=state.cut==='none';$('cut-offset-wrap').hidden=state.cut==='wedge';
  $('cut-angle').value=state.cutAngle;$('cut-angle-value').value=`${state.cutAngle}°`;$('cut-offset').value=state.cutOffset;$('cut-offset-value').value=Math.abs(state.cutOffset)<.01?'center':`${state.cutOffset>0?'+':''}${Math.round(state.cutOffset*100)}%`;
  $('density').max=state.renderStyle==='cloud'?2:3;$('density').value=state.density;$('density-value').value=`${state.density.toFixed(2).replace(/0$/,'')}×`;
  $('flow-control').hidden=basis==='real';$('flow-control').parentElement.dataset.flowVisible=String(basis==='complex');
@@ -3848,7 +3852,7 @@ function sync(){
  $('auto-rotate').checked=state.autoRotate;$('show-axes').checked=state.axes;
  $('legend-title').textContent=state.mode==='phase'?'WAVEFUNCTION PHASE':'PROBABILITY DENSITY';$('legend-low').innerHTML=state.mode==='phase'?mathHTML('phase_low'):'low';$('legend-high').innerHTML=state.mode==='phase'?mathHTML('phase_high'):'high';
  $('legend-gradient').style.background=paletteGradient(v=>state.mode==='phase'?phasePalette(v,state.colorMap):densityPalette(v,state.colorMap));
- $('legend-gradient').title=state.mode==='phase'?'Cyclic colors represent phase angle. The colors at −π and +π match for a seamless wrap.':'Selected color map represents increasing probability density.';
+ $('legend-gradient').title=state.mode==='phase'?'The selected palette maps phase angle from minus pi to plus pi.':'Selected color map represents increasing probability density.';
 }
 for(const name of ['n','l','m'])$(name+'-select').addEventListener('change',e=>update({[name]:+e.target.value}));
 document.querySelectorAll('[data-render-style]').forEach(b=>b.addEventListener('click',()=>update({renderStyle:b.dataset.renderStyle})));
@@ -3976,6 +3980,27 @@ function initColorMapPickers(){
  window.syncColorMapPickers(state.colorMap);
 }
 initColorMapPickers();
+
+// Presets are explicit actions; subsequent manual changes remain editable.
+const viewPresets=[
+ ['Blue sculpture · default',{basis:'complex',renderStyle:'granular',colorMap:'atlas',cut:'wedge',particleAmount:1,density:2}],
+ ['Rainbow cloud',{basis:'real',renderStyle:'cloud',colorMap:'rainbow',cut:'none',particleAmount:0,density:1,autoRotate:true}],
+ ['Rainbow currents',{basis:'complex',renderStyle:'cloud',colorMap:'rainbow',cut:'none',particleAmount:.05,density:1,speed:4},1],
+];
+document.querySelectorAll('.view-preset').forEach(select=>{
+ viewPresets.forEach(([name],index)=>select.append(option(index,name)));
+ select.addEventListener('change',()=>{
+  if(select.value==='')return;
+  const [,values,rate=1]=viewPresets[+select.value];
+  const settings={mode:'density',speed:1,cutAngle:0,cutOffset:0,autoRotate:false,axes:false,...values};
+  // A preset establishes the same starting view on both pages, including
+  // basis and cut. Later manual view changes can still be page-specific.
+  update(settings);
+  window.spectrumApp.setView(+select.value===0?{...settings,cut:'half'}:settings);
+  window.spectrumApp.setTransitionRate(rate);
+  select.value='';
+ });
+});
 
 })();
 </script>

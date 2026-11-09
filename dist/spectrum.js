@@ -136,7 +136,7 @@ export function initSpectrum(){
   const phase=view.mode==='phase',granular=view.renderStyle==='granular',real=view.basis==='real';
   element('view-label').textContent=(real?'REAL-BASIS PREVIEW':'COMPLEX')+' · '+(phase?'COMPONENT PHASE':granular?'GRANULAR DENSITY':'DENSITY CLOUD');
   element('density').max=view.renderStyle==='cloud'?2:3;element('density').value=view.density;element('density-value').value=view.density.toFixed(2).replace(/\.?0+$/,'')+'×';
-  element('look-inside').hidden=false;element('cut-settings').hidden=view.cut==='none';element('cut-offset-wrap').hidden=view.cut==='wedge';
+  element('look-inside').hidden=view.renderStyle==='cloud';element('cut-settings').hidden=view.cut==='none';element('cut-offset-wrap').hidden=view.cut==='wedge';
   element('cut-angle').value=view.cutAngle;element('cut-angle-value').value=view.cutAngle+'°';
   element('cut-offset').value=view.cutOffset;element('cut-offset-value').value=Math.abs(view.cutOffset)<.01?'center':(view.cutOffset>0?'+':'')+Math.round(view.cutOffset*100)+'%';
   syncPerformance();
@@ -147,9 +147,10 @@ export function initSpectrum(){
   element('auto-rotate').checked=view.autoRotate;element('show-axes').checked=view.axes;
   element('legend-title').textContent=phase?'COMPONENT PHASE':'PROBABILITY DENSITY';
   element('legend-gradient').style.background=viewGradient(v=>phase?phasePalette(v,view.colorMap):densityPalette(v,view.colorMap));
-  element('legend-gradient').title=phase?'Cyclic colors show the component phases, blended by local population-weighted density. The colors at minus pi and plus pi match.':'Selected color map shows increasing probability density.';
+  element('legend-gradient').title=phase?'The selected palette maps component phase from minus pi to plus pi.':'Selected color map shows increasing probability density.';
   element('legend-low').innerHTML=phase?fragment('phase_low','−π'):'low';element('legend-high').innerHTML=phase?fragment('phase_high','+π'):'high';
  }
+let lastGranularCut=view.cut;
  function setView(partial){
   if(!partial||typeof partial!=='object')return false;
   const next={};
@@ -161,6 +162,10 @@ export function initSpectrum(){
   if('cutAngle' in next)next.cutAngle=Math.round(next.cutAngle);
   for(const key of ['autoRotate','axes'])if(typeof partial[key]==='boolean')next[key]=partial[key];
   const nextStyle=next.renderStyle||view.renderStyle;
+ if(view.renderStyle==='granular')lastGranularCut=view.cut;
+ if(nextStyle==='cloud')next.cut='none';
+ else if(view.renderStyle==='cloud'&&!('cut' in next))next.cut=lastGranularCut;
+
    if(nextStyle!==view.renderStyle){
    for(const key of modeSettingKeys)modeSettings[view.renderStyle][key]=view[key];
    for(const key of modeSettingKeys)if(!(key in next))next[key]=modeSettings[nextStyle][key];

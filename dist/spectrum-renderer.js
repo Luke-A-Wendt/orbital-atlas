@@ -42,14 +42,14 @@ vec3 densityColor(float d){
 }
 // Component identity is constant; population controls count and extinction.
 vec3 componentColor(int component){return component==0?vec3(.25,.55,1.):vec3(1.,.25,.60);}
-vec3 rainbowColor(float t){if(uColorMap>0)return mappedPhaseColor(t);vec3 c=clamp(abs(fract(t+vec3(0.,2./3.,1./3.))*6.-3.)-1.,0.,1.);c=c*c*(3.-2.*c);return mix(vec3(.045),vec3(1.),c);}
+vec3 rainbowColor(float t){return densityColor(t);}
 vec3 componentPhase(vec3 p,float a,int component){
  int m=component==0?uMagnetic.x:uMagnetic.y,n=component==0?uShells.x:uShells.y;
  float ph=uBasis==0?float(m)*atan(p.y,p.x):0.;
  if(uBasis==0&&m<0&&abs(m)%2==1)a=-a;
  if(a<0.)ph+=3.14159265359;
  // A slowed illustrative component phase, matching the atlas convention.
- ph+=uTime*1.5*pow(float(min(uShells.x,uShells.y)),2.)/float(n*n);return rainbowColor(ph/6.28318530718+.5);
+ ph+=uTime*1.5*pow(float(min(uShells.x,uShells.y)),2.)/float(n*n);return rainbowColor(fract(ph/6.28318530718+.5));
 }
 vec3 phaseColor(vec3 p){
  vec2 a=amplitudes(p),weights=a*a*vec2(1.-uPopulation,uPopulation);

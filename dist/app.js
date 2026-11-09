@@ -64,6 +64,7 @@ function exploreState(target){
 }
 
 function setSelected(selector,key){document.querySelectorAll(selector).forEach(b=>{const active=b.dataset[key]===String(state[key]);b.classList.toggle('selected',active);b.setAttribute('aria-pressed',String(active));});}
+let lastGranularCut=state.cut;
 function update(partial){
  partial={...partial};
  if('colorMap' in partial)partial.colorMap=colorMaps[colorMapIndex(partial.colorMap)].id;
@@ -76,6 +77,10 @@ function update(partial){
  if(partial.renderStyle==='sculpted')partial.renderStyle='granular';
  if('renderStyle' in partial&&!['cloud','granular'].includes(partial.renderStyle))delete partial.renderStyle;
  const nextStyle=partial.renderStyle||state.renderStyle;
+ if(state.renderStyle==='granular')lastGranularCut=state.cut;
+ if(nextStyle==='cloud')partial.cut='none';
+ else if(state.renderStyle==='cloud'&&!('cut' in partial))partial.cut=lastGranularCut;
+
  if(nextStyle!==state.renderStyle){
   for(const key of modeSettingKeys)modeSettings[state.renderStyle][key]=state[key];
   for(const key of modeSettingKeys)if(!(key in partial))partial[key]=modeSettings[nextStyle][key];
@@ -125,7 +130,7 @@ function sync(){
  else description=m?'A wave wrapped around the axis.<br>Probability flows through a steady cloud.':'A standing wave along the axis.<br>A cloud with zero probability current.';
  $('energy').textContent=`−${(13.605693/(n*n)).toFixed(3)} eV`;$('radial-nodes').textContent=radial;
  setSelected('[data-basis]','basis');setSelected('[data-mode]','mode');setSelected('[data-cut]','cut');setSelected('[data-render-style]','renderStyle');
- $('look-inside').hidden=false;$('cut-settings').hidden=state.cut==='none';$('cut-offset-wrap').hidden=state.cut==='wedge';
+ $('look-inside').hidden=state.renderStyle==='cloud';$('cut-settings').hidden=state.cut==='none';$('cut-offset-wrap').hidden=state.cut==='wedge';
  $('cut-angle').value=state.cutAngle;$('cut-angle-value').value=`${state.cutAngle}°`;$('cut-offset').value=state.cutOffset;$('cut-offset-value').value=Math.abs(state.cutOffset)<.01?'center':`${state.cutOffset>0?'+':''}${Math.round(state.cutOffset*100)}%`;
  $('density').max=state.renderStyle==='cloud'?2:3;$('density').value=state.density;$('density-value').value=`${state.density.toFixed(2).replace(/0$/,'')}×`;
  $('flow-control').hidden=basis==='real';$('flow-control').parentElement.dataset.flowVisible=String(basis==='complex');
@@ -134,7 +139,7 @@ function sync(){
  $('auto-rotate').checked=state.autoRotate;$('show-axes').checked=state.axes;
  $('legend-title').textContent=state.mode==='phase'?'WAVEFUNCTION PHASE':'PROBABILITY DENSITY';$('legend-low').innerHTML=state.mode==='phase'?mathHTML('phase_low'):'low';$('legend-high').innerHTML=state.mode==='phase'?mathHTML('phase_high'):'high';
  $('legend-gradient').style.background=paletteGradient(v=>state.mode==='phase'?phasePalette(v,state.colorMap):densityPalette(v,state.colorMap));
- $('legend-gradient').title=state.mode==='phase'?'Cyclic colors represent phase angle. The colors at −π and +π match for a seamless wrap.':'Selected color map represents increasing probability density.';
+ $('legend-gradient').title=state.mode==='phase'?'The selected palette maps phase angle from minus pi to plus pi.':'Selected color map represents increasing probability density.';
 }
 for(const name of ['n','l','m'])$(name+'-select').addEventListener('change',e=>update({[name]:+e.target.value}));
 document.querySelectorAll('[data-render-style]').forEach(b=>b.addEventListener('click',()=>update({renderStyle:b.dataset.renderStyle})));
@@ -262,3 +267,24 @@ function initColorMapPickers(){
  window.syncColorMapPickers(state.colorMap);
 }
 initColorMapPickers();
+
+// Presets are explicit actions; subsequent manual changes remain editable.
+const viewPresets=[
+ ['Blue sculpture · default',{basis:'complex',renderStyle:'granular',colorMap:'atlas',cut:'wedge',particleAmount:1,density:2}],
+ ['Rainbow cloud',{basis:'real',renderStyle:'cloud',colorMap:'rainbow',cut:'none',particleAmount:0,density:1,autoRotate:true}],
+ ['Rainbow currents',{basis:'complex',renderStyle:'cloud',colorMap:'rainbow',cut:'none',particleAmount:.05,density:1,speed:4},1],
+];
+document.querySelectorAll('.view-preset').forEach(select=>{
+ viewPresets.forEach(([name],index)=>select.append(option(index,name)));
+ select.addEventListener('change',()=>{
+  if(select.value==='')return;
+  const [,values,rate=1]=viewPresets[+select.value];
+  const settings={mode:'density',speed:1,cutAngle:0,cutOffset:0,autoRotate:false,axes:false,...values};
+  // A preset establishes the same starting view on both pages, including
+  // basis and cut. Later manual view changes can still be page-specific.
+  update(settings);
+  window.spectrumApp.setView(+select.value===0?{...settings,cut:'half'}:settings);
+  window.spectrumApp.setTransitionRate(rate);
+  select.value='';
+ });
+});

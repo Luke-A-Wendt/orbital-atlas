@@ -42,16 +42,8 @@ export function densityPalette(value,id='atlas') {
   color=mix(color,[.48,.76,1],d**.44);
   return mix(color,[.93,.98,1],smooth(.5,1));
 }
-// Cyclic rainbow with smooth hue transitions, identical at every full turn.
-export function phasePalette(value,id='atlas') {
-  if(colorMapIndex(id)>0){const t=value-Math.floor(value);return t<5/6?mappedPalette(t*6/5,id):mappedPalette(1,id).map((v,i)=>v+(mappedPalette(0,id)[i]-v)*(t*6-5));}
-  const t=value-Math.floor(value);
-  return [0,2/3,1/3].map(offset=>{
-    const h=t+offset-Math.floor(t+offset);
-    const c=clamp(Math.abs(h*6-3)-1,0,1);
-    return .045+.955*c*c*(3-2*c);
-  });
-}
+// Phase uses the selected density ramp over each complete phase cycle.
+export function phasePalette(value,id='atlas') { return densityPalette(value,id); }
 function laguerre(k,a,x) {
   if (!k) return 1;
   let p = 1, q = 1 + a - x;
@@ -112,8 +104,8 @@ vec3 densityColor(float d){
   color=mix(color,vec3(.48,.76,1.),pow(d,.44));
   return mix(color,vec3(.93,.98,1.),smoothstep(.5,1.,d));
 }
-vec3 rainbowColor(float t){if(uColorMap>0)return mappedPhaseColor(t);vec3 c=clamp(abs(fract(t+vec3(0.,2./3.,1./3.))*6.-3.)-1.,0.,1.);c=c*c*(3.-2.*c);return mix(vec3(.045),vec3(1.),c);}
-vec3 phaseColor(vec3 p){float a=amplitude(p);if(uBasis==0&&uM<0&&abs(uM)%2==1)a=-a;float ph=float(uM)*atan(p.y,p.x);if(uBasis==1){if(uM>0)a*=cos(float(uM)*atan(p.y,p.x));if(uM<0)a*=sin(float(-uM)*atan(p.y,p.x));ph=0.;}if(a<0.)ph+=3.14159265;ph+=uTime*.115*float(uN*uN);return rainbowColor(ph/6.28318530+.5);}
+vec3 rainbowColor(float t){return densityColor(t);}
+vec3 phaseColor(vec3 p){float a=amplitude(p);if(uBasis==0&&uM<0&&abs(uM)%2==1)a=-a;float ph=float(uM)*atan(p.y,p.x);if(uBasis==1){if(uM>0)a*=cos(float(uM)*atan(p.y,p.x));if(uM<0)a*=sin(float(-uM)*atan(p.y,p.x));ph=0.;}if(a<0.)ph+=3.14159265;ph+=uTime*.115*float(uN*uN);return rainbowColor(fract(ph/6.28318530+.5));}
 vec3 particlePosition(vec4 seed,float current){
   float r=seed.x,c=seed.y,s=sqrt(max(0.,1.-c*c));
   float omega=float(uM)*pow(float(uN),4.)*.23/max(.001,pow(r*uExtent*s,2.));
