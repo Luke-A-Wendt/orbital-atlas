@@ -283,7 +283,7 @@ export class OrbitalRenderer {
     this.visibilityHandler=()=>{this.lastFrame=null;this.resetPerformance(performance.now());this.lastDrawSignature='';};document.addEventListener('visibilitychange',this.visibilityHandler);
     this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(this.canvas);
   }
-  resetView(){this.camera={...INTRO_CAMERA};}
+  resetView(){this.camera=this.state.frontView?{yaw:0,pitch:0,distance:2.80}:{...INTRO_CAMERA};}
   setVisible(visible){
     const suspended=!visible;if(this.suspended===suspended)return;
     this.suspended=suspended;this.lastFrame=null;this.resetPerformance(performance.now());
@@ -292,6 +292,7 @@ export class OrbitalRenderer {
   zoomBy(factor){this.camera.distance=clamp(this.camera.distance*factor,1.25,6.5);}
   setState(partial){
     const old=this.state;this.state={...old,...partial};const s=this.state;
+  if(!!s.frontView!==!!old.frontView){this.camera.yaw=s.frontView?0:.63;this.camera.pitch=s.frontView?0:.30;}
     s.n=clamp(Math.round(s.n),1,6);s.l=clamp(Math.round(s.l),0,s.n-1);s.m=clamp(Math.round(s.m),-s.l,s.l);
     s.density=clamp(s.density,.1,4);s.particleAmount=clamp(Number.isFinite(+s.particleAmount)?+s.particleAmount:old.particleAmount,0,1);s.speed=clamp(s.speed,.25,4);
     s.renderStyle=['sculpted','granular'].includes(s.renderStyle)?'granular':'cloud';

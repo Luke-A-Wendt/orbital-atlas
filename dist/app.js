@@ -271,20 +271,22 @@ initColorMapPickers();
 // Presets are explicit actions; subsequent manual changes remain editable.
 const viewPresets=[
  ['Blue sculpture · default',{basis:'complex',renderStyle:'granular',colorMap:'atlas',cut:'wedge',particleAmount:1,density:2}],
- ['Rainbow cloud',{basis:'real',renderStyle:'cloud',colorMap:'rainbow',cut:'none',particleAmount:0,density:1,autoRotate:true,axes:true}],
- ['Rainbow currents',{basis:'complex',renderStyle:'cloud',colorMap:'rainbow',cut:'none',particleAmount:.05,density:1,speed:4},1],
+ ['Rainbow cloud',{basis:'real',renderStyle:'cloud',colorMap:'rainbow',cut:'none',particleAmount:0,density:1,autoRotate:false,axes:false,frontView:true}],
+ ['Rainbow currents',{basis:'complex',renderStyle:'cloud',colorMap:'rainbow',cut:'none',particleAmount:.05,density:1,speed:4,autoRotate:false,axes:false},1],
 ];
 document.querySelectorAll('.view-preset').forEach(select=>{
  viewPresets.forEach(([name],index)=>select.append(option(index,name)));
  select.addEventListener('change',()=>{
   if(select.value==='')return;
   const [,values,rate=1]=viewPresets[+select.value];
-  const settings={mode:'density',speed:1,cutAngle:0,cutOffset:0,autoRotate:false,axes:false,...values};
+  const settings={mode:'density',speed:1,cutAngle:0,cutOffset:0,autoRotate:false,axes:false,frontView:false,...values};
   // A preset establishes the same starting view on both pages, including
   // basis and cut. Later manual view changes can still be page-specific.
   update(settings);
   window.spectrumApp.setView(+select.value===0?{...settings,cut:'half'}:settings);
   window.spectrumApp.setTransitionRate(rate);
+  window.orbitalApp.renderer?.resetView();
+  window.spectrumApp.renderer?.resetView();
   select.value='';
  });
 });

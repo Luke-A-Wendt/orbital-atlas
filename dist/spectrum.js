@@ -160,7 +160,7 @@ let lastGranularCut=view.cut;
   for(const [key,range] of Object.entries({density:[.2,3],cutAngle:[0,360],cutOffset:[-.8,.8],particleAmount:[0,1],speed:[.25,4]}))if(typeof partial[key]==='number'&&Number.isFinite(partial[key]))next[key]=Math.max(range[0],Math.min(range[1],partial[key]));
   if('speed' in next)next.speed=nearestFlowSpeed(next.speed);
   if('cutAngle' in next)next.cutAngle=Math.round(next.cutAngle);
-  for(const key of ['autoRotate','axes'])if(typeof partial[key]==='boolean')next[key]=partial[key];
+  for(const key of ['autoRotate','axes','frontView'])if(typeof partial[key]==='boolean')next[key]=partial[key];
   const nextStyle=next.renderStyle||view.renderStyle;
  if(view.renderStyle==='granular')lastGranularCut=view.cut;
  if(nextStyle==='cloud')next.cut='none';

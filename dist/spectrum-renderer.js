@@ -331,6 +331,7 @@ export class SpectrumRenderer {
  }
  setState(partial){
   const old=this.state,s={...old,...partial};
+  if(!!s.frontView!==!!old.frontView){this.camera.yaw=s.frontView?0:.58;this.camera.pitch=s.frontView?0:.34;}
   s.basis=s.basis==='real'?'real':'complex';s.mode=s.mode==='phase'?'phase':'density';s.renderStyle=['sculpted','granular'].includes(s.renderStyle)?'granular':'cloud';
   s.separateColors=false;
   s.cut=['none','half','wedge','slice'].includes(s.cut)?s.cut:'none';delete s.targetFps;delete s.autoTracers;delete s.quality;
@@ -402,7 +403,7 @@ export class SpectrumRenderer {
   if(this.visible===!!visible)return;this.visible=!!visible;this.resetTiming();
   if(this.visible){this.resize();this.requestDraw();}else{cancelAnimationFrame(this.raf);this.raf=0;}
  }
- resetView(){this.camera={yaw:.58,pitch:.34,distance:3};this.requestDraw();}
+ resetView(){this.camera=this.state.frontView?{yaw:0,pitch:0,distance:3}:{yaw:.58,pitch:.34,distance:3};this.requestDraw();}
  zoomBy(factor){if(Number.isFinite(factor)&&factor>0){this.camera.distance=spectrumClamp(this.camera.distance*factor,.15,6);this.requestDraw();}}
  resetTiming(){
   this.lastDraw=0;this.lastDrawPopulation=null;this.lastCameraSignature=null;this.frames=[];this.gpuTimes=[];this.healthySince=null;this.slowSince=null;this.longFrames=0;this.warmUntil=performance.now()+500;this.decreaseCount=0;this.decreaseBaseline=0;

@@ -2234,7 +2234,7 @@ class OrbitalRenderer {
     this.visibilityHandler=()=>{this.lastFrame=null;this.resetPerformance(performance.now());this.lastDrawSignature='';};document.addEventListener('visibilitychange',this.visibilityHandler);
     this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(this.canvas);
   }
-  resetView(){this.camera={...INTRO_CAMERA};}
+  resetView(){this.camera=this.state.frontView?{yaw:0,pitch:0,distance:2.80}:{...INTRO_CAMERA};}
   setVisible(visible){
     const suspended=!visible;if(this.suspended===suspended)return;
     this.suspended=suspended;this.lastFrame=null;this.resetPerformance(performance.now());
@@ -2243,6 +2243,7 @@ class OrbitalRenderer {
   zoomBy(factor){this.camera.distance=clamp(this.camera.distance*factor,1.25,6.5);}
   setState(partial){
     const old=this.state;this.state={...old,...partial};const s=this.state;
+  if(!!s.frontView!==!!old.frontView){this.camera.yaw=s.frontView?0:.63;this.camera.pitch=s.frontView?0:.30;}
     s.n=clamp(Math.round(s.n),1,6);s.l=clamp(Math.round(s.l),0,s.n-1);s.m=clamp(Math.round(s.m),-s.l,s.l);
     s.density=clamp(s.density,.1,4);s.particleAmount=clamp(Number.isFinite(+s.particleAmount)?+s.particleAmount:old.particleAmount,0,1);s.speed=clamp(s.speed,.25,4);
     s.renderStyle=['sculpted','granular'].includes(s.renderStyle)?'granular':'cloud';
@@ -2974,6 +2975,7 @@ class SpectrumRenderer {
  }
  setState(partial){
   const old=this.state,s={...old,...partial};
+  if(!!s.frontView!==!!old.frontView){this.camera.yaw=s.frontView?0:.58;this.camera.pitch=s.frontView?0:.34;}
   s.basis=s.basis==='real'?'real':'complex';s.mode=s.mode==='phase'?'phase':'density';s.renderStyle=['sculpted','granular'].includes(s.renderStyle)?'granular':'cloud';
   s.separateColors=false;
   s.cut=['none','half','wedge','slice'].includes(s.cut)?s.cut:'none';delete s.targetFps;delete s.autoTracers;delete s.quality;
@@ -3045,7 +3047,7 @@ class SpectrumRenderer {
   if(this.visible===!!visible)return;this.visible=!!visible;this.resetTiming();
   if(this.visible){this.resize();this.requestDraw();}else{cancelAnimationFrame(this.raf);this.raf=0;}
  }
- resetView(){this.camera={yaw:.58,pitch:.34,distance:3};this.requestDraw();}
+ resetView(){this.camera=this.state.frontView?{yaw:0,pitch:0,distance:3}:{yaw:.58,pitch:.34,distance:3};this.requestDraw();}
  zoomBy(factor){if(Number.isFinite(factor)&&factor>0){this.camera.distance=spectrumClamp(this.camera.distance*factor,.15,6);this.requestDraw();}}
  resetTiming(){
   this.lastDraw=0;this.lastDrawPopulation=null;this.lastCameraSignature=null;this.frames=[];this.gpuTimes=[];this.healthySince=null;this.slowSince=null;this.longFrames=0;this.warmUntil=performance.now()+500;this.decreaseCount=0;this.decreaseBaseline=0;
@@ -3378,7 +3380,7 @@ let lastGranularCut=view.cut;
   for(const [key,range] of Object.entries({density:[.2,3],cutAngle:[0,360],cutOffset:[-.8,.8],particleAmount:[0,1],speed:[.25,4]}))if(typeof partial[key]==='number'&&Number.isFinite(partial[key]))next[key]=Math.max(range[0],Math.min(range[1],partial[key]));
   if('speed' in next)next.speed=nearestFlowSpeed(next.speed);
   if('cutAngle' in next)next.cutAngle=Math.round(next.cutAngle);
-  for(const key of ['autoRotate','axes'])if(typeof partial[key]==='boolean')next[key]=partial[key];
+  for(const key of ['autoRotate','axes','frontView'])if(typeof partial[key]==='boolean')next[key]=partial[key];
   const nextStyle=next.renderStyle||view.renderStyle;
  if(view.renderStyle==='granular')lastGranularCut=view.cut;
  if(nextStyle==='cloud')next.cut='none';
@@ -3984,20 +3986,22 @@ initColorMapPickers();
 // Presets are explicit actions; subsequent manual changes remain editable.
 const viewPresets=[
  ['Blue sculpture · default',{basis:'complex',renderStyle:'granular',colorMap:'atlas',cut:'wedge',particleAmount:1,density:2}],
- ['Rainbow cloud',{basis:'real',renderStyle:'cloud',colorMap:'rainbow',cut:'none',particleAmount:0,density:1,autoRotate:true,axes:true}],
- ['Rainbow currents',{basis:'complex',renderStyle:'cloud',colorMap:'rainbow',cut:'none',particleAmount:.05,density:1,speed:4},1],
+ ['Rainbow cloud',{basis:'real',renderStyle:'cloud',colorMap:'rainbow',cut:'none',particleAmount:0,density:1,autoRotate:false,axes:false,frontView:true}],
+ ['Rainbow currents',{basis:'complex',renderStyle:'cloud',colorMap:'rainbow',cut:'none',particleAmount:.05,density:1,speed:4,autoRotate:false,axes:false},1],
 ];
 document.querySelectorAll('.view-preset').forEach(select=>{
  viewPresets.forEach(([name],index)=>select.append(option(index,name)));
  select.addEventListener('change',()=>{
   if(select.value==='')return;
   const [,values,rate=1]=viewPresets[+select.value];
-  const settings={mode:'density',speed:1,cutAngle:0,cutOffset:0,autoRotate:false,axes:false,...values};
+  const settings={mode:'density',speed:1,cutAngle:0,cutOffset:0,autoRotate:false,axes:false,frontView:false,...values};
   // A preset establishes the same starting view on both pages, including
   // basis and cut. Later manual view changes can still be page-specific.
   update(settings);
   window.spectrumApp.setView(+select.value===0?{...settings,cut:'half'}:settings);
   window.spectrumApp.setTransitionRate(rate);
+  window.orbitalApp.renderer?.resetView();
+  window.spectrumApp.renderer?.resetView();
   select.value='';
  });
 });
