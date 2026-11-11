@@ -1,5 +1,5 @@
 import { SpectrumRenderer } from './spectrum-renderer.js';
-import { densityPalette, phasePalette, colorMaps, colorMapIndex } from './renderer.js';
+import { cutDegrees, colorScale, colorMetrics, colorMetricIndex, densityPalette, phasePalette, colorMaps, colorMapIndex } from './renderer.js';
 import { getSpectralLines, getSubshellPairs, getChannels, transitionStrength } from './transitions.js';
 
 /** Complete electric-dipole channel explorer, sharing one lazily created GPU view. */
@@ -18,23 +18,25 @@ export function initSpectrum(){
   const p=Math.sin(Math.PI*cycle)**2;
   return p*p*p*(10+p*(-15+6*p));
  }
+ function populationRate(){const p=Math.sin(Math.PI*cycle)**2;return playing?30*p*p*(1-p)*(1-p)*Math.PI*Math.sin(2*Math.PI*cycle)*transitionRate/transitionCycleSeconds:0;}
+ function maximumPopulationRate(){return 1.875*Math.PI*transitionRate/transitionCycleSeconds;}
  const transitionCycleSeconds=2.5;
  let transitionRate=1,sigma=1,filterOrbital=null;
  let series=0,cycle=0,playing=true,visible=false,previousTime=null,raf=0,renderer=null;
  let currentLine=null,currentSubshell=null,currentChannel=null,stateFilter=null,qFilter='all',lastUiTime=0,engineFailed=false;
- const view={basis:'complex',mode:'density',colorMap:'atlas',renderStyle:'granular',cut:'half',cutAngle:0,cutOffset:0,density:2,particleAmount:1,speed:2,animate:true,autoRotate:false,axes:false};
+ const view={basis:'complex',mode:'density',logScale:false,colorMap:'atlas',renderStyle:'granular',cut:'custom',cutDegrees:180,wedgePolar:90,cutView:'front',frontView:true,cutAngle:0,cutOffset:0,density:2,particleAmount:4,speed:.25,animate:true,autoRotate:false,axes:false};
  // Basis and color mode are shared; Cloud and Granular retain their other presets.
- const modeSettingKeys=['cut','density','particleAmount','speed','autoRotate','axes'];
+ const modeSettingKeys=['cut','cutView','cutDegrees','sliceThickness','sliceHeight','sliceAxis','wedgePolar','sliceAzimuth','slicePolar','radiusLimit','planeAzimuth','planePolar','density','particleAmount','speed','autoRotate','axes'];
  const defaultModeSettings={cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:0,speed:.5,animate:true,autoRotate:false,axes:false};
- const modeSettings={cloud:{...defaultModeSettings},granular:{...defaultModeSettings,density:2,particleAmount:1,speed:2}};
- const lastPositiveTracers={cloud:.02,granular:1};
+ const modeSettings={cloud:{...defaultModeSettings},granular:{...defaultModeSettings,cut:'custom',cutDegrees:180,wedgePolar:90,cutView:'front',frontView:true,density:2,particleAmount:4,speed:.25}};
+ const lastPositiveTracers={cloud:.02,granular:4};
  const flowSpeeds=[.25,.5,1,2,4],flowSpeedLabels=['¼×','½×','1×','2×','4×'];
  const nearestFlowSpeed=value=>flowSpeeds.reduce((best,speed)=>Math.abs(speed-value)<Math.abs(best-value)?speed:best,flowSpeeds[0]);
  const basisStyles={real:'granular',complex:'granular'};
  const initializedBases=new Set([view.basis]);
  let cloudBasis=view.basis;
  let lastPerformance=null;
- const viewGradient=palette=>'linear-gradient(90deg,'+Array.from({length:33},(_,i)=>'rgb('+palette(i/32).map(v=>Math.round(v*255)).join(',')+') '+i/32*100+'%').join(',')+')';
+ const viewGradient=palette=>'linear-gradient(90deg,'+Array.from({length:409},(_,i)=>'rgb('+palette(i/408).map(v=>Math.round(v*255)).join(',')+') '+i/408*100+'%').join(',')+')';
  const spectrumNav=document.querySelector('[data-open-spectrum]');
  const sameState=(a,b)=>a.n===b.n&&a.l===b.l&&a.m===b.m;
  const includesState=channel=>!stateFilter||[channel.lower,channel.upper].some(endpoint=>['n','l','m'].every(key=>stateFilter[key]==null||endpoint[key]===stateFilter[key]));
@@ -128,9 +130,9 @@ export function initSpectrum(){
  element('particle-amount').disabled=view.particleAmount===0;
  element('particle-amount').nextElementSibling.querySelectorAll('span').forEach((tick,index)=>tick.hidden=false);
 
-  element('particle-amount').min=0;element('particle-amount').max=4;element('particle-amount').step=1;element('particle-amount').value=Math.max(0,flowSpeeds.indexOf((view.particleAmount||lastPositiveTracers[view.renderStyle])*(view.renderStyle==='cloud'?50:2)));element('particle-amount-value').value=flowSpeedLabels[flowSpeeds.indexOf((view.particleAmount||lastPositiveTracers[view.renderStyle])*(view.renderStyle==='cloud'?50:2))];
-  element('particle-amount').setAttribute('aria-valuetext',Math.round(view.particleAmount*200000).toLocaleString()+' tracers');
-  const requested=Math.round(view.particleAmount*200000),active=Number.isFinite(lastPerformance?.particles)?Math.min(requested,lastPerformance.particles):requested;
+  element('particle-amount').min=0;element('particle-amount').max=4;element('particle-amount').step=1;element('particle-amount').value=Math.max(0,flowSpeeds.indexOf((view.particleAmount||lastPositiveTracers[view.renderStyle])*(view.renderStyle==='cloud'?50:1)));element('particle-amount-value').value=flowSpeedLabels[flowSpeeds.indexOf((view.particleAmount||lastPositiveTracers[view.renderStyle])*(view.renderStyle==='cloud'?50:1))];
+  element('particle-amount').setAttribute('aria-valuetext',Math.round(view.particleAmount*200000*(view.cut==='slab'?(view.renderStyle==='granular'?1.5:2):1)).toLocaleString()+' tracers');
+  const requested=Math.round(view.particleAmount*200000*(view.cut==='slab'?(view.renderStyle==='granular'?1.5:2):1)),active=Number.isFinite(lastPerformance?.particles)?Math.min(requested,lastPerformance.particles):requested;
   const targetFps=view.renderStyle==='granular'?30:60;
   element('tracer-status').hidden=!lastPerformance?.limited;
   element('tracer-status').textContent=lastPerformance?.limited?`${active.toLocaleString()} active · limited to protect ${targetFps} FPS`:`Up to ${requested.toLocaleString()} tracers`;
@@ -146,30 +148,36 @@ export function initSpectrum(){
   const phase=view.mode==='phase',granular=view.renderStyle==='granular',real=view.basis==='real';
   element('view-label').textContent=(real?'REAL-BASIS PREVIEW':'COMPLEX')+' · '+(phase?'COMPONENT PHASE':granular?'GRANULAR DENSITY':'DENSITY CLOUD');
   element('density').min=0;element('density').max=4;element('density').step=1;element('density').value=flowSpeeds.indexOf(view.density);element('density').setAttribute('aria-valuetext',view.density+'×');element('density-value').value=flowSpeedLabels[flowSpeeds.indexOf(view.density)];
-  element('look-inside').hidden=false;element('cut-settings').hidden=view.cut==='none';element('cut-offset-wrap').hidden=view.cut==='wedge';
-  element('cut-angle').value=view.cutAngle;element('cut-angle-value').value=view.cutAngle+'°';
-  element('cut-offset').value=view.cutOffset;element('cut-offset-value').value=Math.abs(view.cutOffset)<.01?'center':(view.cutOffset>0?'+':'')+Math.round(view.cutOffset*100)+'%';
+  element('look-inside').hidden=false;
+ const isWhole=view.cut==='none',isSlice=view.cut==='slab',isTop=view.cutView==='top';
+ for(const [id,active] of [['whole-mode',isWhole],['hemisphere-mode',!isSlice&&!isWhole],['slice-mode',isSlice],['view-front',!isTop&&view.cutView!=='angled'],['view-angled',view.cutView==='angled'],['view-top',isTop]]){element(id).classList.toggle('selected',active);element(id).setAttribute('aria-pressed',String(active));}
+
   syncPerformance();
   element('flow-control').hidden=real;element('flow-control').parentElement.dataset.flowVisible=String(!real);
   const speedIndex=flowSpeeds.indexOf(view.speed);
   element('speed').min=0;element('speed').max=4;element('speed').step=1;element('speed').value=speedIndex;element('speed-value').value=flowSpeedLabels[speedIndex];
   element('speed').setAttribute('aria-valuetext',view.speed+' times speed');
   element('auto-rotate').checked=view.autoRotate;element('show-axes').checked=view.axes;
-  element('legend-title').textContent=phase?'COMPONENT PHASE':'PROBABILITY DENSITY';
-  element('legend-gradient').style.background=viewGradient(v=>phase?phasePalette(v,view.colorMap):densityPalette(v,view.colorMap));
-  element('legend-gradient').title=phase?'The selected palette maps component phase from minus pi to plus pi.':'Selected color map shows increasing probability density.';
-  element('legend-low').innerHTML=phase?fragment('phase_low','−π'):'low';element('legend-high').innerHTML=phase?fragment('phase_high','+π'):'high';
+  const metric=colorMetrics[colorMetricIndex(view.mode)];
+  element('log-scale').disabled=['phase','contribution','density-change'].includes(view.mode);element('log-scale').checked=!!view.logScale&&!['phase','contribution','density-change'].includes(view.mode);element('color-metric').value=metric.id;
+  element('legend-title').textContent=metric.name.toUpperCase()+((view.logScale&&!['phase','contribution','density-change'].includes(view.mode))?' · LOG':'');element('legend-low').textContent=metric.id==='phase'?metric.low:'1% mass';element('legend-high').textContent=metric.id==='phase'?metric.high:'99% mass';
+  element('legend-gradient').style.background=viewGradient(v=>densityPalette(v,view.colorMap));element('legend-gradient').title=metric.description;
+  if(metric.spectraOnly){element('legend-low').textContent=metric.low;element('legend-high').textContent=metric.high;}
+  if(view.mode==='density-change')element('legend-title').textContent='DENSITY CHANGE · ZERO AT CENTER';
+  element('view-label').textContent=(real?'REAL':'COMPLEX')+' · '+metric.name.toUpperCase()+((view.logScale&&!['phase','contribution','density-change'].includes(view.mode))?' · LOG':'');
  }
  function setView(partial){
   if(!partial||typeof partial!=='object')return false;
   const next={};
+  if(['front','angled','top'].includes(partial.cutView))next.cutView=partial.cutView;
+  if(['side','top'].includes(partial.sliceAxis))next.sliceAxis=partial.sliceAxis;
   if('colorMap' in partial)next.colorMap=colorMaps[colorMapIndex(partial.colorMap)].id;
-  const paletteChanged=next.colorMap!==undefined&&next.colorMap!==view.colorMap;
-  for(const [key,values] of Object.entries({basis:['complex','real'],mode:['density','phase'],renderStyle:['cloud','granular'],cut:['none','half','wedge','slice']}))if(values.includes(partial[key]))next[key]=partial[key];
-  for(const [key,range] of Object.entries({density:[.25,4],cutAngle:[0,360],cutOffset:[-.8,.8],particleAmount:[0,2],speed:[.25,4]}))if(typeof partial[key]==='number'&&Number.isFinite(partial[key]))next[key]=Math.max(range[0],Math.min(range[1],partial[key]));
+  const paletteChanged=('logScale' in partial&&partial.logScale!==view.logScale)||('mode' in partial&&partial.mode!==view.mode)||('colorMap' in next&&next.colorMap!==view.colorMap);
+  for(const [key,values] of Object.entries({basis:['complex','real'],mode:colorMetrics.map(m=>m.id),renderStyle:['cloud','granular'],cut:['none','half','wedge','slice','sector15','custom','slab','radius']}))if(values.includes(partial[key]))next[key]=partial[key];
+  for(const [key,range] of Object.entries({density:[.25,4],sliceThickness:[.01,1],sliceHeight:[-1,1],radiusLimit:[0,1],planeAzimuth:[0,360],planePolar:[0,90],wedgePolar:[0,90],slicePolar:[0,90],sliceAzimuth:[0,360],cutDegrees:[0,345],cutAngle:[0,360],cutOffset:[-.8,.8],particleAmount:[0,4],speed:[.25,4]}))if(typeof partial[key]==='number'&&Number.isFinite(partial[key]))next[key]=Math.max(range[0],Math.min(range[1],partial[key]));
   if('speed' in next)next.speed=nearestFlowSpeed(next.speed);
   if('cutAngle' in next)next.cutAngle=Math.round(next.cutAngle);
-  for(const key of ['autoRotate','axes','frontView'])if(typeof partial[key]==='boolean')next[key]=partial[key];
+  for(const key of ['logScale','autoRotate','axes','frontView'])if(typeof partial[key]==='boolean')next[key]=partial[key];
   const nextStyle=next.renderStyle||view.renderStyle;
    if(nextStyle!==view.renderStyle){
    for(const key of modeSettingKeys)modeSettings[view.renderStyle][key]=view[key];
@@ -178,12 +186,12 @@ export function initSpectrum(){
   }
   const nextBasis=next.basis||view.basis;
   if(Number.isFinite(next.particleAmount)){
-   next.particleAmount=Math.max(0,Math.min(nextStyle==='cloud'?.08:2,next.particleAmount));
+   next.particleAmount=Math.max(0,Math.min(nextStyle==='cloud'?.08:4,next.particleAmount));
    if(next.particleAmount>0)lastPositiveTracers[nextStyle]=next.particleAmount;
    lastPerformance=null;
   }
   if(Number.isFinite(next.density))next.density=Math.max(.2,Math.min(4,next.density));
- Object.assign(view,next,{animate:true});basisStyles[view.basis]=view.renderStyle;renderer?.setState({...view});syncView();if(paletteChanged&&currentChannel)drawShapes();window.orbitalSharedSettings?.publish('spectra',view);return {...view};
+ Object.assign(view,next,{animate:true});view.cutView=['top','angled'].includes(view.cutView)?view.cutView:'front';view.cut=['none','slab'].includes(view.cut)?view.cut:'custom';view.cutDegrees=180;view.sliceThickness=.01;view.sliceHeight=0;view.cutAngle=0;view.wedgePolar=view.cutView==='top'?0:view.cutView==='angled'?45:90;view.slicePolar=view.wedgePolar;view.sliceAzimuth=90;view.planePolar=Math.max(0,Math.min(90,Number.isFinite(view.planePolar)?view.planePolar:90));basisStyles[view.basis]=view.renderStyle;renderer?.setState({...view});syncView();if(paletteChanged&&currentChannel)drawShapes();window.orbitalSharedSettings?.publish('spectra',view);return {...view};
  }
  function reportViewStats(info={}){
   element('status').hidden=true;
@@ -201,7 +209,7 @@ export function initSpectrum(){
    card.setAttribute('aria-label',side+' state, '+Math.round(weight*100)+'% population');
   }
   element('direction').textContent=!playing?'Transition paused':cycle<.5?'Absorbing energy':'Stimulated emission';
-  renderer?.setPopulation(population);
+  renderer?.setPopulation(population,populationRate(),maximumPopulationRate());
  }
  function ensureRenderer(){
   if(renderer||engineFailed)return;
@@ -210,7 +218,7 @@ export function initSpectrum(){
     onError(message){element('status').hidden=!message;element('status').dataset.error=String(!!message);if(message)element('status').textContent=message;},
     onStats:reportViewStats
    });
-   renderer.setState({...view});renderer.setPair(currentChannel.lower,currentChannel.upper);renderer.setPopulation(displayPopulation(cycle));renderer.setVisible(visible&&!document.hidden);
+   renderer.setState({...view});renderer.setPair(currentChannel.lower,currentChannel.upper);renderer.setPopulation(displayPopulation(cycle),populationRate(),maximumPopulationRate());renderer.setVisible(visible&&!document.hidden);
   }catch(error){engineFailed=true;element('status').hidden=false;element('status').dataset.error='true';element('status').textContent='The orbital view needs WebGL 2. Spectral lines, energies, allowed pairs and state populations remain available.';}
  }
  function drawBand(){
@@ -263,7 +271,7 @@ export function initSpectrum(){
    for(const [i,state] of [actual.lower,actual.upper].entries()){
     if(i){const arrow=document.createElement('span');arrow.className='transition-pair-divider';arrow.setAttribute('aria-hidden','true');layout.append(arrow);}
     const endpoint=document.createElement('span');endpoint.className='transition-endpoint';
-    const img=document.createElement('img');img.width=62;img.height=62;img.alt='';img.src=window.orbitalApp?.thumbnail(state.n,state.l,state.m,view.colorMap)||'';
+    const img=document.createElement('img');img.width=62;img.height=62;img.alt='';img.src=window.orbitalApp?.thumbnail(state.n,state.l,state.m,view.colorMap,colorMetrics[colorMetricIndex(view.mode)].spectraOnly?'density':view.mode,view.logScale)||'';
     const name=document.createElement('strong');name.textContent=orbitalName(state);
     const magnetic=document.createElement('small');magnetic.innerHTML=mMath(state.m);
     endpoint.append(img,name,magnetic);layout.append(endpoint);
@@ -344,7 +352,7 @@ export function initSpectrum(){
     const dt=Math.min((now-previousTime)/1000,.1);
     cycle=(cycle+dt*transitionRate/transitionCycleSeconds)%1;
    }
-   previousTime=now;renderer?.setPopulation(displayPopulation(cycle));
+   previousTime=now;renderer?.setPopulation(displayPopulation(cycle),populationRate(),maximumPopulationRate());
    if(now-lastUiTime>=50){updatePopulation();lastUiTime=now;}
    // A channel change can schedule a frame too; retain a single animation loop.
    if(!raf)raf=requestAnimationFrame(frame);
@@ -405,11 +413,24 @@ export function initSpectrum(){
   window.orbitalPages?.go('spectra',{scroll:false});selectLine(chosen.line.lowerN,chosen.line.upperN,chosen.channel.id);window.orbitalPages?.revealViewer('spectra');return true;
  }
  function clearStateFilter(){finishLineDrag();stateFilter=null;updateStateFilter();selectLine(currentLine.lowerN,currentLine.upperN,currentChannel.id);}
+function chooseCutView(shape,direction){
+ const top=direction==='top',polar=top?0:direction==='angled'?45:90;
+ setView({cut:shape==='whole'?'none':shape==='slice'?'slab':'custom',cutDegrees:180,cutView:direction,cutAngle:0,wedgePolar:polar,sliceAxis:top?'top':'side',sliceAzimuth:90,slicePolar:polar,frontView:true});
+ renderer?.alignCutView();
+}
+element('whole-mode').addEventListener('click',()=>chooseCutView('whole',view.cutView||'front'));
+element('hemisphere-mode').addEventListener('click',()=>chooseCutView('hemisphere',view.cutView||'front'));
+element('slice-mode').addEventListener('click',()=>chooseCutView('slice',view.cutView||'front'));
+element('view-front').addEventListener('click',()=>chooseCutView(view.cut==='none'?'whole':view.cut==='slab'?'slice':'hemisphere','front'));
+element('view-angled').addEventListener('click',()=>chooseCutView(view.cut==='none'?'whole':view.cut==='slab'?'slice':'hemisphere','angled'));
+element('view-top').addEventListener('click',()=>chooseCutView(view.cut==='none'?'whole':view.cut==='slab'?'slice':'hemisphere','top'));
+element('log-scale').addEventListener('change',event=>setView({logScale:event.target.checked}));
+element('color-metric').addEventListener('change',event=>setView({mode:event.target.value}));
  for(const [attribute,key] of [['basis','basis'],['mode','mode'],['render-style','renderStyle'],['cut','cut']])root.querySelectorAll('[data-spectrum-view-'+attribute+']').forEach(button=>button.addEventListener('click',()=>setView({[key]:button.getAttribute('data-spectrum-view-'+attribute)})));
- for(const [id,key] of [['density','density'],['cut-angle','cutAngle'],['cut-offset','cutOffset']])element(id).addEventListener('input',event=>setView({[key]:key==='density'?flowSpeeds[+event.target.value]:+event.target.value}));
+ for(const [id,key] of [['density','density']])element(id).addEventListener('input',event=>setView({[key]:key==='density'?flowSpeeds[+event.target.value]:+event.target.value}));
  element('speed').addEventListener('input',event=>setView({speed:flowSpeeds[+event.target.value]}));
  element('tracers-enabled').addEventListener('change',event=>setView({particleAmount:event.target.checked?lastPositiveTracers[view.renderStyle]:0}));
-element('particle-amount').addEventListener('input',event=>setView({particleAmount:flowSpeeds[+event.target.value]/(view.renderStyle==='cloud'?50:2)}));
+element('particle-amount').addEventListener('input',event=>setView({particleAmount:flowSpeeds[+event.target.value]/(view.renderStyle==='cloud'?50:1)}));
  element('auto-rotate').addEventListener('change',event=>setView({autoRotate:event.target.checked}));
  element('show-axes').addEventListener('change',event=>setView({axes:event.target.checked}));
  element('fullscreen').addEventListener('click',async()=>{
@@ -432,7 +453,7 @@ element('particle-amount').addEventListener('input',event=>setView({particleAmou
   if(nearest)selectLine(nearest.lowerN,nearest.upperN);
  });
  element('clear-filter').addEventListener('click',clearStateFilter);
- element('zoom-in').addEventListener('click',()=>renderer?.zoomBy(.86));element('zoom-out').addEventListener('click',()=>renderer?.zoomBy(1.16));element('reset').addEventListener('click',()=>{const granular=view.renderStyle==='granular';setView({density:granular?2:1,particleAmount:granular?1:view.basis==='real'?0:.02,speed:granular?2:.5,cutAngle:0,cutOffset:0});setTransitionRate(1);renderer?.resetView();});
+ element('zoom-in').addEventListener('click',()=>renderer?.zoomBy(.86));element('zoom-out').addEventListener('click',()=>renderer?.zoomBy(1.16));element('reset').addEventListener('click',()=>{const granular=view.renderStyle==='granular';setView({density:granular?2:1,particleAmount:granular?4:view.basis==='real'?0:.02,speed:granular?2:.5,cutAngle:0,cutOffset:0});setTransitionRate(1);renderer?.resetView();});
  document.querySelectorAll('[data-open-spectrum]').forEach(button=>button.addEventListener('click',()=>{window.orbitalPages?.go('spectra',{scroll:false});root.scrollIntoView({behavior:'smooth',block:'start'});element('title').focus({preventScroll:true});}));
  document.addEventListener('visibilitychange',()=>{previousTime=null;renderer?.setVisible(visible&&!document.hidden);if(document.hidden){cancelAnimationFrame(raf);raf=0;}else startFrame();});
  if(matchMedia('(pointer: coarse)').matches)element('gesture').textContent='Drag to rotate · Pinch to zoom';

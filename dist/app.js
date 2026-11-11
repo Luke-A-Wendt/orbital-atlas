@@ -1,4 +1,4 @@
-import { OrbitalRenderer, densityAt, orbitalExtent, densityPalette, phasePalette, colorMaps, colorMapIndex } from './renderer.js?v=7';
+import { cutDegrees, physicalColorMetric, weightedColorBounds, colorMapGroups, colorScale, colorMetrics, colorMetricIndex, colorMetricValue, thumbnailPhase, OrbitalRenderer, densityAt, orbitalExtent, densityPalette, phasePalette, colorMaps, colorMapIndex } from './renderer.js?v=7';
 import { initSpectrum } from './spectrum.js';
 import { initPageNavigation, showMathTopic } from './pages.js';
 
@@ -7,22 +7,22 @@ const mathFragments = window.OrbitalMathFragments || {};
 const mathHTML = key => mathFragments[key] || key;
 document.querySelectorAll('[data-math]').forEach(element => { element.innerHTML = mathHTML(element.dataset.math); });
 const family = ['s','p','d','f','g','h'];
-const state = {n:6,l:3,m:1,basis:'complex',mode:'density',colorMap:'atlas',renderStyle:'granular',cut:'wedge',cutAngle:0,cutOffset:0,density:2,particleAmount:1,speed:2,animate:true,autoRotate:false,axes:false};
+const state = {n:6,l:3,m:1,basis:'complex',mode:'density',logScale:false,colorMap:'atlas',renderStyle:'granular',cut:'custom',cutDegrees:180,wedgePolar:90,cutView:'front',frontView:true,cutAngle:0,cutOffset:0,density:2,particleAmount:4,speed:.25,animate:true,autoRotate:false,axes:false};
 // Basis and color are shared across Cloud and Granular; scene controls retain their presets.
-const modeSettingKeys=['cut','density','particleAmount','speed','autoRotate','axes'];
+const modeSettingKeys=['cut','cutView','cutDegrees','sliceThickness','sliceHeight','sliceAxis','wedgePolar','sliceAzimuth','slicePolar','radiusLimit','planeAzimuth','planePolar','density','particleAmount','speed','autoRotate','axes'];
  const defaultModeSettings={basis:'complex',mode:'density',cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:.02,speed:.5,animate:true,autoRotate:false,axes:false};
- const modeSettings={cloud:{...defaultModeSettings},granular:{...defaultModeSettings,cut:'wedge',density:2,particleAmount:1,speed:2}};
- const lastPositiveTracers={cloud:.02,granular:1};
+ const modeSettings={cloud:{...defaultModeSettings},granular:{...defaultModeSettings,cut:'custom',cutDegrees:180,wedgePolar:90,cutView:'front',frontView:true,density:2,particleAmount:4,speed:.25}};
+ const lastPositiveTracers={cloud:.02,granular:4};
  const basisStyles={real:'granular',complex:'granular'};
  const initializedBases=new Set([state.basis]);
  let cloudBasis='complex';
  const flowSpeeds=[.25,.5,1,2,4],flowLabels=['¼×','½×','1×','2×','4×'];
  const snapFlow=value=>flowSpeeds.reduce((best,speed)=>Math.abs(speed-value)<Math.abs(best-value)?speed:best);
  let lastPerformance=null;
- const paletteGradient = palette => `linear-gradient(90deg,${Array.from({length:33},(_,i)=>`rgb(${palette(i/32).map(v=>Math.round(v*255)).join(',')}) ${i/32*100}%`).join(',')})`;
+ const paletteGradient = palette => `linear-gradient(90deg,${Array.from({length:409},(_,i)=>`rgb(${palette(i/408).map(v=>Math.round(v*255)).join(',')}) ${i/408*100}%`).join(',')})`;
 const initial = new URLSearchParams(location.hash.slice(1));
 if(initial.has('n')){state.n=Math.round(Math.max(1,Math.min(6,+initial.get('n')||6)));state.l=Math.round(Math.max(0,Math.min(state.n-1,+initial.get('l')||0)));state.m=Math.round(Math.max(-state.l,Math.min(state.l,+initial.get('m')||0)));if(initial.get('basis')==='real')state.basis='real';}
-if(state.basis==='real'){Object.assign(state,{renderStyle:'granular',cut:'none',density:2,particleAmount:1,speed:2});cloudBasis='real';initializedBases.clear();initializedBases.add('real');}
+if(state.basis==='real'){Object.assign(state,{renderStyle:'granular',cut:'none',density:2,particleAmount:4,speed:.25});cloudBasis='real';initializedBases.clear();initializedBases.add('real');}
 let renderer;
 let firstFrame=true;
 let atlasReady=false;
@@ -67,7 +67,7 @@ function setSelected(selector,key){document.querySelectorAll(selector).forEach(b
 function update(partial){
  partial={...partial};
  if('colorMap' in partial)partial.colorMap=colorMaps[colorMapIndex(partial.colorMap)].id;
- const paletteChanged=partial.colorMap!==undefined&&partial.colorMap!==state.colorMap;
+ const paletteChanged=('logScale' in partial&&partial.logScale!==state.logScale)||('mode' in partial&&partial.mode!==state.mode)||('colorMap' in partial&&partial.colorMap!==state.colorMap);
  const explicitTracers=Object.prototype.hasOwnProperty.call(partial,'particleAmount');
  const switchingBasis=partial.basis&&partial.basis!==state.basis;
 
@@ -85,12 +85,12 @@ function update(partial){
 
  if(Number.isFinite(partial.speed))partial.speed=snapFlow(partial.speed);
  if(Number.isFinite(partial.particleAmount)){
-  partial.particleAmount=Math.max(0,Math.min(nextStyle==='cloud'?.08:2,partial.particleAmount));
+  partial.particleAmount=Math.max(0,Math.min(nextStyle==='cloud'?.08:4,partial.particleAmount));
   if(partial.particleAmount>0)lastPositiveTracers[nextStyle]=partial.particleAmount;
   lastPerformance=null;
  }
   if(Number.isFinite(partial.density))partial.density=Math.max(.2,Math.min(4,partial.density));
- Object.assign(state,partial,{animate:true});basisStyles[state.basis]=state.renderStyle;state.n=Math.round(Math.max(1,Math.min(6,state.n)));state.l=Math.round(Math.max(0,Math.min(state.n-1,state.l)));state.m=Math.round(Math.max(-state.l,Math.min(state.l,state.m)));
+ Object.assign(state,partial,{animate:true});state.cutView=['top','angled'].includes(state.cutView)?state.cutView:'front';state.cut=['none','slab'].includes(state.cut)?state.cut:'custom';state.cutDegrees=180;state.sliceThickness=.01;state.sliceHeight=0;state.cutAngle=0;state.wedgePolar=state.cutView==='top'?0:state.cutView==='angled'?45:90;state.slicePolar=state.wedgePolar;state.sliceAzimuth=90;state.planePolar=Math.max(0,Math.min(90,Number.isFinite(state.planePolar)?state.planePolar:90));basisStyles[state.basis]=state.renderStyle;state.n=Math.round(Math.max(1,Math.min(6,state.n)));state.l=Math.round(Math.max(0,Math.min(state.n-1,state.l)));state.m=Math.round(Math.max(-state.l,Math.min(state.l,state.m)));
  if(!renderer?.error)renderer?.setState(state);
  sync();
  if(paletteChanged){thumbs.clear();document.querySelectorAll('.atlas-card').forEach(card=>{const [n,l,m]=card.dataset.state.split(',').map(Number);card.querySelector('img').src=thumbnail(n,l,m);});}
@@ -103,9 +103,9 @@ function syncPerformance(){
  $('particle-amount').disabled=state.particleAmount===0;
  $('particle-amount').nextElementSibling.querySelectorAll('span').forEach((tick,index)=>tick.hidden=false);
 
- $('particle-amount').min=0;$('particle-amount').max=4;$('particle-amount').step=1;$('particle-amount').value=Math.max(0,flowSpeeds.indexOf((state.particleAmount||lastPositiveTracers[state.renderStyle])*(state.renderStyle==='cloud'?50:2)));$('particle-amount-value').value=flowLabels[flowSpeeds.indexOf((state.particleAmount||lastPositiveTracers[state.renderStyle])*(state.renderStyle==='cloud'?50:2))];
- $('particle-amount').setAttribute('aria-valuetext',Math.round(state.particleAmount*200000).toLocaleString()+' tracers');
- const requested=Math.round(state.particleAmount*200000),active=Number.isFinite(lastPerformance?.particles)?Math.min(requested,lastPerformance.particles):requested;
+ $('particle-amount').min=0;$('particle-amount').max=4;$('particle-amount').step=1;$('particle-amount').value=Math.max(0,flowSpeeds.indexOf((state.particleAmount||lastPositiveTracers[state.renderStyle])*(state.renderStyle==='cloud'?50:1)));$('particle-amount-value').value=flowLabels[flowSpeeds.indexOf((state.particleAmount||lastPositiveTracers[state.renderStyle])*(state.renderStyle==='cloud'?50:1))];
+ $('particle-amount').setAttribute('aria-valuetext',Math.round(state.particleAmount*200000*(state.cut==='slab'?(state.renderStyle==='granular'?1.5:2):1)).toLocaleString()+' tracers');
+ const requested=Math.round(state.particleAmount*200000*(state.cut==='slab'?(state.renderStyle==='granular'?1.5:2):1)),active=Number.isFinite(lastPerformance?.particles)?Math.min(requested,lastPerformance.particles):requested;
  $('tracer-status').hidden=!lastPerformance?.limited;
  $('tracer-status').textContent=lastPerformance?.limited?`${active.toLocaleString()} active · limited to protect 30 FPS`:`Up to ${requested.toLocaleString()} tracers`;
 }
@@ -128,28 +128,43 @@ function sync(){
  else description=m?'A wave wrapped around the axis.<br>Probability flows through a steady cloud.':'A standing wave along the axis.<br>A cloud with zero probability current.';
  $('energy').textContent=`−${(13.605693/(n*n)).toFixed(3)} eV`;$('radial-nodes').textContent=radial;
  setSelected('[data-basis]','basis');setSelected('[data-mode]','mode');setSelected('[data-cut]','cut');setSelected('[data-render-style]','renderStyle');
- $('look-inside').hidden=false;$('cut-settings').hidden=state.cut==='none';$('cut-offset-wrap').hidden=state.cut==='wedge';
- $('cut-angle').value=state.cutAngle;$('cut-angle-value').value=`${state.cutAngle}°`;$('cut-offset').value=state.cutOffset;$('cut-offset-value').value=Math.abs(state.cutOffset)<.01?'center':`${state.cutOffset>0?'+':''}${Math.round(state.cutOffset*100)}%`;
+ $('look-inside').hidden=false;
+ const isWhole=state.cut==='none',isSlice=state.cut==='slab',isTop=state.cutView==='top';
+ for(const [id,active] of [['whole-mode',isWhole],['hemisphere-mode',!isSlice&&!isWhole],['slice-mode',isSlice],['view-front',!isTop&&state.cutView!=='angled'],['view-angled',state.cutView==='angled'],['view-top',isTop]]){$(id).classList.toggle('selected',active);$(id).setAttribute('aria-pressed',String(active));}
  $('density').min=0;$('density').max=4;$('density').step=1;$('density').value=flowSpeeds.indexOf(state.density);$('density').setAttribute('aria-valuetext',state.density+'×');$('density-value').value=flowLabels[flowSpeeds.indexOf(state.density)];
  $('flow-control').hidden=basis==='real';$('flow-control').parentElement.dataset.flowVisible=String(basis==='complex');
  const flowIndex=flowSpeeds.indexOf(state.speed);$('speed').value=flowIndex;$('speed-value').value=flowLabels[flowIndex];$('speed').setAttribute('aria-valuetext',flowLabels[flowIndex]+' flow speed');
  syncPerformance();
  $('auto-rotate').checked=state.autoRotate;$('show-axes').checked=state.axes;
- $('legend-title').textContent=state.mode==='phase'?'WAVEFUNCTION PHASE':'PROBABILITY DENSITY';$('legend-low').innerHTML=state.mode==='phase'?mathHTML('phase_low'):'low';$('legend-high').innerHTML=state.mode==='phase'?mathHTML('phase_high'):'high';
- $('legend-gradient').style.background=paletteGradient(v=>state.mode==='phase'?phasePalette(v,state.colorMap):densityPalette(v,state.colorMap));
- $('legend-gradient').title=state.mode==='phase'?'The selected palette maps phase angle from minus pi to plus pi.':'Selected color map represents increasing probability density.';
+ const metric=colorMetrics[colorMetricIndex(state.mode)];
+ $('log-scale').disabled=state.mode==='phase';$('log-scale').checked=!!state.logScale&&state.mode!=='phase';$('color-metric').value=metric.id;
+ $('legend-title').textContent=metric.name.toUpperCase()+((state.logScale&&state.mode!=='phase')?' · LOG':'');$('legend-low').textContent=metric.id==='phase'?metric.low:'1% mass';$('legend-high').textContent=metric.id==='phase'?metric.high:'99% mass';
+ $('legend-gradient').style.background=paletteGradient(v=>densityPalette(v,state.colorMap));$('legend-gradient').title=metric.description;
 }
 for(const name of ['n','l','m'])$(name+'-select').addEventListener('change',e=>update({[name]:+e.target.value}));
 document.querySelectorAll('[data-render-style]').forEach(b=>b.addEventListener('click',()=>update({renderStyle:b.dataset.renderStyle})));
+function chooseCutView(shape,direction){
+ const top=direction==='top',polar=top?0:direction==='angled'?45:90;
+ update({cut:shape==='whole'?'none':shape==='slice'?'slab':'custom',cutDegrees:180,cutView:direction,cutAngle:0,wedgePolar:polar,sliceAxis:top?'top':'side',sliceAzimuth:90,slicePolar:polar,frontView:true});
+ renderer?.alignCutView();
+}
+$('whole-mode').addEventListener('click',()=>chooseCutView('whole',state.cutView||'front'));
+$('hemisphere-mode').addEventListener('click',()=>chooseCutView('hemisphere',state.cutView||'front'));
+$('slice-mode').addEventListener('click',()=>chooseCutView('slice',state.cutView||'front'));
+$('view-front').addEventListener('click',()=>chooseCutView(state.cut==='none'?'whole':state.cut==='slab'?'slice':'hemisphere','front'));
+$('view-angled').addEventListener('click',()=>chooseCutView(state.cut==='none'?'whole':state.cut==='slab'?'slice':'hemisphere','angled'));
+$('view-top').addEventListener('click',()=>chooseCutView(state.cut==='none'?'whole':state.cut==='slab'?'slice':'hemisphere','top'));
+$('log-scale').addEventListener('change',event=>update({logScale:event.target.checked}));
+$('color-metric').addEventListener('change',event=>update({mode:event.target.value}));
 for(const key of ['basis','mode','cut'])document.querySelectorAll(`[data-${key}]`).forEach(b=>b.addEventListener('click',()=>update({[key]:b.dataset[key]})));
-for(const [id,key] of [['density','density'],['cut-angle','cutAngle'],['cut-offset','cutOffset']])$(id).addEventListener('input',e=>update({[key]:key==='density'?flowSpeeds[+e.target.value]:+e.target.value}));
+for(const [id,key] of [['density','density']])$(id).addEventListener('input',e=>update({[key]:key==='density'?flowSpeeds[+e.target.value]:+e.target.value}));
 $('tracers-enabled').addEventListener('change',e=>update({particleAmount:e.target.checked?lastPositiveTracers[state.renderStyle]:0}));
-$('particle-amount').addEventListener('input',e=>update({particleAmount:flowSpeeds[+e.target.value]/(state.renderStyle==='cloud'?50:2)}));
+$('particle-amount').addEventListener('input',e=>update({particleAmount:flowSpeeds[+e.target.value]/(state.renderStyle==='cloud'?50:1)}));
 $('auto-rotate').addEventListener('change',e=>update({autoRotate:e.target.checked}));
 $('show-axes').addEventListener('change',e=>update({axes:e.target.checked}));
 $('zoom-in').addEventListener('click',()=>renderer?.zoomBy(.86));$('zoom-out').addEventListener('click',()=>renderer?.zoomBy(1.16));
 $('speed').addEventListener('input',e=>update({speed:flowSpeeds[Math.max(0,Math.min(4,Math.round(+e.target.value)))]}));
-function resetSlidersAndView(){const granular=state.renderStyle==='granular';update({density:granular?2:1,particleAmount:granular?1:state.basis==='real'?0:.02,speed:granular?2:.5,cutAngle:0,cutOffset:0});renderer?.resetView();toast('View and sliders reset');}
+function resetSlidersAndView(){const granular=state.renderStyle==='granular';update({density:granular?2:1,particleAmount:granular?4:state.basis==='real'?0:.02,speed:granular?2:.5,cutAngle:0,cutOffset:0});renderer?.resetView();toast('View and sliders reset');}
 $('reset-view').addEventListener('click',resetSlidersAndView);
 $('orbital-canvas').addEventListener('keydown',e=>{
  if(!renderer?.camera)return;
@@ -163,8 +178,8 @@ let toastTimeout;function toast(message){$('toast').textContent=message;$('toast
 
 // Cross-sectional thumbnails use exactly the same analytic density as the volume.
 const thumbs=new Map(),thumbFields=new Map();
-function thumbnail(n,l,m,colorMap=state.colorMap){
- const key=`${colorMap}-${n}-${l}-${Math.abs(m)}`;if(thumbs.has(key))return thumbs.get(key);
+function thumbnail(n,l,m,colorMap=state.colorMap,mode=state.mode,logScale=state.logScale){
+ const key=`${colorMap}-${mode}-${logScale}-${n}-${l}-${m}`;if(thumbs.has(key))return thumbs.get(key);
  const canvas=document.createElement('canvas'),size=120;canvas.width=canvas.height=size;const ctx=canvas.getContext('2d'),data=ctx.createImageData(size,size),fieldKey=`${n}-${l}-${Math.abs(m)}`;
  let field=thumbFields.get(fieldKey);
  if(!field){
@@ -173,10 +188,15 @@ function thumbnail(n,l,m,colorMap=state.colorMap){
   field={values,peak};thumbFields.set(fieldKey,field);
  }
  const {values,peak}=field;
- const stops=[[0,5,10,24],[.19,12,34,80],[.43,35,94,181],[.72,99,167,240],[.9,181,220,255],[1,242,249,255]];
+ const metricValues=Array.from(values,(_,i)=>{
+  const x=((i%size)+.5-size/2)/(size/2)*.84,z=(size/2-Math.floor(i/size)-.5)/(size/2)*.84;
+  if(['current','angular-speed','radial-probability','gradient'].includes(mode))return physicalColorMetric(mode,x*orbitalExtent(n),0,z*orbitalExtent(n),{n,l,m});
+  return mode==='phase'?thumbnailPhase(x*orbitalExtent(n),z*orbitalExtent(n),n,l,m):colorMetricValue(mode,Math.pow(values[i]/peak,.38),x,0,z,m,orbitalExtent(n));
+ });
+ const bounds=mode==='phase'?[0,1]:weightedColorBounds(metricValues.map((v,i)=>[v,values[i]]));
  for(let i=0;i<values.length;i++){
-  const raw=values[i]/peak,t=Math.pow(raw,.38);let a=stops[0],b=stops[1];for(let j=1;j<stops.length;j++)if(t<=stops[j][0]){a=stops[j-1];b=stops[j];break;}
-  const f=Math.max(0,Math.min(1,(t-a[0])/(b[0]-a[0]))),color=colorMap==='atlas'?null:densityPalette(t,colorMap);for(let c=1;c<4;c++)data.data[i*4+c-1]=color?color[c-1]*255:a[c]*(1-f)+b[c]*f;data.data[i*4+3]=Math.min(255,t*850);
+  const t=Math.pow(values[i]/peak,.38),color=densityPalette(colorScale(metricValues[i],logScale&&mode!=='phase',bounds),colorMap);
+  for(let c=0;c<3;c++)data.data[i*4+c]=color[c]*255;data.data[i*4+3]=Math.min(255,t*850);
  }
  ctx.putImageData(data,0,0);const src=canvas.toDataURL();thumbs.set(key,src);return src;
 }
@@ -232,11 +252,14 @@ document.querySelectorAll('[data-settings-target]').forEach(button=>{
 
 // Gear values are shared; basis, cutaway preset and selected states remain local.
 {
- const keys=['renderStyle','mode','colorMap','density','particleAmount','speed','cutAngle','cutOffset','autoRotate','axes'];
- let applying=false;
+ const keys=['logScale','renderStyle','mode','colorMap','density','particleAmount','speed','cutAngle','cutOffset','autoRotate','axes'];
+ let applying=false;const lastModes={};
  window.orbitalSharedSettings={publish(source,values){
   if(applying)return;
   const shared=Object.fromEntries(keys.map(key=>[key,values[key]]));
+  const special=colorMetrics[colorMetricIndex(values.mode)].spectraOnly;
+  if(special||(source==='orbits'&&lastModes.orbits===values.mode&&colorMetrics[colorMetricIndex(window.spectrumApp?.view.mode)].spectraOnly))delete shared.mode;
+  lastModes[source]=values.mode;
   applying=true;
   try{if(source==='orbits')window.spectrumApp?.setView(shared);else window.orbitalApp?.setState(shared);}finally{applying=false;}
  }};
@@ -248,11 +271,13 @@ function initColorMapPickers(){
  const pickers=[...document.querySelectorAll('[data-color-map-picker]')];
  for(const picker of pickers){
   const options=picker.querySelector('.color-map-options');
-  for(const map of colorMaps){
+  for(const group of colorMapGroups){
+   for(const id of group.ids){const map=colorMaps[colorMapIndex(id)];
    const button=document.createElement('button');button.type='button';button.setAttribute('data-color-map',map.id);button.className='color-map-option';
    const name=document.createElement('span');name.textContent=map.name+(map.id==='atlas'?' · default':'');
    const swatch=document.createElement('span');swatch.className='color-map-swatch';swatch.setAttribute('aria-hidden','true');swatch.style.background=paletteGradient(v=>densityPalette(v,map.id));
    button.append(name,swatch);button.addEventListener('click',()=>{if(picker.dataset.colorMapPicker==='spectra')window.spectrumApp.setView({colorMap:map.id});else update({colorMap:map.id});picker.open=false;picker.querySelector('summary').focus();});options.append(button);
+  }
   }
   picker.addEventListener('keydown',event=>{if(event.key==='Escape'){picker.open=false;picker.querySelector('summary').focus();}});
  }
@@ -269,20 +294,19 @@ initColorMapPickers();
 
 // Presets are explicit actions; subsequent manual changes remain editable.
 const viewPresets=[
- ['Blue sculpture · default',{basis:'complex',renderStyle:'granular',colorMap:'atlas',cut:'wedge',particleAmount:1,density:2}],
- ['Rainbow cloud',{basis:'real',renderStyle:'cloud',colorMap:'rainbow',cut:'slice',particleAmount:0,density:4,autoRotate:false,axes:false,frontView:true}],
- ['Rainbow currents',{basis:'complex',renderStyle:'cloud',colorMap:'rainbow',cut:'none',particleAmount:.01,density:.5,speed:4,autoRotate:false,axes:false},1],
+ ['Blue sculpture · default',{basis:'complex',renderStyle:'granular',colorMap:'atlas',cut:'custom',cutDegrees:180,wedgePolar:90,cutView:'front',frontView:true,particleAmount:4,density:2,speed:.25}],
+ ['Geo currents',{basis:'complex',renderStyle:'cloud',mode:'density',logScale:false,colorMap:'geo',cut:'none',cutDegrees:180,wedgePolar:45,cutView:'angled',frontView:true,particleAmount:.08,density:4,speed:4,autoRotate:false,axes:false},1],
 ];
 document.querySelectorAll('.view-preset').forEach(select=>{
  viewPresets.forEach(([name],index)=>select.append(option(index,name)));
  select.addEventListener('change',()=>{
   if(select.value==='')return;
   const [,values,rate=1]=viewPresets[+select.value];
-  const settings={mode:'density',speed:1,cutAngle:0,cutOffset:0,autoRotate:false,axes:false,frontView:false,...values};
+  const settings={cutView:'front',slicePolar:90,sliceAzimuth:90,mode:'density',speed:1,cutAngle:0,cutOffset:0,autoRotate:false,axes:false,frontView:false,...values};
   // A preset establishes the same starting view on both pages, including
   // basis and cut. Later manual view changes can still be page-specific.
   update(settings);
-  window.spectrumApp.setView(+select.value===0?{...settings,cut:'half'}:settings);
+  window.spectrumApp.setView(settings);
   window.spectrumApp.setTransitionRate(rate);
   window.orbitalApp.renderer?.resetView();
   window.spectrumApp.renderer?.resetView();
