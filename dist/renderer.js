@@ -944,8 +944,9 @@ export class OrbitalRenderer {
 export function sliceSweepPosition(phase){
  const t=((phase%4)+4)%4;return t<=2?t-1:3-t;
 }
-export function bindSliceHeightControls(element,getState,apply,isVisible){
+export function bindSliceHeightControls(element,getState,apply,isVisible,allowPlayback=true){
  const slider=element('slice-height'),button=element('slice-play');
+ button.hidden=!allowPlayback;button.disabled=!allowPlayback;
  let playing=false,phase=0,last=null,raf=0;
  function sync(){
   const state=getState(),shown=state.cut==='slab';
@@ -966,20 +967,24 @@ export function bindSliceHeightControls(element,getState,apply,isVisible){
   if(document.hidden||!isVisible()){last=null;raf=requestAnimationFrame(frame);return;}
   if(last!==null)phase+=(now-last)/1000*.25;
   last=now;
-  apply({sliceHeight:sliceSweepPosition(phase),sliceSweep:true});
+  const height=Math.round(sliceSweepPosition(phase)*100)/100;
+  if(height!==getState().sliceHeight)apply({sliceHeight:height,sliceSweep:true});
   sync();if(playing)raf=requestAnimationFrame(frame);
  }
- // A small center detent for mouse/touch; arrow keys retain precise 1% steps.
- let keyboardAdjust=false;
- slider.addEventListener('keydown',()=>{keyboardAdjust=true;});
- slider.addEventListener('keyup',()=>{keyboardAdjust=false;});
- slider.addEventListener('pointerdown',()=>{keyboardAdjust=false;});
- slider.addEventListener('input',()=>{
-  const raw=Number(slider.value),height=(!keyboardAdjust&&Math.abs(raw)<=3?0:raw)/100;
+ // Keep native 1% resolution for playback; manual input snaps to 10%.
+ function setManualHeight(raw){
+  const height=Math.max(-100,Math.min(100,Math.round(raw/10)*10))/100;
   playing=false;last=null;phase=height+1;
   apply({sliceHeight:height,sliceSweep:false});sync();
+ }
+ slider.addEventListener('input',()=>setManualHeight(Number(slider.value)));
+ slider.addEventListener('keydown',event=>{
+  const steps={ArrowLeft:-10,ArrowDown:-10,ArrowRight:10,ArrowUp:10,PageDown:-10,PageUp:10};
+  if(event.key in steps){event.preventDefault();setManualHeight(Number(slider.value)+steps[event.key]);}
+  else if(event.key==='Home'||event.key==='End'){event.preventDefault();setManualHeight(event.key==='Home'?-100:100);}
  });
  button.addEventListener('click',()=>{
+  if(!allowPlayback)return;
   playing=!playing;last=null;
   if(playing){if(!raf)raf=requestAnimationFrame(frame);}
   apply({sliceSweep:playing,...(playing?{sliceHeight:sliceSweepPosition(phase)}:{})});sync();

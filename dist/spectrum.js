@@ -416,7 +416,7 @@ export function initSpectrum(){
   window.orbitalPages?.go('spectra',{scroll:false});selectLine(chosen.line.lowerN,chosen.line.upperN,chosen.channel.id);window.orbitalPages?.revealViewer('spectra');return true;
  }
  function clearStateFilter(){finishLineDrag();stateFilter=null;updateStateFilter();selectLine(currentLine.lowerN,currentLine.upperN,currentChannel.id);}
-const syncSliceHeight=bindSliceHeightControls(element,()=>view,setView,()=>visible);
+const syncSliceHeight=bindSliceHeightControls(element,()=>view,setView,()=>visible,false);
 view.syncSliceHeight=syncSliceHeight;syncSliceHeight();
 function chooseCutView(shape,direction){
  const top=direction!=='front',polar=top?0:90;
