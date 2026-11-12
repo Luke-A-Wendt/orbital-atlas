@@ -1035,6 +1035,12 @@ body select.viewer-header-preset{width:150px;max-width:calc(100% - 75px);min-wid
 .slice-height-controls input {width:100%;margin:14px 0 8px}
 .slice-height-ends {display:flex;justify-content:space-between;font-size:10px;color:#8195a5}
 
+.spectrum-view .quantum-inputs {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.spectrum-view .quantum-inputs label>span {display:flex;align-items:baseline;gap:5px;margin-bottom:6px}
+.spectrum-view .quantum-inputs .quantum-symbol {font-size:25px}
+.spectrum-view .quantum-inputs .quantum-description {font-size:9px}
+.spectrum-view .quantum-inputs select {width:100%;min-width:0}
+
 </style>
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; font-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
 </head>
@@ -1073,7 +1079,7 @@ body select.viewer-header-preset{width:150px;max-width:calc(100% - 75px);min-wid
 </section>
 <section class="settings-group"><h3>Quantum state</h3><div class="quantum-inputs"><label><span><strong class="quantum-symbol" data-math="bold_n">n</strong><span class="quantum-description">Shell</span></span><select id="n-select" aria-label="Principal quantum number n"></select></label><label><span><strong class="quantum-symbol" data-math="bold_ell">ℓ</strong><span class="quantum-description">Shape</span></span><select id="l-select" aria-label="Orbital quantum number l"></select></label><label><span><strong class="quantum-symbol" data-math="bold_m">m</strong><span class="quantum-description">State</span></span><select id="m-select" aria-label="Magnetic quantum number m"></select></label></div><button class="quantum-help" data-open-math>About these numbers ↗</button></section>
 <section class="settings-group"><h3>Appearance</h3><div class="appearance-choices"><div class="segmented render-style" role="group" aria-label="Rendering style"><button data-render-style="cloud">Cloud</button><button class="selected" data-render-style="granular">Granular</button></div><label class="color-metric-field" for="color-metric"><span class="slider-label">Color by</span><select id="color-metric"><option value="density">Probability density</option><option value="phase">Wavefunction phase</option><option value="current">Probability current</option><option value="radial-probability">Radial probability</option><option value="gradient">Density gradient</option></select></label><label class="toggle-line" for="log-scale"><span>Log scale</span><input id="log-scale" type="checkbox" role="switch"></label></div><div class="color-map-field"><span class="slider-label">Color map</span><details class="color-map-picker" data-color-map-picker="orbits"><summary aria-label="Choose color map"><span class="color-map-name">Blue</span><span class="color-map-swatch color-map-current" aria-hidden="true"></span></summary><div class="color-map-options" role="group" aria-label="Color maps"></div></details></div><div class="tracer-controls"><label class="toggle-line" for="tracers-enabled"><span>Tracers</span><input type="checkbox" id="tracers-enabled" role="switch" checked></label><label class="slider-label" for="particle-amount">Tracer amount <output id="particle-amount-value" hidden>2×</output></label><input id="particle-amount" type="range" min="0" max="4" value="2" step="1" aria-label="Tracer amount"><div class="speed-ticks" aria-hidden="true"><span>¼</span><span>½</span><span>1</span><span>2</span><span>4</span></div><p class="tracer-limit-note" id="tracer-status" hidden></p></div><label class="slider-label" for="density">Intensity <output id="density-value" hidden>2×</output></label><input id="density" type="range" min="0" max="4" value="2" step="1"><div class="speed-ticks" aria-hidden="true"><span>¼</span><span>½</span><span>1</span><span>2</span><span>4</span></div></section>
-<section class="settings-group view-adjustments"><h3>View adjustments</h3><label class="toggle-line" for="auto-rotate"><span>Auto rotate</span><input type="checkbox" id="auto-rotate" role="switch"></label><label class="toggle-line" for="random-rotate"><span>Random rotation</span><input id="random-rotate" type="checkbox" role="switch"></label><label class="toggle-line" for="show-axes"><span>Coordinate axes</span><input type="checkbox" id="show-axes" role="switch"></label></section>
+<section class="settings-group view-adjustments"><h3>View adjustments</h3><label class="toggle-line" for="random-rotate"><span>Rotate</span><input id="random-rotate" type="checkbox" role="switch"></label><label class="toggle-line" for="show-axes"><span>Coordinate axes</span><input type="checkbox" id="show-axes" role="switch"></label></section>
 </div></details>
 
 </aside>
@@ -1113,8 +1119,8 @@ body select.viewer-header-preset{width:150px;max-width:calc(100% - 75px);min-wid
  <div class="speed-ticks" aria-hidden="true"><span>¼</span><span>½</span><span>1</span><span>2</span><span>4</span></div>
 </section>
 
-<section class="settings-group"><h3>Appearance</h3><div class="appearance-choices"><div class="segmented" role="group" aria-label="Transition rendering style"><button class="selected" data-spectrum-view-render-style="cloud" aria-pressed="true">Cloud</button><button data-spectrum-view-render-style="granular" aria-pressed="false">Granular</button></div><label class="color-metric-field" for="spectrum-color-metric"><span class="slider-label">Color by</span><select id="spectrum-color-metric"><option value="density">Probability density</option><option value="phase">Wavefunction phase</option><option value="current">Probability current</option><option value="radial-probability">Radial probability</option><option value="gradient">Density gradient</option><option value="contribution">State contribution</option><option value="density-change">Density change</option></select></label><label class="toggle-line" for="spectrum-log-scale"><span>Log scale</span><input id="spectrum-log-scale" type="checkbox" role="switch"></label></div><div class="color-map-field"><span class="slider-label">Color map</span><details class="color-map-picker" data-color-map-picker="spectra"><summary aria-label="Choose color map"><span class="color-map-name">Blue</span><span class="color-map-swatch color-map-current" aria-hidden="true"></span></summary><div class="color-map-options" role="group" aria-label="Color maps"></div></details></div><div class="tracer-controls"><label class="toggle-line" for="spectrum-tracers-enabled"><span>Tracers</span><input type="checkbox" id="spectrum-tracers-enabled" role="switch" checked></label><label class="slider-label" for="spectrum-particle-amount">Tracer amount <output id="spectrum-particle-amount-value" hidden>2×</output></label><input id="spectrum-particle-amount" type="range" min="0" max="4" value="2" step="1" aria-label="Tracer amount"><div class="speed-ticks" aria-hidden="true"><span>¼</span><span>½</span><span>1</span><span>2</span><span>4</span></div><p class="tracer-limit-note" id="spectrum-tracer-status" hidden></p></div><label class="slider-label" for="spectrum-density">Intensity <output id="spectrum-density-value" hidden>1×</output></label><input id="spectrum-density" type="range" min="0" max="4" step="1" value="2"><div class="speed-ticks" aria-hidden="true"><span>¼</span><span>½</span><span>1</span><span>2</span><span>4</span></div></section>
-<section class="settings-group view-adjustments"><h3>View adjustments</h3><label class="toggle-line" for="spectrum-auto-rotate"><span>Auto rotate</span><input id="spectrum-auto-rotate" type="checkbox" role="switch"></label><label class="toggle-line" for="spectrum-random-rotate"><span>Random rotation</span><input id="spectrum-random-rotate" type="checkbox" role="switch"></label><label class="toggle-line" for="spectrum-show-axes"><span>Coordinate axes</span><input id="spectrum-show-axes" type="checkbox" role="switch"></label></section>
+<section class="settings-group"><h3>Lower state</h3><div class="quantum-inputs"><label><span><strong class="quantum-symbol" data-math="bold_n">n</strong><span class="quantum-description">Shell</span></span><select id="spectrum-lower-n-select" aria-label="Lower state: Lower state: Lower state: Principal quantum number n"></select></label><label><span><strong class="quantum-symbol" data-math="bold_ell">ℓ</strong><span class="quantum-description">Shape</span></span><select id="spectrum-lower-l-select" aria-label="Lower state: Lower state: Lower state: Orbital quantum number l"></select></label><label><span><strong class="quantum-symbol" data-math="bold_m">m</strong><span class="quantum-description">State</span></span><select id="spectrum-lower-m-select" aria-label="Lower state: Lower state: Lower state: Magnetic quantum number m"></select></label></div></section><section class="settings-group"><h3>Upper state</h3><div class="quantum-inputs"><label><span><strong class="quantum-symbol" data-math="bold_n">n</strong><span class="quantum-description">Shell</span></span><select id="spectrum-upper-n-select" aria-label="Upper state: Upper state: Upper state: Principal quantum number n"></select></label><label><span><strong class="quantum-symbol" data-math="bold_ell">ℓ</strong><span class="quantum-description">Shape</span></span><select id="spectrum-upper-l-select" aria-label="Upper state: Upper state: Upper state: Orbital quantum number l"></select></label><label><span><strong class="quantum-symbol" data-math="bold_m">m</strong><span class="quantum-description">State</span></span><select id="spectrum-upper-m-select" aria-label="Upper state: Upper state: Upper state: Magnetic quantum number m"></select></label></div></section><p id="spectrum-state-edit-status" class="tracer-limit-note" role="status" hidden></p><section class="settings-group"><h3>Appearance</h3><div class="appearance-choices"><div class="segmented" role="group" aria-label="Transition rendering style"><button class="selected" data-spectrum-view-render-style="cloud" aria-pressed="true">Cloud</button><button data-spectrum-view-render-style="granular" aria-pressed="false">Granular</button></div><label class="color-metric-field" for="spectrum-color-metric"><span class="slider-label">Color by</span><select id="spectrum-color-metric"><option value="density">Probability density</option><option value="phase">Wavefunction phase</option><option value="current">Probability current</option><option value="radial-probability">Radial probability</option><option value="gradient">Density gradient</option><option value="contribution">State contribution</option><option value="density-change">Density change</option></select></label><label class="toggle-line" for="spectrum-log-scale"><span>Log scale</span><input id="spectrum-log-scale" type="checkbox" role="switch"></label></div><div class="color-map-field"><span class="slider-label">Color map</span><details class="color-map-picker" data-color-map-picker="spectra"><summary aria-label="Choose color map"><span class="color-map-name">Blue</span><span class="color-map-swatch color-map-current" aria-hidden="true"></span></summary><div class="color-map-options" role="group" aria-label="Color maps"></div></details></div><div class="tracer-controls"><label class="toggle-line" for="spectrum-tracers-enabled"><span>Tracers</span><input type="checkbox" id="spectrum-tracers-enabled" role="switch" checked></label><label class="slider-label" for="spectrum-particle-amount">Tracer amount <output id="spectrum-particle-amount-value" hidden>2×</output></label><input id="spectrum-particle-amount" type="range" min="0" max="4" value="2" step="1" aria-label="Tracer amount"><div class="speed-ticks" aria-hidden="true"><span>¼</span><span>½</span><span>1</span><span>2</span><span>4</span></div><p class="tracer-limit-note" id="spectrum-tracer-status" hidden></p></div><label class="slider-label" for="spectrum-density">Intensity <output id="spectrum-density-value" hidden>1×</output></label><input id="spectrum-density" type="range" min="0" max="4" step="1" value="2"><div class="speed-ticks" aria-hidden="true"><span>¼</span><span>½</span><span>1</span><span>2</span><span>4</span></div></section>
+<section class="settings-group view-adjustments"><h3>View adjustments</h3><label class="toggle-line" for="spectrum-random-rotate"><span>Rotate</span><input id="spectrum-random-rotate" type="checkbox" role="switch"></label><label class="toggle-line" for="spectrum-show-axes"><span>Coordinate axes</span><input id="spectrum-show-axes" type="checkbox" role="switch"></label></section>
 </div></details>
 
 </aside>
@@ -2605,16 +2611,18 @@ function cutDegrees(state){
  return ['custom','slab','radius'].includes(state.cut)?Math.max(0,Math.min(345,Math.round((Number.isFinite(state.cutDegrees)?state.cutDegrees:0)/15)*15)):(legacy[state.cut]??0);
 }
 // Smooth random camera drift, independent of orbital flow speed.
-function advanceRandomCamera(camera,motion,elapsed){
- const dt=Math.min(.05,Math.max(0,elapsed));
- motion??={remaining:0,yawVelocity:0,pitchVelocity:0};
- motion.remaining-=dt;
- if(motion.remaining<=0){motion.remaining=5+Math.random()*5;motion.yawTarget=(Math.random()<.5?-1:1)*(.07+Math.random()*.12);motion.pitchTarget=(Math.random()*2-1)*1.05;}
- const blend=1-Math.exp(-dt/1.5);
- motion.yawVelocity+=(motion.yawTarget-motion.yawVelocity)*blend;
- const desiredPitch=Math.max(-.12,Math.min(.12,(motion.pitchTarget-camera.pitch)*.22));
- motion.pitchVelocity+=(desiredPitch-motion.pitchVelocity)*blend;
- camera.yaw+=motion.yawVelocity*dt;camera.pitch+=motion.pitchVelocity*dt;
+function advanceCameraTour(camera,motion,elapsed){
+ // Three times the previous random-tour timescale. Incommensurate frequencies
+ // explore every azimuth/elevation without a fixed repeating orbit.
+ const dt=Math.min(.05,Math.max(0,elapsed))*3,limit=Math.PI/2;
+ if(!motion||Math.abs(camera.yaw-motion.lastYaw)>1.e-7||Math.abs(camera.pitch-motion.lastPitch)>1.e-7){
+  motion={time:0,phase:Math.asin(Math.max(-1,Math.min(1,camera.pitch/limit)))};
+ }
+ motion.time+=dt;
+ camera.yaw+=dt*(.14+.05*Math.sin(motion.time*.14*Math.SQRT2));
+ motion.phase+=dt*.14/Math.sqrt(3);
+ camera.pitch=limit*Math.sin(motion.phase);
+ motion.lastYaw=camera.yaw;motion.lastPitch=camera.pitch;
  return motion;
 }
 function startingViewOrientation(state,yaw,pitch){
@@ -2889,7 +2897,7 @@ class OrbitalRenderer {
     if(this.contextLost||document.hidden||this.suspended){this.lastFrame=null;return;}
     const elapsed=this.lastFrame===null?0:Math.max(0,now-this.lastFrame);this.lastFrame=now;
     const dt=elapsed/1000,s=this.state,gl=this.gl;
-    if(s.animate)this.time+=dt*s.speed;if(s.animate&&!this.points.size){if(s.randomRotate)this.randomMotion=advanceRandomCamera(this.camera,this.randomMotion,dt);else if(s.autoRotate)this.camera.yaw+=dt*.14;}else this.randomMotion=null;
+    if(s.animate)this.time+=dt*s.speed;if(s.animate&&!this.points.size){if(s.randomRotate)this.randomMotion=advanceCameraTour(this.camera,this.randomMotion,dt);}else this.randomMotion=null;
     const tier=TIERS[this.tier],granular=s.renderStyle==='granular',sculpted=granular;
     const count=Math.round(MAX_PARTICLES*this.activeParticleAmount*(s.cut==='slab'?(s.renderStyle==='granular'?1.5:2):1));
     const visualKey=this.visualSignature(),idle=visualKey===this.lastDrawSignature;
@@ -3730,12 +3738,12 @@ class SpectrumRenderer {
  }
  hasAnimatedView(){
   const s=this.state;if(!s.animate)return false;
-  return s.autoRotate||s.randomRotate||s.mode==='phase'||(s.particleAmount>0&&s.basis==='complex'&&((this.population<1&&this.lower.m!==0)||(this.population>0&&this.upper.m!==0)));
+  return s.randomRotate||s.mode==='phase'||(s.particleAmount>0&&s.basis==='complex'&&((this.population<1&&this.lower.m!==0)||(this.population>0&&this.upper.m!==0)));
  }
  draw(now){
   if(this.dead||this.error||this.contextLost||!this.visible||document.hidden||!this.dirty)return;this.dirty=false;
   const elapsed=this.lastDraw?Math.max(0,now-this.lastDraw):0,dt=Math.min(elapsed/1000,.1),s=this.state,gl=this.gl,tier=spectrumTiers[this.tier];
-  if(s.animate)this.time+=dt*s.speed;if(s.animate&&!this.pointers.size){if(s.randomRotate)this.randomMotion=advanceRandomCamera(this.camera,this.randomMotion,dt);else if(s.autoRotate)this.camera.yaw+=dt*.14;}else this.randomMotion=null;
+  if(s.animate)this.time+=dt*s.speed;if(s.animate&&!this.pointers.size){if(s.randomRotate)this.randomMotion=advanceCameraTour(this.camera,this.randomMotion,dt);}else this.randomMotion=null;
   const cameraSignature=[this.camera.yaw,this.camera.pitch,this.camera.distance].join('|');
   const cameraMoves=this.lastCameraSignature!==null&&cameraSignature!==this.lastCameraSignature;
   const viewMoves=this.hasAnimatedView(),populationMoves=this.lastDrawPopulation!==null&&this.population!==this.lastDrawPopulation;
@@ -3999,7 +4007,7 @@ function initSpectrum(){
   const speedIndex=flowSpeeds.indexOf(view.speed);
   element('speed').min=0;element('speed').max=4;element('speed').step=1;element('speed').value=speedIndex;element('speed-value').value=flowSpeedLabels[speedIndex];
   element('speed').setAttribute('aria-valuetext',view.speed+' times speed');
-  element('auto-rotate').checked=view.autoRotate;element('random-rotate').checked=!!view.randomRotate;element('show-axes').checked=view.axes;
+  element('random-rotate').checked=!!view.randomRotate;element('show-axes').checked=view.axes;
   const metric=colorMetrics[colorMetricIndex(view.mode)];
   element('log-scale').disabled=['phase','contribution','density-change'].includes(view.mode);element('log-scale').checked=!!view.logScale&&!['phase','contribution','density-change'].includes(view.mode);element('color-metric').value=metric.id;
   element('legend-title').textContent=metric.name.toUpperCase()+((view.logScale&&!['phase','contribution','density-change'].includes(view.mode))?' · LOG':'');element('legend-low').textContent=metric.id==='phase'?metric.low:'1% mass';element('legend-high').textContent=metric.id==='phase'?metric.high:'99% mass';
@@ -4136,12 +4144,46 @@ function initSpectrum(){
   element('strength-relative').textContent=Number(relative.toPrecision(2)).toString()+'% strength';
  }
  function applyChannel(){
+  syncStateEditors();element('state-edit-status').hidden=true;
   cycle=0;previousTime=null;
   element('lower-name').textContent=orbitalName(currentChannel.lower);element('upper-name').textContent=orbitalName(currentChannel.upper);
   element('lower-m').innerHTML=mMath(currentChannel.lower.m);element('upper-m').innerHTML=mMath(currentChannel.upper.m);
   element('lower-energy').textContent='−'+(energyScale/currentLine.lowerN**2).toFixed(3)+' eV';element('upper-energy').textContent='−'+(energyScale/currentLine.upperN**2).toFixed(3)+' eV';
   element('canvas').setAttribute('aria-label',`Three-dimensional population transfer between ${orbitalName(currentChannel.lower)}, magnetic number ${currentChannel.lower.m}, and ${orbitalName(currentChannel.upper)}, magnetic number ${currentChannel.upper.m}. Drag or use arrow keys to rotate; pinch or use plus and minus to zoom. Space pauses flow.`);
   renderer?.setPair(currentChannel.lower,currentChannel.upper);drawShapes();drawChannels();updateStrength();updatePopulation();syncView();if(visible)startFrame();
+ }
+
+ function syncStateEditors(){
+  const channels=[...channelsByLine.values()].flat();
+  for(const side of ['lower','upper']){
+   const state=currentChannel[side];
+   for(const key of ['n','l','m']){
+    const compatible=channels.filter(c=>(key==='n'||c[side].n===state.n)&&(key!=='m'||c[side].l===state.l));
+    const values=[...new Set(compatible.map(c=>c[side][key]))].sort((a,b)=>a-b);
+    const select=element(side+'-'+key+'-select');select.replaceChildren();
+    for(const value of values){
+     const option=document.createElement('option');option.value=value;
+     option.textContent=key==='l'?value+' · '+families[value]:key==='m'&&value>0?'+'+value:String(value);
+     select.append(option);
+    }
+    select.value=state[key];
+   }
+  }
+ }
+ function editState(side,key,value){
+  const other=side==='lower'?'upper':'lower',previous=currentChannel,desired={...previous[side],[key]:value};
+  const candidates=[...channelsByLine.values()].flat().filter(c=>c[side][key]===value&&(key==='n'||c[side].n===desired.n)&&(key!=='m'||c[side].l===desired.l));
+  const distance=(a,b)=>Math.abs(a.n-b.n)*100+Math.abs(a.l-b.l)*10+Math.abs(a.m-b.m);
+  // Preserve the edited state first, then retain its partner wherever possible.
+  candidates.sort((a,b)=>distance(a[side],desired)*10000+distance(a[other],previous[other])-distance(b[side],desired)*10000-distance(b[other],previous[other])||transitionStrength(b).relative-transitionStrength(a).relative);
+  const chosen=candidates[0];if(!chosen)return;
+  stateFilter=null;filterOrbital=null;series=0;updateStateFilter();
+  selectLine(chosen.lower.n,chosen.upper.n,chosen.id);
+  const status=element('state-edit-status');status.hidden=sameState(chosen[other],previous[other]);
+  status.textContent=status.hidden?'':(other==='lower'?'Lower':'Upper')+' state adjusted to an allowed transition.';
+ }
+ for(const side of ['lower','upper'])for(const key of ['n','l','m']){
+  element(side+'-'+key+'-select').addEventListener('change',event=>editState(side,key,Number(event.target.value)));
  }
  function selectChannel(id){
   const channel=allChannels(currentLine).find(item=>item.id===id);if(!channel)return false;
@@ -4278,7 +4320,6 @@ element('color-metric').addEventListener('change',event=>setView({mode:event.tar
  element('speed').addEventListener('input',event=>setView({speed:flowSpeeds[+event.target.value]}));
  element('tracers-enabled').addEventListener('change',event=>setView({particleAmount:event.target.checked?lastPositiveTracers[view.renderStyle]:0}));
 element('particle-amount').addEventListener('input',event=>setView({particleAmount:flowSpeeds[+event.target.value]/(view.renderStyle==='cloud'?50:1)}));
- element('auto-rotate').addEventListener('change',event=>setView({autoRotate:event.target.checked,randomRotate:false}));
 element('random-rotate').addEventListener('change',e=>setView({randomRotate:e.target.checked,autoRotate:false}));
  element('show-axes').addEventListener('change',event=>setView({axes:event.target.checked}));
  element('fullscreen').addEventListener('click',async()=>{
@@ -4512,7 +4553,7 @@ function sync(){
  $('flow-control').hidden=basis==='real';$('flow-control').parentElement.dataset.flowVisible=String(basis==='complex');
  const flowIndex=flowSpeeds.indexOf(state.speed);$('speed').value=flowIndex;$('speed-value').value=flowLabels[flowIndex];$('speed').setAttribute('aria-valuetext',flowLabels[flowIndex]+' flow speed');
  syncPerformance();
- $('auto-rotate').checked=state.autoRotate;$('random-rotate').checked=!!state.randomRotate;$('show-axes').checked=state.axes;
+ $('random-rotate').checked=!!state.randomRotate;$('show-axes').checked=state.axes;
  const metric=colorMetrics[colorMetricIndex(state.mode)];
  $('log-scale').disabled=state.mode==='phase';$('log-scale').checked=!!state.logScale&&state.mode!=='phase';$('color-metric').value=metric.id;
  $('legend-title').textContent=metric.name.toUpperCase()+((state.logScale&&state.mode!=='phase')?' · LOG':'');$('legend-low').textContent=metric.id==='phase'?metric.low:'1% mass';$('legend-high').textContent=metric.id==='phase'?metric.high:'99% mass';
@@ -4539,7 +4580,6 @@ for(const key of ['basis','mode','cut'])document.querySelectorAll(`[data-${key}]
 for(const [id,key] of [['density','density']])$(id).addEventListener('input',e=>update({[key]:key==='density'?flowSpeeds[+e.target.value]:+e.target.value}));
 $('tracers-enabled').addEventListener('change',e=>update({particleAmount:e.target.checked?lastPositiveTracers[state.renderStyle]:0}));
 $('particle-amount').addEventListener('input',e=>update({particleAmount:flowSpeeds[+e.target.value]/(state.renderStyle==='cloud'?50:1)}));
-$('auto-rotate').addEventListener('change',e=>update({autoRotate:e.target.checked,randomRotate:false}));
 $('random-rotate').addEventListener('change',e=>update({randomRotate:e.target.checked,autoRotate:false}));
 $('show-axes').addEventListener('change',e=>update({axes:e.target.checked}));
 $('zoom-in').addEventListener('click',()=>renderer?.zoomBy(.86));$('zoom-out').addEventListener('click',()=>renderer?.zoomBy(1.16));
@@ -4688,8 +4728,14 @@ function applyViewPreset(index){
  if(window.orbitalApp.renderer)window.spectrumApp.setCamera(window.orbitalApp.renderer.camera);
 }
 window.resetOrbitalPageView=()=>{
- if(document.body.dataset.page!=='math')applyViewPreset(0);
+ // Reload the current page without the orbital deep link. This reruns the exact
+ // startup path, clearing selections, presets, camera, playback and local UI state.
+ try{
+  history.scrollRestoration='manual';
+  history.replaceState(null,'',location.pathname+location.search);
+ }catch{location.hash='';}
  window.scrollTo({top:0,behavior:'instant'});
+ location.reload();
 };
 document.querySelectorAll('.view-preset').forEach(select=>{
  viewPresets.forEach(([name],index)=>select.append(option(index,name)));

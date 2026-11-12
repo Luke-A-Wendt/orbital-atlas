@@ -471,3 +471,9 @@ body select.viewer-header-preset{width:150px;max-width:calc(100% - 75px);min-wid
 .slice-height-heading button {font:inherit;color:#b7d5ef;background:#1b2228;border:1px solid #394651;border-radius:5px;padding:5px 12px;min-width:58px}
 .slice-height-controls input {width:100%;margin:14px 0 8px}
 .slice-height-ends {display:flex;justify-content:space-between;font-size:10px;color:#8195a5}
+
+.spectrum-view .quantum-inputs {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.spectrum-view .quantum-inputs label>span {display:flex;align-items:baseline;gap:5px;margin-bottom:6px}
+.spectrum-view .quantum-inputs .quantum-symbol {font-size:25px}
+.spectrum-view .quantum-inputs .quantum-description {font-size:9px}
+.spectrum-view .quantum-inputs select {width:100%;min-width:0}

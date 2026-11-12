@@ -609,16 +609,18 @@ export function cutDegrees(state){
  return ['custom','slab','radius'].includes(state.cut)?Math.max(0,Math.min(345,Math.round((Number.isFinite(state.cutDegrees)?state.cutDegrees:0)/15)*15)):(legacy[state.cut]??0);
 }
 // Smooth random camera drift, independent of orbital flow speed.
-export function advanceRandomCamera(camera,motion,elapsed){
- const dt=Math.min(.05,Math.max(0,elapsed));
- motion??={remaining:0,yawVelocity:0,pitchVelocity:0};
- motion.remaining-=dt;
- if(motion.remaining<=0){motion.remaining=5+Math.random()*5;motion.yawTarget=(Math.random()<.5?-1:1)*(.07+Math.random()*.12);motion.pitchTarget=(Math.random()*2-1)*1.05;}
- const blend=1-Math.exp(-dt/1.5);
- motion.yawVelocity+=(motion.yawTarget-motion.yawVelocity)*blend;
- const desiredPitch=Math.max(-.12,Math.min(.12,(motion.pitchTarget-camera.pitch)*.22));
- motion.pitchVelocity+=(desiredPitch-motion.pitchVelocity)*blend;
- camera.yaw+=motion.yawVelocity*dt;camera.pitch+=motion.pitchVelocity*dt;
+export function advanceCameraTour(camera,motion,elapsed){
+ // Three times the previous random-tour timescale. Incommensurate frequencies
+ // explore every azimuth/elevation without a fixed repeating orbit.
+ const dt=Math.min(.05,Math.max(0,elapsed))*3,limit=Math.PI/2;
+ if(!motion||Math.abs(camera.yaw-motion.lastYaw)>1.e-7||Math.abs(camera.pitch-motion.lastPitch)>1.e-7){
+  motion={time:0,phase:Math.asin(Math.max(-1,Math.min(1,camera.pitch/limit)))};
+ }
+ motion.time+=dt;
+ camera.yaw+=dt*(.14+.05*Math.sin(motion.time*.14*Math.SQRT2));
+ motion.phase+=dt*.14/Math.sqrt(3);
+ camera.pitch=limit*Math.sin(motion.phase);
+ motion.lastYaw=camera.yaw;motion.lastPitch=camera.pitch;
  return motion;
 }
 export function startingViewOrientation(state,yaw,pitch){
@@ -893,7 +895,7 @@ export class OrbitalRenderer {
     if(this.contextLost||document.hidden||this.suspended){this.lastFrame=null;return;}
     const elapsed=this.lastFrame===null?0:Math.max(0,now-this.lastFrame);this.lastFrame=now;
     const dt=elapsed/1000,s=this.state,gl=this.gl;
-    if(s.animate)this.time+=dt*s.speed;if(s.animate&&!this.points.size){if(s.randomRotate)this.randomMotion=advanceRandomCamera(this.camera,this.randomMotion,dt);else if(s.autoRotate)this.camera.yaw+=dt*.14;}else this.randomMotion=null;
+    if(s.animate)this.time+=dt*s.speed;if(s.animate&&!this.points.size){if(s.randomRotate)this.randomMotion=advanceCameraTour(this.camera,this.randomMotion,dt);}else this.randomMotion=null;
     const tier=TIERS[this.tier],granular=s.renderStyle==='granular',sculpted=granular;
     const count=Math.round(MAX_PARTICLES*this.activeParticleAmount*(s.cut==='slab'?(s.renderStyle==='granular'?1.5:2):1));
     const visualKey=this.visualSignature(),idle=visualKey===this.lastDrawSignature;

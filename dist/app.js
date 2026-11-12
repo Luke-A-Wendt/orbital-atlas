@@ -135,7 +135,7 @@ function sync(){
  $('flow-control').hidden=basis==='real';$('flow-control').parentElement.dataset.flowVisible=String(basis==='complex');
  const flowIndex=flowSpeeds.indexOf(state.speed);$('speed').value=flowIndex;$('speed-value').value=flowLabels[flowIndex];$('speed').setAttribute('aria-valuetext',flowLabels[flowIndex]+' flow speed');
  syncPerformance();
- $('auto-rotate').checked=state.autoRotate;$('random-rotate').checked=!!state.randomRotate;$('show-axes').checked=state.axes;
+ $('random-rotate').checked=!!state.randomRotate;$('show-axes').checked=state.axes;
  const metric=colorMetrics[colorMetricIndex(state.mode)];
  $('log-scale').disabled=state.mode==='phase';$('log-scale').checked=!!state.logScale&&state.mode!=='phase';$('color-metric').value=metric.id;
  $('legend-title').textContent=metric.name.toUpperCase()+((state.logScale&&state.mode!=='phase')?' · LOG':'');$('legend-low').textContent=metric.id==='phase'?metric.low:'1% mass';$('legend-high').textContent=metric.id==='phase'?metric.high:'99% mass';
@@ -162,7 +162,6 @@ for(const key of ['basis','mode','cut'])document.querySelectorAll(`[data-${key}]
 for(const [id,key] of [['density','density']])$(id).addEventListener('input',e=>update({[key]:key==='density'?flowSpeeds[+e.target.value]:+e.target.value}));
 $('tracers-enabled').addEventListener('change',e=>update({particleAmount:e.target.checked?lastPositiveTracers[state.renderStyle]:0}));
 $('particle-amount').addEventListener('input',e=>update({particleAmount:flowSpeeds[+e.target.value]/(state.renderStyle==='cloud'?50:1)}));
-$('auto-rotate').addEventListener('change',e=>update({autoRotate:e.target.checked,randomRotate:false}));
 $('random-rotate').addEventListener('change',e=>update({randomRotate:e.target.checked,autoRotate:false}));
 $('show-axes').addEventListener('change',e=>update({axes:e.target.checked}));
 $('zoom-in').addEventListener('click',()=>renderer?.zoomBy(.86));$('zoom-out').addEventListener('click',()=>renderer?.zoomBy(1.16));
@@ -311,8 +310,14 @@ function applyViewPreset(index){
  if(window.orbitalApp.renderer)window.spectrumApp.setCamera(window.orbitalApp.renderer.camera);
 }
 window.resetOrbitalPageView=()=>{
- if(document.body.dataset.page!=='math')applyViewPreset(0);
+ // Reload the current page without the orbital deep link. This reruns the exact
+ // startup path, clearing selections, presets, camera, playback and local UI state.
+ try{
+  history.scrollRestoration='manual';
+  history.replaceState(null,'',location.pathname+location.search);
+ }catch{location.hash='';}
  window.scrollTo({top:0,behavior:'instant'});
+ location.reload();
 };
 document.querySelectorAll('.view-preset').forEach(select=>{
  viewPresets.forEach(([name],index)=>select.append(option(index,name)));

@@ -159,7 +159,7 @@ export function initSpectrum(){
   const speedIndex=flowSpeeds.indexOf(view.speed);
   element('speed').min=0;element('speed').max=4;element('speed').step=1;element('speed').value=speedIndex;element('speed-value').value=flowSpeedLabels[speedIndex];
   element('speed').setAttribute('aria-valuetext',view.speed+' times speed');
-  element('auto-rotate').checked=view.autoRotate;element('random-rotate').checked=!!view.randomRotate;element('show-axes').checked=view.axes;
+  element('random-rotate').checked=!!view.randomRotate;element('show-axes').checked=view.axes;
   const metric=colorMetrics[colorMetricIndex(view.mode)];
   element('log-scale').disabled=['phase','contribution','density-change'].includes(view.mode);element('log-scale').checked=!!view.logScale&&!['phase','contribution','density-change'].includes(view.mode);element('color-metric').value=metric.id;
   element('legend-title').textContent=metric.name.toUpperCase()+((view.logScale&&!['phase','contribution','density-change'].includes(view.mode))?' · LOG':'');element('legend-low').textContent=metric.id==='phase'?metric.low:'1% mass';element('legend-high').textContent=metric.id==='phase'?metric.high:'99% mass';
@@ -296,12 +296,46 @@ export function initSpectrum(){
   element('strength-relative').textContent=Number(relative.toPrecision(2)).toString()+'% strength';
  }
  function applyChannel(){
+  syncStateEditors();element('state-edit-status').hidden=true;
   cycle=0;previousTime=null;
   element('lower-name').textContent=orbitalName(currentChannel.lower);element('upper-name').textContent=orbitalName(currentChannel.upper);
   element('lower-m').innerHTML=mMath(currentChannel.lower.m);element('upper-m').innerHTML=mMath(currentChannel.upper.m);
   element('lower-energy').textContent='−'+(energyScale/currentLine.lowerN**2).toFixed(3)+' eV';element('upper-energy').textContent='−'+(energyScale/currentLine.upperN**2).toFixed(3)+' eV';
   element('canvas').setAttribute('aria-label',`Three-dimensional population transfer between ${orbitalName(currentChannel.lower)}, magnetic number ${currentChannel.lower.m}, and ${orbitalName(currentChannel.upper)}, magnetic number ${currentChannel.upper.m}. Drag or use arrow keys to rotate; pinch or use plus and minus to zoom. Space pauses flow.`);
   renderer?.setPair(currentChannel.lower,currentChannel.upper);drawShapes();drawChannels();updateStrength();updatePopulation();syncView();if(visible)startFrame();
+ }
+
+ function syncStateEditors(){
+  const channels=[...channelsByLine.values()].flat();
+  for(const side of ['lower','upper']){
+   const state=currentChannel[side];
+   for(const key of ['n','l','m']){
+    const compatible=channels.filter(c=>(key==='n'||c[side].n===state.n)&&(key!=='m'||c[side].l===state.l));
+    const values=[...new Set(compatible.map(c=>c[side][key]))].sort((a,b)=>a-b);
+    const select=element(side+'-'+key+'-select');select.replaceChildren();
+    for(const value of values){
+     const option=document.createElement('option');option.value=value;
+     option.textContent=key==='l'?value+' · '+families[value]:key==='m'&&value>0?'+'+value:String(value);
+     select.append(option);
+    }
+    select.value=state[key];
+   }
+  }
+ }
+ function editState(side,key,value){
+  const other=side==='lower'?'upper':'lower',previous=currentChannel,desired={...previous[side],[key]:value};
+  const candidates=[...channelsByLine.values()].flat().filter(c=>c[side][key]===value&&(key==='n'||c[side].n===desired.n)&&(key!=='m'||c[side].l===desired.l));
+  const distance=(a,b)=>Math.abs(a.n-b.n)*100+Math.abs(a.l-b.l)*10+Math.abs(a.m-b.m);
+  // Preserve the edited state first, then retain its partner wherever possible.
+  candidates.sort((a,b)=>distance(a[side],desired)*10000+distance(a[other],previous[other])-distance(b[side],desired)*10000-distance(b[other],previous[other])||transitionStrength(b).relative-transitionStrength(a).relative);
+  const chosen=candidates[0];if(!chosen)return;
+  stateFilter=null;filterOrbital=null;series=0;updateStateFilter();
+  selectLine(chosen.lower.n,chosen.upper.n,chosen.id);
+  const status=element('state-edit-status');status.hidden=sameState(chosen[other],previous[other]);
+  status.textContent=status.hidden?'':(other==='lower'?'Lower':'Upper')+' state adjusted to an allowed transition.';
+ }
+ for(const side of ['lower','upper'])for(const key of ['n','l','m']){
+  element(side+'-'+key+'-select').addEventListener('change',event=>editState(side,key,Number(event.target.value)));
  }
  function selectChannel(id){
   const channel=allChannels(currentLine).find(item=>item.id===id);if(!channel)return false;
@@ -438,7 +472,6 @@ element('color-metric').addEventListener('change',event=>setView({mode:event.tar
  element('speed').addEventListener('input',event=>setView({speed:flowSpeeds[+event.target.value]}));
  element('tracers-enabled').addEventListener('change',event=>setView({particleAmount:event.target.checked?lastPositiveTracers[view.renderStyle]:0}));
 element('particle-amount').addEventListener('input',event=>setView({particleAmount:flowSpeeds[+event.target.value]/(view.renderStyle==='cloud'?50:1)}));
- element('auto-rotate').addEventListener('change',event=>setView({autoRotate:event.target.checked,randomRotate:false}));
 element('random-rotate').addEventListener('change',e=>setView({randomRotate:e.target.checked,autoRotate:false}));
  element('show-axes').addEventListener('change',event=>setView({axes:event.target.checked}));
  element('fullscreen').addEventListener('click',async()=>{

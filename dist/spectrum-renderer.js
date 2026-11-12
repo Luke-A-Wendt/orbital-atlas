@@ -1,4 +1,4 @@
-import { sliceSamplingGLSL, sliceRandomSeeds, bindSliceSampling, clearSliceSampling, advanceRandomCamera, sliceColorBounds, sliceParticleSamples, planeCutNormal, cutDegrees, startingViewOrientation, orbitalColorBounds, colorMetricIndex, colorMetrics, metricGLSL, bindColorMapTexture, colorMapGLSL, colorMapIndex, orbitalDisplayReference, orbitalExtent } from './renderer.js';
+import { sliceSamplingGLSL, sliceRandomSeeds, bindSliceSampling, clearSliceSampling, advanceCameraTour, sliceColorBounds, sliceParticleSamples, planeCutNormal, cutDegrees, startingViewOrientation, orbitalColorBounds, colorMetricIndex, colorMetrics, metricGLSL, bindColorMapTexture, colorMapGLSL, colorMapIndex, orbitalDisplayReference, orbitalExtent } from './renderer.js';
 /** Two-state hydrogen renderer. Optical-cycle-averaged densities share one scale.
  * Phase color and tracers display the individual components, not a phase or
  * electron trajectory assigned to the mixed density. All distances are in a0.
@@ -562,12 +562,12 @@ export class SpectrumRenderer {
  }
  hasAnimatedView(){
   const s=this.state;if(!s.animate)return false;
-  return s.autoRotate||s.randomRotate||s.mode==='phase'||(s.particleAmount>0&&s.basis==='complex'&&((this.population<1&&this.lower.m!==0)||(this.population>0&&this.upper.m!==0)));
+  return s.randomRotate||s.mode==='phase'||(s.particleAmount>0&&s.basis==='complex'&&((this.population<1&&this.lower.m!==0)||(this.population>0&&this.upper.m!==0)));
  }
  draw(now){
   if(this.dead||this.error||this.contextLost||!this.visible||document.hidden||!this.dirty)return;this.dirty=false;
   const elapsed=this.lastDraw?Math.max(0,now-this.lastDraw):0,dt=Math.min(elapsed/1000,.1),s=this.state,gl=this.gl,tier=spectrumTiers[this.tier];
-  if(s.animate)this.time+=dt*s.speed;if(s.animate&&!this.pointers.size){if(s.randomRotate)this.randomMotion=advanceRandomCamera(this.camera,this.randomMotion,dt);else if(s.autoRotate)this.camera.yaw+=dt*.14;}else this.randomMotion=null;
+  if(s.animate)this.time+=dt*s.speed;if(s.animate&&!this.pointers.size){if(s.randomRotate)this.randomMotion=advanceCameraTour(this.camera,this.randomMotion,dt);}else this.randomMotion=null;
   const cameraSignature=[this.camera.yaw,this.camera.pitch,this.camera.distance].join('|');
   const cameraMoves=this.lastCameraSignature!==null&&cameraSignature!==this.lastCameraSignature;
   const viewMoves=this.hasAnimatedView(),populationMoves=this.lastDrawPopulation!==null&&this.population!==this.lastDrawPopulation;
