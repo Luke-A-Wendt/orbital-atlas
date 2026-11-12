@@ -1,4 +1,4 @@
-import { sliceColorBounds, sliceParticleSamples, planeCutNormal, cutDegrees, startingViewOrientation, orbitalColorBounds, colorMetricIndex, colorMetrics, metricGLSL, bindColorMapTexture, colorMapGLSL, colorMapIndex, orbitalDisplayReference, orbitalExtent } from './renderer.js';
+import { sliceSamplingGLSL, sliceRandomSeeds, bindSliceSampling, clearSliceSampling, advanceRandomCamera, sliceColorBounds, sliceParticleSamples, planeCutNormal, cutDegrees, startingViewOrientation, orbitalColorBounds, colorMetricIndex, colorMetrics, metricGLSL, bindColorMapTexture, colorMapGLSL, colorMapIndex, orbitalDisplayReference, orbitalExtent } from './renderer.js';
 /** Two-state hydrogen renderer. Optical-cycle-averaged densities share one scale.
  * Phase color and tracers display the individual components, not a phase or
  * electron trajectory assigned to the mixed density. All distances are in a0.
@@ -145,7 +145,9 @@ precision highp float;in vec2 vUv;uniform sampler2D uTexture;out vec4 outColor;v
 const spectrumParticleCommon=`
 uniform int uComponent;
 uniform float uCurrent,uVisibleCount;
+${sliceSamplingGLSL}
 vec3 particlePosition(vec4 seed){
+ if(uSliceAxis>0){vec3 pos=uComponent==0?sampledSlicePosition(uSliceSamples0,seed):sampledSlicePosition(uSliceSamples1,seed);vec2 a=amplitudes(pos);float value=uComponent==0?a.x:a.y;if(value*value*uExposure<=1.e-30)return vec3(3.);float rr=length(pos);seed.xyz=vec3(rr,rr>0.?pos.z/rr:0.,atan(pos.y,pos.x));}
  float r=seed.x,c=seed.y,s=sqrt(max(0.,1.-c*c));
  int m=uComponent==0?uMagnetic.x:uMagnetic.y,n=uComponent==0?uShells.x:uShells.y;
  float omega=float(m)*pow(float(max(uShells.x,uShells.y)),4.)*.23/max(.001,pow(r*uExtent*s,2.));
@@ -156,7 +158,9 @@ vec3 particlePosition(vec4 seed){
   turn=(fract(turn/span+seed.w)-.5)*span;
   if(abs(omega*uCurrent)<1.e-10)turn=0.;
  }
- float ph=seed.z+turn;return vec3(r*s*cos(ph),r*s*sin(ph),r*c);
+ float ph=seed.z+turn;vec3 result=vec3(r*s*cos(ph),r*s*sin(ph),r*c);
+ if(uSliceAxis>0)result+=uSliceNormal*(uSliceHeight-dot(result,uSliceNormal));
+ return result;
 }
 vec3 particleColor(vec3 p,float d){vec2 a=amplitudes(p);return uMode==1?componentPhase(p,uComponent==0?a.x:a.y,uComponent):(uSeparateColors&&uMode==0?componentColor(uComponent):densityColor(colorMetricValue(d,p)));}
 `;
@@ -388,13 +392,15 @@ export class SpectrumRenderer {
   this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(this.canvas);
  }
  setState(partial){
-  const old=this.state,s={...old,...partial};
+  const old=this.state,s={...old,...partial};if(s.randomRotate!==old.randomRotate)this.randomMotion=null;
   if(s.cutView!==old.cutView||!!s.frontView!==!!old.frontView||(['wedge','sector15','custom','slab','radius'].includes(s.cut)&&old.cut!==s.cut)||(s.cut==='slab'&&s.sliceAxis!==old.sliceAxis))Object.assign(this.camera,startingViewOrientation(s,.58,.34));
   s.basis=s.basis==='real'?'real':'complex';s.mode=colorMetrics[colorMetricIndex(s.mode)].id;s.renderStyle=['sculpted','granular'].includes(s.renderStyle)?'granular':'cloud';
   s.separateColors=false;
   s.cut=['none','half','wedge','slice','sector15','custom','slab','radius'].includes(s.cut)?s.cut:'none';delete s.targetFps;delete s.autoTracers;delete s.quality;
   for(const [name,min,max] of [['density',.1,4],['particleAmount',0,4],['speed',.25,4],['cutAngle',0,360],['cutOffset',-.8,.8]])s[name]=spectrumClamp(Number.isFinite(+s[name])?+s[name]:old[name],min,max);
-  for(const name of ['animate','autoRotate','axes','separateColors'])s[name]=!!s[name];this.state=s;s.particleAmount=Math.min(s.renderStyle==='cloud'?.08:4,s.particleAmount);this.updateTracerCeiling(old.particleAmount,s.particleAmount);
+  for(const name of ['animate','autoRotate','randomRotate','axes','separateColors'])s[name]=!!s[name];this.state=s;s.particleAmount=Math.min(s.renderStyle==='cloud'?.08:4,s.particleAmount);this.updateTracerCeiling(old.particleAmount,s.particleAmount);
+    // A moving thin slice retains the requested sample population.
+    if(s.renderStyle==='granular'&&s.cut==='slab')this.activeParticleAmount=s.particleAmount;
   // Each rendering style keeps its own raster quality and tracer ceiling.
   if(s.renderStyle!==old.renderStyle){
    this.styleTiers[old.renderStyle]=this.tier;
@@ -403,7 +409,7 @@ export class SpectrumRenderer {
    this.activeParticleAmount=s.particleAmount;this.lastTracerAdjustment=0;this.limiterRecoveryUntil=0;
   }
   if((s.basis!==old.basis||s.cut!==old.cut||s.cutView!==old.cutView||s.renderStyle!==old.renderStyle)&&this.radialData)this.prepareParticles();
-  if(['animate','mode','renderStyle','basis','particleAmount','autoRotate','separateColors'].some(key=>old[key]!==s[key]))this.resetTiming();
+  if(['animate','mode','renderStyle','basis','particleAmount','autoRotate','randomRotate','separateColors'].some(key=>old[key]!==s[key]))this.resetTiming();
   this.requestDraw();
  }
  setPair(lower,upper){
@@ -432,7 +438,7 @@ export class SpectrumRenderer {
  prepareParticles(){
   this.particleData=[];this.particleCache??=new Map();
   for(const [component,state] of [this.lower,this.upper].entries()){
-   const key=[state.n,state.l,this.state.basis,this.state.basis==='real'?state.m:Math.abs(state.m),this.extent,this.state.cut==='slab'?this.state.cutView:'volume'].join('|');
+   const key=[state.n,state.l,this.state.basis,this.state.basis==='real'?state.m:Math.abs(state.m),this.extent,this.state.cut==='slab'?'slice-seeds':'volume'].join('|');
    const cached=this.particleCache.get(key);if(cached){this.particleData.push(cached);continue;}
    const radialCDF=new Float64Array(spectrumTableSize),angularCDF=new Float64Array(1025),q=Math.abs(state.m);
    let previous=0;
@@ -448,7 +454,7 @@ export class SpectrumRenderer {
     if(this.state.basis==='real'&&state.m){do{phi=random()*Math.PI*2;}while(random()>(state.m>0?Math.cos(state.m*phi):Math.sin(-state.m*phi))**2);}
     const index=i*4;data[index]=r;data[index+1]=c;data[index+2]=phi;data[index+3]=random();
    }
-   if(this.state.cut==='slab')data=sliceParticleSamples({...state,...{basis:this.state.basis,slicePolar:this.state.slicePolar}},this.extent,spectrumMaxParticles*8);
+   if(this.state.cut==='slab')data=sliceRandomSeeds(spectrumMaxParticles*8);
    this.particleData.push(data);this.particleCache.set(key,data);if(this.particleCache.size>4)this.particleCache.delete(this.particleCache.keys().next().value);
   }
   this.uploadParticles();
@@ -498,6 +504,7 @@ export class SpectrumRenderer {
  }
  sharedUniforms(program){
   bindColorMapTexture(this.gl,program);
+  if(this.state.cut==='slab')bindSliceSampling(this.gl,program,[this.lower,this.upper],this.state,this.extent);
   const bounds=this.state.cut==='slab'?sliceColorBounds([this.lower,this.upper],this.state.basis,this.state.mode,this.state.slicePolar??90,this.state.renderStyle):orbitalColorBounds([this.lower,this.upper],this.state.basis,this.state.mode);
   this.uniform(program,'uColorBounds','uniform2f',...bounds.map(x=>this.state.mode==='density-change'?x*(this.maxPopulationRate||1):this.state.cut==='slab'&&this.state.renderStyle!=='granular'&&this.state.mode==='density'?Math.pow(Math.max(0,x),.38):x));
   this.uniform(program,'uPopulationRate','uniform1f',this.populationRate||0);
@@ -511,7 +518,7 @@ export class SpectrumRenderer {
     this.uniform(program,'uCutDegrees','uniform1f',cutDegrees(s));
   this.uniform(program,'uSliceAxis','uniform1i',s.cut==='slab'?(s.sliceAxis==='top'?2:1):0);
   this.uniform(program,'uSliceThickness','uniform1f',.01);
-  this.uniform(program,'uSliceHeight','uniform1f',0);
+  this.uniform(program,'uSliceHeight','uniform1f',-(s.sliceHeight||0));
     this.uniform(program,'uWedgePolar','uniform1f',(s.wedgePolar??90)*Math.PI/180);
     this.uniform(program,'uSliceNormal','uniform3f',...planeCutNormal({planeAzimuth:s.sliceAzimuth??90,planePolar:s.slicePolar??(s.sliceAxis==='top'?0:90)}));
   const refs=this.references.map((value,i)=>value*(s.basis==='real'&&[this.lower,this.upper][i].m?2:1));
@@ -555,12 +562,12 @@ export class SpectrumRenderer {
  }
  hasAnimatedView(){
   const s=this.state;if(!s.animate)return false;
-  return s.autoRotate||s.mode==='phase'||(s.particleAmount>0&&s.basis==='complex'&&((this.population<1&&this.lower.m!==0)||(this.population>0&&this.upper.m!==0)));
+  return s.autoRotate||s.randomRotate||s.mode==='phase'||(s.particleAmount>0&&s.basis==='complex'&&((this.population<1&&this.lower.m!==0)||(this.population>0&&this.upper.m!==0)));
  }
  draw(now){
   if(this.dead||this.error||this.contextLost||!this.visible||document.hidden||!this.dirty)return;this.dirty=false;
   const elapsed=this.lastDraw?Math.max(0,now-this.lastDraw):0,dt=Math.min(elapsed/1000,.1),s=this.state,gl=this.gl,tier=spectrumTiers[this.tier];
-  if(s.animate)this.time+=dt*s.speed;if(s.animate&&s.autoRotate&&!this.pointers.size)this.camera.yaw+=dt*.14;
+  if(s.animate)this.time+=dt*s.speed;if(s.animate&&!this.pointers.size){if(s.randomRotate)this.randomMotion=advanceRandomCamera(this.camera,this.randomMotion,dt);else if(s.autoRotate)this.camera.yaw+=dt*.14;}else this.randomMotion=null;
   const cameraSignature=[this.camera.yaw,this.camera.pitch,this.camera.distance].join('|');
   const cameraMoves=this.lastCameraSignature!==null&&cameraSignature!==this.lastCameraSignature;
   const viewMoves=this.hasAnimatedView(),populationMoves=this.lastDrawPopulation!==null&&this.population!==this.lastDrawPopulation;
@@ -614,6 +621,14 @@ export class SpectrumRenderer {
     if(requested===0)this.activeParticleAmount=0;
   }
   adaptTracers(now,fps,gpu90){
+    // Avoid progressively erasing a slice to chase an FPS target. Its conditional
+    // sampling cost can remain high even after count reductions, and an idle
+    // paused scene provides no recovery measurements.
+    if(this.state.renderStyle==='granular'&&this.state.cut==='slab'){
+      this.activeParticleAmount=this.state.particleAmount;
+      this.healthySince=null;this.slowSince=null;this.limiterRecoveryUntil=0;
+      return;
+    }
     const ceiling=this.state.particleAmount;
     this.activeParticleAmount=Math.min(ceiling,this.activeParticleAmount??ceiling);
     const granular=this.state.renderStyle==='granular';
@@ -651,6 +666,7 @@ export class SpectrumRenderer {
   this.dead=true;cancelAnimationFrame(this.raf);this.raf=0;this.resizeObserver?.disconnect();
   for(const [name,handler] of this.handlers||[])this.canvas.removeEventListener(name,handler);if(this.visibilityHandler)document.removeEventListener('visibilitychange',this.visibilityHandler);
   const gl=this.gl;if(gl&&!this.contextLost){
+   clearSliceSampling(gl);
    for(const program of [this.program,this.copy,this.particle,this.sphere,this.spherePoint,this.axis])if(program)gl.deleteProgram(program);
    for(const buffer of [this.buffer,this.axisBuffer,...(this.particleBuffers||[])])if(buffer)gl.deleteBuffer(buffer);
    for(const vao of [this.vao,this.copyVAO,this.axisVAO,...(this.particleVAOs||[]),...(this.sphereVAOs||[]),...(this.spherePointVAOs||[])])if(vao)gl.deleteVertexArray(vao);

@@ -1,3 +1,4 @@
+import { bindSliceHeightControls } from './renderer.js';
 import { SpectrumRenderer } from './spectrum-renderer.js';
 import { cutDegrees, colorScale, colorMetrics, colorMetricIndex, densityPalette, phasePalette, colorMaps, colorMapIndex } from './renderer.js';
 import { getSpectralLines, getSubshellPairs, getChannels, transitionStrength } from './transitions.js';
@@ -24,11 +25,11 @@ export function initSpectrum(){
  let transitionRate=1,sigma=1,filterOrbital=null;
  let series=0,cycle=0,playing=true,visible=false,previousTime=null,raf=0,renderer=null;
  let currentLine=null,currentSubshell=null,currentChannel=null,stateFilter=null,qFilter='all',lastUiTime=0,engineFailed=false;
- const view={basis:'complex',mode:'density',logScale:false,colorMap:'atlas',renderStyle:'granular',cut:'custom',cutDegrees:180,wedgePolar:90,cutView:'front',frontView:true,cutAngle:0,cutOffset:0,density:2,particleAmount:4,speed:.25,animate:true,autoRotate:false,axes:false};
+ const view={basis:'complex',mode:'density',logScale:false,colorMap:'atlas',renderStyle:'granular',cut:'custom',cutDegrees:180,wedgePolar:0,cutView:'angled',frontView:true,cutAngle:0,cutOffset:0,density:2,particleAmount:4,speed:.25,animate:true,autoRotate:false,randomRotate:false,axes:false};
  // Basis and color mode are shared; Cloud and Granular retain their other presets.
- const modeSettingKeys=['cut','cutView','cutDegrees','sliceThickness','sliceHeight','sliceAxis','wedgePolar','sliceAzimuth','slicePolar','radiusLimit','planeAzimuth','planePolar','density','particleAmount','speed','autoRotate','axes'];
- const defaultModeSettings={cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:0,speed:.5,animate:true,autoRotate:false,axes:false};
- const modeSettings={cloud:{...defaultModeSettings},granular:{...defaultModeSettings,cut:'custom',cutDegrees:180,wedgePolar:90,cutView:'front',frontView:true,density:2,particleAmount:4,speed:.25}};
+ const modeSettingKeys=['cut','cutView','cutDegrees','sliceThickness','sliceHeight','sliceAxis','wedgePolar','sliceAzimuth','slicePolar','radiusLimit','planeAzimuth','planePolar','density','particleAmount','speed','autoRotate','randomRotate','axes'];
+ const defaultModeSettings={cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:0,speed:.5,animate:true,autoRotate:false,randomRotate:false,axes:false};
+ const modeSettings={cloud:{...defaultModeSettings},granular:{...defaultModeSettings,cut:'custom',cutDegrees:180,wedgePolar:0,cutView:'angled',frontView:true,density:2,particleAmount:4,speed:.25}};
  const lastPositiveTracers={cloud:.02,granular:4};
  const flowSpeeds=[.25,.5,1,2,4],flowSpeedLabels=['¼×','½×','1×','2×','4×'];
  const nearestFlowSpeed=value=>flowSpeeds.reduce((best,speed)=>Math.abs(speed-value)<Math.abs(best-value)?speed:best,flowSpeeds[0]);
@@ -149,6 +150,7 @@ export function initSpectrum(){
   element('view-label').textContent=(real?'REAL-BASIS PREVIEW':'COMPLEX')+' · '+(phase?'COMPONENT PHASE':granular?'GRANULAR DENSITY':'DENSITY CLOUD');
   element('density').min=0;element('density').max=4;element('density').step=1;element('density').value=flowSpeeds.indexOf(view.density);element('density').setAttribute('aria-valuetext',view.density+'×');element('density-value').value=flowSpeedLabels[flowSpeeds.indexOf(view.density)];
   element('look-inside').hidden=false;
+ view.syncSliceHeight?.();
  const isWhole=view.cut==='none',isSlice=view.cut==='slab',isTop=view.cutView==='top';
  for(const [id,active] of [['whole-mode',isWhole],['hemisphere-mode',!isSlice&&!isWhole],['slice-mode',isSlice],['view-front',!isTop&&view.cutView!=='angled'],['view-angled',view.cutView==='angled'],['view-top',isTop]]){element(id).classList.toggle('selected',active);element(id).setAttribute('aria-pressed',String(active));}
 
@@ -157,7 +159,7 @@ export function initSpectrum(){
   const speedIndex=flowSpeeds.indexOf(view.speed);
   element('speed').min=0;element('speed').max=4;element('speed').step=1;element('speed').value=speedIndex;element('speed-value').value=flowSpeedLabels[speedIndex];
   element('speed').setAttribute('aria-valuetext',view.speed+' times speed');
-  element('auto-rotate').checked=view.autoRotate;element('show-axes').checked=view.axes;
+  element('auto-rotate').checked=view.autoRotate;element('random-rotate').checked=!!view.randomRotate;element('show-axes').checked=view.axes;
   const metric=colorMetrics[colorMetricIndex(view.mode)];
   element('log-scale').disabled=['phase','contribution','density-change'].includes(view.mode);element('log-scale').checked=!!view.logScale&&!['phase','contribution','density-change'].includes(view.mode);element('color-metric').value=metric.id;
   element('legend-title').textContent=metric.name.toUpperCase()+((view.logScale&&!['phase','contribution','density-change'].includes(view.mode))?' · LOG':'');element('legend-low').textContent=metric.id==='phase'?metric.low:'1% mass';element('legend-high').textContent=metric.id==='phase'?metric.high:'99% mass';
@@ -174,10 +176,11 @@ export function initSpectrum(){
   if('colorMap' in partial)next.colorMap=colorMaps[colorMapIndex(partial.colorMap)].id;
   const paletteChanged=('logScale' in partial&&partial.logScale!==view.logScale)||('mode' in partial&&partial.mode!==view.mode)||('colorMap' in next&&next.colorMap!==view.colorMap);
   for(const [key,values] of Object.entries({basis:['complex','real'],mode:colorMetrics.map(m=>m.id),renderStyle:['cloud','granular'],cut:['none','half','wedge','slice','sector15','custom','slab','radius']}))if(values.includes(partial[key]))next[key]=partial[key];
+  if(typeof partial.sliceSweep==='boolean')next.sliceSweep=partial.sliceSweep;
   for(const [key,range] of Object.entries({density:[.25,4],sliceThickness:[.01,1],sliceHeight:[-1,1],radiusLimit:[0,1],planeAzimuth:[0,360],planePolar:[0,90],wedgePolar:[0,90],slicePolar:[0,90],sliceAzimuth:[0,360],cutDegrees:[0,345],cutAngle:[0,360],cutOffset:[-.8,.8],particleAmount:[0,4],speed:[.25,4]}))if(typeof partial[key]==='number'&&Number.isFinite(partial[key]))next[key]=Math.max(range[0],Math.min(range[1],partial[key]));
   if('speed' in next)next.speed=nearestFlowSpeed(next.speed);
   if('cutAngle' in next)next.cutAngle=Math.round(next.cutAngle);
-  for(const key of ['logScale','autoRotate','axes','frontView'])if(typeof partial[key]==='boolean')next[key]=partial[key];
+  for(const key of ['logScale','autoRotate','randomRotate','axes','frontView'])if(typeof partial[key]==='boolean')next[key]=partial[key];
   const nextStyle=next.renderStyle||view.renderStyle;
    if(nextStyle!==view.renderStyle){
    for(const key of modeSettingKeys)modeSettings[view.renderStyle][key]=view[key];
@@ -191,7 +194,7 @@ export function initSpectrum(){
    lastPerformance=null;
   }
   if(Number.isFinite(next.density))next.density=Math.max(.2,Math.min(4,next.density));
- Object.assign(view,next,{animate:true});view.cutView=['top','angled'].includes(view.cutView)?view.cutView:'front';view.cut=['none','slab'].includes(view.cut)?view.cut:'custom';view.cutDegrees=180;view.sliceThickness=.01;view.sliceHeight=0;view.cutAngle=0;view.wedgePolar=view.cutView==='top'?0:view.cutView==='angled'?45:90;view.slicePolar=view.wedgePolar;view.sliceAzimuth=90;view.planePolar=Math.max(0,Math.min(90,Number.isFinite(view.planePolar)?view.planePolar:90));basisStyles[view.basis]=view.renderStyle;renderer?.setState({...view});syncView();if(paletteChanged&&currentChannel)drawShapes();window.orbitalSharedSettings?.publish('spectra',view);return {...view};
+ Object.assign(view,next,{animate:true});view.cutView=['top','angled'].includes(view.cutView)?view.cutView:'front';view.cut=['none','slab'].includes(view.cut)?view.cut:'custom';view.cutDegrees=180;view.sliceThickness=.01;view.sliceHeight=Math.max(-1,Math.min(1,view.sliceHeight||0));if(view.cut!=='slab')view.sliceSweep=false;view.cutAngle=0;view.wedgePolar=view.cutView==='front'?90:0;view.slicePolar=view.wedgePolar;view.sliceAzimuth=90;view.planePolar=Math.max(0,Math.min(90,Number.isFinite(view.planePolar)?view.planePolar:90));basisStyles[view.basis]=view.renderStyle;renderer?.setState({...view});syncView();if(paletteChanged&&currentChannel)drawShapes();window.orbitalSharedSettings?.publish('spectra',view);return {...view};
  }
  function reportViewStats(info={}){
   element('status').hidden=true;
@@ -413,8 +416,10 @@ export function initSpectrum(){
   window.orbitalPages?.go('spectra',{scroll:false});selectLine(chosen.line.lowerN,chosen.line.upperN,chosen.channel.id);window.orbitalPages?.revealViewer('spectra');return true;
  }
  function clearStateFilter(){finishLineDrag();stateFilter=null;updateStateFilter();selectLine(currentLine.lowerN,currentLine.upperN,currentChannel.id);}
+const syncSliceHeight=bindSliceHeightControls(element,()=>view,setView,()=>visible);
+view.syncSliceHeight=syncSliceHeight;syncSliceHeight();
 function chooseCutView(shape,direction){
- const top=direction==='top',polar=top?0:direction==='angled'?45:90;
+ const top=direction!=='front',polar=top?0:90;
  setView({cut:shape==='whole'?'none':shape==='slice'?'slab':'custom',cutDegrees:180,cutView:direction,cutAngle:0,wedgePolar:polar,sliceAxis:top?'top':'side',sliceAzimuth:90,slicePolar:polar,frontView:true});
  renderer?.alignCutView();
 }
@@ -431,7 +436,8 @@ element('color-metric').addEventListener('change',event=>setView({mode:event.tar
  element('speed').addEventListener('input',event=>setView({speed:flowSpeeds[+event.target.value]}));
  element('tracers-enabled').addEventListener('change',event=>setView({particleAmount:event.target.checked?lastPositiveTracers[view.renderStyle]:0}));
 element('particle-amount').addEventListener('input',event=>setView({particleAmount:flowSpeeds[+event.target.value]/(view.renderStyle==='cloud'?50:1)}));
- element('auto-rotate').addEventListener('change',event=>setView({autoRotate:event.target.checked}));
+ element('auto-rotate').addEventListener('change',event=>setView({autoRotate:event.target.checked,randomRotate:false}));
+element('random-rotate').addEventListener('change',e=>setView({randomRotate:e.target.checked,autoRotate:false}));
  element('show-axes').addEventListener('change',event=>setView({axes:event.target.checked}));
  element('fullscreen').addEventListener('click',async()=>{
   try{

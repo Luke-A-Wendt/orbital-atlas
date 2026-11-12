@@ -453,3 +453,21 @@ body select:focus-visible,.color-map-picker>summary:focus-visible{outline:2px so
 .workspace .controls .cut-options,.spectrum-controls .cut-options{display:grid;grid-template-columns:repeat(5,minmax(0,1fr))}
 
 .cut-kind,.slice-direction{display:flex;gap:3px}.cut-kind button,.slice-direction button{flex:1;min-width:0;padding:9px 6px;font-size:11px}.cut-kind{margin-bottom:10px}.slice-direction{margin-top:12px}
+
+/* Compact view header and contiguous view-choice rows. */
+.workspace .controls .viewer-controls-heading,.spectrum-controls .viewer-controls-heading{display:flex;align-items:center;gap:6px;min-height:32px}
+.viewer-controls-heading>.section-label{margin-right:auto!important}
+body select.viewer-header-preset{width:150px;max-width:calc(100% - 75px);min-width:0;min-height:28px!important;height:28px;padding:4px 6px!important;flex:0 1 150px}
+.viewer-controls-heading>.settings-gear{flex:0 0 32px;margin:0}
+.workspace .controls .basis-section,.spectrum-controls>.spectrum-states{margin-bottom:0;padding-bottom:0}
+.workspace .controls .basis-switch,.spectrum-controls .spectrum-basis-control>.segmented{margin-bottom:0}
+.workspace .controls #look-inside,.spectrum-controls #spectrum-look-inside{margin-top:0;padding-top:0}
+.workspace .controls #look-inside>.segmented,.spectrum-controls #spectrum-look-inside>.segmented{margin-top:0;margin-bottom:0}
+
+.slice-height-controls {padding:14px 0 4px}
+.slice-height-controls[hidden] {display:none!important}
+.slice-height-heading {display:flex;align-items:center;gap:12px;font-size:12px;color:#a6b3bc}
+.slice-height-heading output {margin-left:auto}
+.slice-height-heading button {font:inherit;color:#b7d5ef;background:#1b2228;border:1px solid #394651;border-radius:5px;padding:5px 12px;min-width:58px}
+.slice-height-controls input {width:100%;margin:14px 0 8px}
+.slice-height-ends {display:flex;justify-content:space-between;font-size:10px;color:#8195a5}

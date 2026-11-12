@@ -1,4 +1,4 @@
-import { cutDegrees, physicalColorMetric, weightedColorBounds, colorMapGroups, colorScale, colorMetrics, colorMetricIndex, colorMetricValue, thumbnailPhase, OrbitalRenderer, densityAt, orbitalExtent, densityPalette, phasePalette, colorMaps, colorMapIndex } from './renderer.js?v=7';
+import { bindSliceHeightControls, cutDegrees, physicalColorMetric, weightedColorBounds, colorMapGroups, colorScale, colorMetrics, colorMetricIndex, colorMetricValue, thumbnailPhase, OrbitalRenderer, densityAt, orbitalExtent, densityPalette, phasePalette, colorMaps, colorMapIndex } from './renderer.js?v=7';
 import { initSpectrum } from './spectrum.js';
 import { initPageNavigation, showMathTopic } from './pages.js';
 
@@ -7,11 +7,11 @@ const mathFragments = window.OrbitalMathFragments || {};
 const mathHTML = key => mathFragments[key] || key;
 document.querySelectorAll('[data-math]').forEach(element => { element.innerHTML = mathHTML(element.dataset.math); });
 const family = ['s','p','d','f','g','h'];
-const state = {n:6,l:3,m:1,basis:'complex',mode:'density',logScale:false,colorMap:'atlas',renderStyle:'granular',cut:'custom',cutDegrees:180,wedgePolar:90,cutView:'front',frontView:true,cutAngle:0,cutOffset:0,density:2,particleAmount:4,speed:.25,animate:true,autoRotate:false,axes:false};
+const state = {n:6,l:3,m:1,basis:'complex',mode:'density',logScale:false,colorMap:'atlas',renderStyle:'granular',cut:'custom',cutDegrees:180,wedgePolar:0,cutView:'angled',frontView:true,cutAngle:0,cutOffset:0,density:2,particleAmount:4,speed:.25,animate:true,autoRotate:false,randomRotate:false,axes:false};
 // Basis and color are shared across Cloud and Granular; scene controls retain their presets.
-const modeSettingKeys=['cut','cutView','cutDegrees','sliceThickness','sliceHeight','sliceAxis','wedgePolar','sliceAzimuth','slicePolar','radiusLimit','planeAzimuth','planePolar','density','particleAmount','speed','autoRotate','axes'];
- const defaultModeSettings={basis:'complex',mode:'density',cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:.02,speed:.5,animate:true,autoRotate:false,axes:false};
- const modeSettings={cloud:{...defaultModeSettings},granular:{...defaultModeSettings,cut:'custom',cutDegrees:180,wedgePolar:90,cutView:'front',frontView:true,density:2,particleAmount:4,speed:.25}};
+const modeSettingKeys=['cut','cutView','cutDegrees','sliceThickness','sliceHeight','sliceAxis','wedgePolar','sliceAzimuth','slicePolar','radiusLimit','planeAzimuth','planePolar','density','particleAmount','speed','autoRotate','randomRotate','axes'];
+ const defaultModeSettings={basis:'complex',mode:'density',cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:.02,speed:.5,animate:true,autoRotate:false,randomRotate:false,axes:false};
+ const modeSettings={cloud:{...defaultModeSettings},granular:{...defaultModeSettings,cut:'custom',cutDegrees:180,wedgePolar:0,cutView:'angled',frontView:true,density:2,particleAmount:4,speed:.25}};
  const lastPositiveTracers={cloud:.02,granular:4};
  const basisStyles={real:'granular',complex:'granular'};
  const initializedBases=new Set([state.basis]);
@@ -90,7 +90,7 @@ function update(partial){
   lastPerformance=null;
  }
   if(Number.isFinite(partial.density))partial.density=Math.max(.2,Math.min(4,partial.density));
- Object.assign(state,partial,{animate:true});state.cutView=['top','angled'].includes(state.cutView)?state.cutView:'front';state.cut=['none','slab'].includes(state.cut)?state.cut:'custom';state.cutDegrees=180;state.sliceThickness=.01;state.sliceHeight=0;state.cutAngle=0;state.wedgePolar=state.cutView==='top'?0:state.cutView==='angled'?45:90;state.slicePolar=state.wedgePolar;state.sliceAzimuth=90;state.planePolar=Math.max(0,Math.min(90,Number.isFinite(state.planePolar)?state.planePolar:90));basisStyles[state.basis]=state.renderStyle;state.n=Math.round(Math.max(1,Math.min(6,state.n)));state.l=Math.round(Math.max(0,Math.min(state.n-1,state.l)));state.m=Math.round(Math.max(-state.l,Math.min(state.l,state.m)));
+ Object.assign(state,partial,{animate:true});state.cutView=['top','angled'].includes(state.cutView)?state.cutView:'front';state.cut=['none','slab'].includes(state.cut)?state.cut:'custom';state.cutDegrees=180;state.sliceThickness=.01;state.sliceHeight=Math.max(-1,Math.min(1,state.sliceHeight||0));if(state.cut!=='slab')state.sliceSweep=false;state.cutAngle=0;state.wedgePolar=state.cutView==='front'?90:0;state.slicePolar=state.wedgePolar;state.sliceAzimuth=90;state.planePolar=Math.max(0,Math.min(90,Number.isFinite(state.planePolar)?state.planePolar:90));basisStyles[state.basis]=state.renderStyle;state.n=Math.round(Math.max(1,Math.min(6,state.n)));state.l=Math.round(Math.max(0,Math.min(state.n-1,state.l)));state.m=Math.round(Math.max(-state.l,Math.min(state.l,state.m)));
  if(!renderer?.error)renderer?.setState(state);
  sync();
  if(paletteChanged){thumbs.clear();document.querySelectorAll('.atlas-card').forEach(card=>{const [n,l,m]=card.dataset.state.split(',').map(Number);card.querySelector('img').src=thumbnail(n,l,m);});}
@@ -128,14 +128,14 @@ function sync(){
  else description=m?'A wave wrapped around the axis.<br>Probability flows through a steady cloud.':'A standing wave along the axis.<br>A cloud with zero probability current.';
  $('energy').textContent=`−${(13.605693/(n*n)).toFixed(3)} eV`;$('radial-nodes').textContent=radial;
  setSelected('[data-basis]','basis');setSelected('[data-mode]','mode');setSelected('[data-cut]','cut');setSelected('[data-render-style]','renderStyle');
- $('look-inside').hidden=false;
+ $('look-inside').hidden=false;state.syncSliceHeight?.();
  const isWhole=state.cut==='none',isSlice=state.cut==='slab',isTop=state.cutView==='top';
  for(const [id,active] of [['whole-mode',isWhole],['hemisphere-mode',!isSlice&&!isWhole],['slice-mode',isSlice],['view-front',!isTop&&state.cutView!=='angled'],['view-angled',state.cutView==='angled'],['view-top',isTop]]){$(id).classList.toggle('selected',active);$(id).setAttribute('aria-pressed',String(active));}
  $('density').min=0;$('density').max=4;$('density').step=1;$('density').value=flowSpeeds.indexOf(state.density);$('density').setAttribute('aria-valuetext',state.density+'×');$('density-value').value=flowLabels[flowSpeeds.indexOf(state.density)];
  $('flow-control').hidden=basis==='real';$('flow-control').parentElement.dataset.flowVisible=String(basis==='complex');
  const flowIndex=flowSpeeds.indexOf(state.speed);$('speed').value=flowIndex;$('speed-value').value=flowLabels[flowIndex];$('speed').setAttribute('aria-valuetext',flowLabels[flowIndex]+' flow speed');
  syncPerformance();
- $('auto-rotate').checked=state.autoRotate;$('show-axes').checked=state.axes;
+ $('auto-rotate').checked=state.autoRotate;$('random-rotate').checked=!!state.randomRotate;$('show-axes').checked=state.axes;
  const metric=colorMetrics[colorMetricIndex(state.mode)];
  $('log-scale').disabled=state.mode==='phase';$('log-scale').checked=!!state.logScale&&state.mode!=='phase';$('color-metric').value=metric.id;
  $('legend-title').textContent=metric.name.toUpperCase()+((state.logScale&&state.mode!=='phase')?' · LOG':'');$('legend-low').textContent=metric.id==='phase'?metric.low:'1% mass';$('legend-high').textContent=metric.id==='phase'?metric.high:'99% mass';
@@ -143,8 +143,10 @@ function sync(){
 }
 for(const name of ['n','l','m'])$(name+'-select').addEventListener('change',e=>update({[name]:+e.target.value}));
 document.querySelectorAll('[data-render-style]').forEach(b=>b.addEventListener('click',()=>update({renderStyle:b.dataset.renderStyle})));
+const syncSliceHeight=bindSliceHeightControls($,()=>state,update,()=>!!renderer&&!renderer.suspended);
+state.syncSliceHeight=syncSliceHeight;syncSliceHeight();
 function chooseCutView(shape,direction){
- const top=direction==='top',polar=top?0:direction==='angled'?45:90;
+ const top=direction!=='front',polar=top?0:90;
  update({cut:shape==='whole'?'none':shape==='slice'?'slab':'custom',cutDegrees:180,cutView:direction,cutAngle:0,wedgePolar:polar,sliceAxis:top?'top':'side',sliceAzimuth:90,slicePolar:polar,frontView:true});
  renderer?.alignCutView();
 }
@@ -160,7 +162,8 @@ for(const key of ['basis','mode','cut'])document.querySelectorAll(`[data-${key}]
 for(const [id,key] of [['density','density']])$(id).addEventListener('input',e=>update({[key]:key==='density'?flowSpeeds[+e.target.value]:+e.target.value}));
 $('tracers-enabled').addEventListener('change',e=>update({particleAmount:e.target.checked?lastPositiveTracers[state.renderStyle]:0}));
 $('particle-amount').addEventListener('input',e=>update({particleAmount:flowSpeeds[+e.target.value]/(state.renderStyle==='cloud'?50:1)}));
-$('auto-rotate').addEventListener('change',e=>update({autoRotate:e.target.checked}));
+$('auto-rotate').addEventListener('change',e=>update({autoRotate:e.target.checked,randomRotate:false}));
+$('random-rotate').addEventListener('change',e=>update({randomRotate:e.target.checked,autoRotate:false}));
 $('show-axes').addEventListener('change',e=>update({axes:e.target.checked}));
 $('zoom-in').addEventListener('click',()=>renderer?.zoomBy(.86));$('zoom-out').addEventListener('click',()=>renderer?.zoomBy(1.16));
 $('speed').addEventListener('input',e=>update({speed:flowSpeeds[Math.max(0,Math.min(4,Math.round(+e.target.value)))]}));
@@ -252,7 +255,7 @@ document.querySelectorAll('[data-settings-target]').forEach(button=>{
 
 // Gear values are shared; basis, cutaway preset and selected states remain local.
 {
- const keys=['logScale','renderStyle','mode','colorMap','density','particleAmount','speed','cutAngle','cutOffset','autoRotate','axes'];
+ const keys=['logScale','renderStyle','mode','colorMap','density','particleAmount','speed','cutAngle','cutOffset','autoRotate','randomRotate','axes'];
  let applying=false;const lastModes={};
  window.orbitalSharedSettings={publish(source,values){
   if(applying)return;
@@ -294,15 +297,15 @@ initColorMapPickers();
 
 // Presets are explicit actions; subsequent manual changes remain editable.
 const viewPresets=[
- ['Blue sculpture · default',{basis:'complex',renderStyle:'granular',colorMap:'atlas',cut:'custom',cutDegrees:180,wedgePolar:90,cutView:'front',frontView:true,particleAmount:4,density:2,speed:.25}],
- ['Geo currents',{basis:'complex',renderStyle:'cloud',mode:'density',logScale:false,colorMap:'geo',cut:'none',cutDegrees:180,wedgePolar:45,cutView:'angled',frontView:true,particleAmount:.08,density:4,speed:4,autoRotate:false,axes:false},1],
+ ['Blue Granular · default',{basis:'complex',renderStyle:'granular',mode:'density',logScale:false,colorMap:'atlas',cut:'custom',cutDegrees:180,wedgePolar:0,cutView:'angled',frontView:true,particleAmount:4,density:2,speed:.25}],
+ ['Geo Cloud',{basis:'complex',renderStyle:'cloud',mode:'density',logScale:false,colorMap:'geo',cut:'custom',cutDegrees:180,wedgePolar:0,cutView:'angled',frontView:true,particleAmount:.08,density:4,speed:4,autoRotate:false,randomRotate:false,axes:false},1],
 ];
 document.querySelectorAll('.view-preset').forEach(select=>{
  viewPresets.forEach(([name],index)=>select.append(option(index,name)));
  select.addEventListener('change',()=>{
   if(select.value==='')return;
   const [,values,rate=1]=viewPresets[+select.value];
-  const settings={cutView:'front',slicePolar:90,sliceAzimuth:90,mode:'density',speed:1,cutAngle:0,cutOffset:0,autoRotate:false,axes:false,frontView:false,...values};
+  const settings={cutView:'angled',slicePolar:0,sliceAzimuth:90,mode:'density',logScale:false,speed:1,cutAngle:0,cutOffset:0,autoRotate:false,randomRotate:false,axes:false,frontView:false,...values};
   // A preset establishes the same starting view on both pages, including
   // basis and cut. Later manual view changes can still be page-specific.
   update(settings);

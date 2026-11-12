@@ -1017,6 +1017,24 @@ body select:focus-visible,.color-map-picker>summary:focus-visible{outline:2px so
 
 .cut-kind,.slice-direction{display:flex;gap:3px}.cut-kind button,.slice-direction button{flex:1;min-width:0;padding:9px 6px;font-size:11px}.cut-kind{margin-bottom:10px}.slice-direction{margin-top:12px}
 
+/* Compact view header and contiguous view-choice rows. */
+.workspace .controls .viewer-controls-heading,.spectrum-controls .viewer-controls-heading{display:flex;align-items:center;gap:6px;min-height:32px}
+.viewer-controls-heading>.section-label{margin-right:auto!important}
+body select.viewer-header-preset{width:150px;max-width:calc(100% - 75px);min-width:0;min-height:28px!important;height:28px;padding:4px 6px!important;flex:0 1 150px}
+.viewer-controls-heading>.settings-gear{flex:0 0 32px;margin:0}
+.workspace .controls .basis-section,.spectrum-controls>.spectrum-states{margin-bottom:0;padding-bottom:0}
+.workspace .controls .basis-switch,.spectrum-controls .spectrum-basis-control>.segmented{margin-bottom:0}
+.workspace .controls #look-inside,.spectrum-controls #spectrum-look-inside{margin-top:0;padding-top:0}
+.workspace .controls #look-inside>.segmented,.spectrum-controls #spectrum-look-inside>.segmented{margin-top:0;margin-bottom:0}
+
+.slice-height-controls {padding:14px 0 4px}
+.slice-height-controls[hidden] {display:none!important}
+.slice-height-heading {display:flex;align-items:center;gap:12px;font-size:12px;color:#a6b3bc}
+.slice-height-heading output {margin-left:auto}
+.slice-height-heading button {font:inherit;color:#b7d5ef;background:#1b2228;border:1px solid #394651;border-radius:5px;padding:5px 12px;min-width:58px}
+.slice-height-controls input {width:100%;margin:14px 0 8px}
+.slice-height-ends {display:flex;justify-content:space-between;font-size:10px;color:#8195a5}
+
 </style>
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; font-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
 </head>
@@ -1044,10 +1062,10 @@ body select:focus-visible,.color-map-picker>summary:focus-visible{outline:2px so
   </div>
   <aside class="controls" aria-label="Orbital controls">
 
- <section class="control-section basis-section"><div class="settings-heading viewer-controls-heading"><span class="section-label">VIEW</span><button class="settings-gear" type="button" data-settings-target="viewer-settings" aria-controls="viewer-settings" aria-expanded="false" aria-label="Orbital settings" title="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.000 12.000L19.932 13.044L21.659 14.588L21.239 15.827L18.928 16.000L18.347 16.870L17.657 17.657L16.870 18.347L17.000 20.660L15.827 21.239L14.071 19.727L13.044 19.932L12.000 20.000L10.956 19.932L9.412 21.659L8.173 21.239L8.000 18.928L7.130 18.347L6.343 17.657L5.653 16.870L3.340 17.000L2.761 15.827L4.273 14.071L4.068 13.044L4.000 12.000L4.068 10.956L2.341 9.412L2.761 8.173L5.072 8.000L5.653 7.130L6.343 6.343L7.130 5.653L7.000 3.340L8.173 2.761L9.929 4.273L10.956 4.068L12.000 4.000L13.044 4.068L14.588 2.341L15.827 2.761L16.000 5.072L16.870 5.653L17.657 6.343L18.347 7.130L20.660 7.000L21.239 8.173L19.727 9.929L19.932 10.956Z"/><circle cx="12" cy="12" r="3"/></svg></button></div><div class="basis-switch segmented" aria-label="Orbital basis"><button data-basis="real">Real</button><button class="selected" data-basis="complex">Complex</button></div></section>
- <section class="control-section cut-section" id="look-inside" aria-label="Look inside"><div class="segmented" role="group" aria-label="Cut shape"><button id="whole-mode" type="button">Whole</button><button id="hemisphere-mode" type="button">Hemisphere</button><button id="slice-mode" type="button">Slice</button></div><div class="segmented slice-direction" role="group" aria-label="Viewing direction"><button id="view-front" type="button">Front</button><button id="view-angled" type="button" title="45° view">Angled</button><button id="view-top" type="button">Top down</button></div></section><div class="viewer-links"><button class="quantum-help" data-open-atlas><span>Orbit</span> <span class="viewer-link-arrow" aria-hidden="true">↓</span></button><button class="quantum-help state-transitions" id="state-transitions"><span>Spectra</span> <svg class="viewer-link-arrow" aria-hidden="true" viewBox="0 0 16 16"><path d="M3 13 13 3M4 3h9v9"/></svg></button><button class="viewer-jump" data-open-math><span>Math</span> <svg class="viewer-link-arrow" aria-hidden="true" viewBox="0 0 16 16"><path d="M3 13 13 3M4 3h9v9"/></svg></button></div>
+ <section class="control-section basis-section"><div class="settings-heading viewer-controls-heading"><span class="section-label">VIEW</span><select class="view-preset viewer-header-preset" aria-label="View preset"><option value="">Choose a preset</option></select><button class="settings-gear" type="button" data-settings-target="viewer-settings" aria-controls="viewer-settings" aria-expanded="false" aria-label="Orbital settings" title="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.000 12.000L19.932 13.044L21.659 14.588L21.239 15.827L18.928 16.000L18.347 16.870L17.657 17.657L16.870 18.347L17.000 20.660L15.827 21.239L14.071 19.727L13.044 19.932L12.000 20.000L10.956 19.932L9.412 21.659L8.173 21.239L8.000 18.928L7.130 18.347L6.343 17.657L5.653 16.870L3.340 17.000L2.761 15.827L4.273 14.071L4.068 13.044L4.000 12.000L4.068 10.956L2.341 9.412L2.761 8.173L5.072 8.000L5.653 7.130L6.343 6.343L7.130 5.653L7.000 3.340L8.173 2.761L9.929 4.273L10.956 4.068L12.000 4.000L13.044 4.068L14.588 2.341L15.827 2.761L16.000 5.072L16.870 5.653L17.657 6.343L18.347 7.130L20.660 7.000L21.239 8.173L19.727 9.929L19.932 10.956Z"/><circle cx="12" cy="12" r="3"/></svg></button></div><div class="basis-switch segmented" aria-label="Orbital basis"><button data-basis="real">Real</button><button class="selected" data-basis="complex">Complex</button></div></section>
+ <section class="control-section cut-section" id="look-inside" aria-label="Look inside"><div class="segmented" role="group" aria-label="Cut shape"><button id="whole-mode" type="button">Whole</button><button id="hemisphere-mode" type="button">Hemisphere</button><button id="slice-mode" type="button">Slice</button></div><div class="segmented slice-direction" role="group" aria-label="Viewing direction"><button id="view-front" type="button">Front</button><button id="view-angled" type="button" title="25° view">Angled</button><button id="view-top" type="button">Top down</button></div><div class="slice-height-controls" id="slice-height-controls" hidden><div class="slice-height-heading"><label for="slice-height">Height</label><output id="slice-height-value">0%</output><button type="button" id="slice-play" aria-label="Play slice sweep" aria-pressed="false">Play</button></div><input id="slice-height" type="range" min="-100" max="100" step="1" value="0" aria-label="Slice height"><div class="slice-height-ends"><span id="slice-start">Front</span><span id="slice-end">Back</span></div></div></section><div class="viewer-links"><button class="quantum-help" data-open-atlas><span>Orbit</span> <span class="viewer-link-arrow" aria-hidden="true">↓</span></button><button class="quantum-help state-transitions" id="state-transitions"><span>Spectra</span> <svg class="viewer-link-arrow" aria-hidden="true" viewBox="0 0 16 16"><path d="M3 13 13 3M4 3h9v9"/></svg></button><button class="viewer-jump" data-open-math><span>Math</span> <svg class="viewer-link-arrow" aria-hidden="true" viewBox="0 0 16 16"><path d="M3 13 13 3M4 3h9v9"/></svg></button></div>
  <details class="viewer-settings cut-more-options" id="viewer-settings"><summary hidden>Settings</summary><div class="viewer-settings-content">
-<section class="settings-group preset-settings"><label class="slider-label">Preset<select class="view-preset" aria-label="View preset"><option value="">Choose a preset</option></select></label></section>
+
 <section class="control-section orbital-flow-control" id="flow-control" aria-label="Flow speed">
  <div class="flow-speed-heading"><label class="section-label" for="speed">FLOW SPEED</label><output id="speed-value" for="speed" hidden>2×</output></div>
  <input id="speed" type="range" min="0" max="4" value="3" step="1" aria-label="Flow speed">
@@ -1055,7 +1073,7 @@ body select:focus-visible,.color-map-picker>summary:focus-visible{outline:2px so
 </section>
 <section class="settings-group"><h3>Quantum state</h3><div class="quantum-inputs"><label><span><strong class="quantum-symbol" data-math="bold_n">n</strong><span class="quantum-description">Shell</span></span><select id="n-select" aria-label="Principal quantum number n"></select></label><label><span><strong class="quantum-symbol" data-math="bold_ell">ℓ</strong><span class="quantum-description">Shape</span></span><select id="l-select" aria-label="Orbital quantum number l"></select></label><label><span><strong class="quantum-symbol" data-math="bold_m">m</strong><span class="quantum-description">State</span></span><select id="m-select" aria-label="Magnetic quantum number m"></select></label></div><button class="quantum-help" data-open-math>About these numbers ↗</button></section>
 <section class="settings-group"><h3>Appearance</h3><div class="appearance-choices"><div class="segmented render-style" role="group" aria-label="Rendering style"><button data-render-style="cloud">Cloud</button><button class="selected" data-render-style="granular">Granular</button></div><label class="color-metric-field" for="color-metric"><span class="slider-label">Color by</span><select id="color-metric"><option value="density">Probability density</option><option value="phase">Wavefunction phase</option><option value="current">Probability current</option><option value="radial-probability">Radial probability</option><option value="gradient">Density gradient</option></select></label><label class="toggle-line" for="log-scale"><span>Log scale</span><input id="log-scale" type="checkbox" role="switch"></label></div><div class="color-map-field"><span class="slider-label">Color map</span><details class="color-map-picker" data-color-map-picker="orbits"><summary aria-label="Choose color map"><span class="color-map-name">Blue</span><span class="color-map-swatch color-map-current" aria-hidden="true"></span></summary><div class="color-map-options" role="group" aria-label="Color maps"></div></details></div><div class="tracer-controls"><label class="toggle-line" for="tracers-enabled"><span>Tracers</span><input type="checkbox" id="tracers-enabled" role="switch" checked></label><label class="slider-label" for="particle-amount">Tracer amount <output id="particle-amount-value" hidden>2×</output></label><input id="particle-amount" type="range" min="0" max="4" value="2" step="1" aria-label="Tracer amount"><div class="speed-ticks" aria-hidden="true"><span>¼</span><span>½</span><span>1</span><span>2</span><span>4</span></div><p class="tracer-limit-note" id="tracer-status" hidden></p></div><label class="slider-label" for="density">Intensity <output id="density-value" hidden>2×</output></label><input id="density" type="range" min="0" max="4" value="2" step="1"><div class="speed-ticks" aria-hidden="true"><span>¼</span><span>½</span><span>1</span><span>2</span><span>4</span></div></section>
-<section class="settings-group view-adjustments"><h3>View adjustments</h3><label class="toggle-line" for="auto-rotate"><span>Auto rotate</span><input type="checkbox" id="auto-rotate" role="switch"></label><label class="toggle-line" for="show-axes"><span>Coordinate axes</span><input type="checkbox" id="show-axes" role="switch"></label></section>
+<section class="settings-group view-adjustments"><h3>View adjustments</h3><label class="toggle-line" for="auto-rotate"><span>Auto rotate</span><input type="checkbox" id="auto-rotate" role="switch"></label><label class="toggle-line" for="random-rotate"><span>Random rotation</span><input id="random-rotate" type="checkbox" role="switch"></label><label class="toggle-line" for="show-axes"><span>Coordinate axes</span><input type="checkbox" id="show-axes" role="switch"></label></section>
 </div></details>
 
 </aside>
@@ -1082,12 +1100,12 @@ body select:focus-visible,.color-map-picker>summary:focus-visible{outline:2px so
 
  <div class="spectrum-states" aria-label="Orbital basis">
 
-  <section class="spectrum-basis-control"><div class="settings-heading viewer-controls-heading"><span class="section-label">VIEW</span><button class="settings-gear" type="button" data-settings-target="spectrum-viewer-settings" aria-controls="spectrum-viewer-settings" aria-expanded="false" aria-label="Transition settings" title="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.000 12.000L19.932 13.044L21.659 14.588L21.239 15.827L18.928 16.000L18.347 16.870L17.657 17.657L16.870 18.347L17.000 20.660L15.827 21.239L14.071 19.727L13.044 19.932L12.000 20.000L10.956 19.932L9.412 21.659L8.173 21.239L8.000 18.928L7.130 18.347L6.343 17.657L5.653 16.870L3.340 17.000L2.761 15.827L4.273 14.071L4.068 13.044L4.000 12.000L4.068 10.956L2.341 9.412L2.761 8.173L5.072 8.000L5.653 7.130L6.343 6.343L7.130 5.653L7.000 3.340L8.173 2.761L9.929 4.273L10.956 4.068L12.000 4.000L13.044 4.068L14.588 2.341L15.827 2.761L16.000 5.072L16.870 5.653L17.657 6.343L18.347 7.130L20.660 7.000L21.239 8.173L19.727 9.929L19.932 10.956Z"/><circle cx="12" cy="12" r="3"/></svg></button></div><div class="segmented" role="group" aria-label="Transition orbital basis"><button data-spectrum-view-basis="real" aria-pressed="false">Real</button><button class="selected" data-spectrum-view-basis="complex" aria-pressed="true">Complex</button></div></section>
+  <section class="spectrum-basis-control"><div class="settings-heading viewer-controls-heading"><span class="section-label">VIEW</span><select class="view-preset viewer-header-preset" aria-label="View preset"><option value="">Choose a preset</option></select><button class="settings-gear" type="button" data-settings-target="spectrum-viewer-settings" aria-controls="spectrum-viewer-settings" aria-expanded="false" aria-label="Transition settings" title="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.000 12.000L19.932 13.044L21.659 14.588L21.239 15.827L18.928 16.000L18.347 16.870L17.657 17.657L16.870 18.347L17.000 20.660L15.827 21.239L14.071 19.727L13.044 19.932L12.000 20.000L10.956 19.932L9.412 21.659L8.173 21.239L8.000 18.928L7.130 18.347L6.343 17.657L5.653 16.870L3.340 17.000L2.761 15.827L4.273 14.071L4.068 13.044L4.000 12.000L4.068 10.956L2.341 9.412L2.761 8.173L5.072 8.000L5.653 7.130L6.343 6.343L7.130 5.653L7.000 3.340L8.173 2.761L9.929 4.273L10.956 4.068L12.000 4.000L13.044 4.068L14.588 2.341L15.827 2.761L16.000 5.072L16.870 5.653L17.657 6.343L18.347 7.130L20.660 7.000L21.239 8.173L19.727 9.929L19.932 10.956Z"/><circle cx="12" cy="12" r="3"/></svg></button></div><div class="segmented" role="group" aria-label="Transition orbital basis"><button data-spectrum-view-basis="real" aria-pressed="false">Real</button><button class="selected" data-spectrum-view-basis="complex" aria-pressed="true">Complex</button></div></section>
  </div>
  <p class="spectrum-view-notice" id="spectrum-view-notice" role="status" hidden></p>
- <section class="spectrum-view-control-group spectrum-cut-panel" id="spectrum-look-inside" aria-label="Look inside" hidden><div class="segmented" role="group" aria-label="Cut shape"><button id="spectrum-whole-mode" type="button">Whole</button><button id="spectrum-hemisphere-mode" type="button">Hemisphere</button><button id="spectrum-slice-mode" type="button">Slice</button></div><div class="segmented slice-direction" role="group" aria-label="Viewing direction"><button id="spectrum-view-front" type="button">Front</button><button id="spectrum-view-angled" type="button" title="45° view">Angled</button><button id="spectrum-view-top" type="button">Top down</button></div></section><div class="viewer-links spectrum-viewer-links"><button class="viewer-jump" id="spectrum-see-orbit"><span>Orbit</span> <svg class="viewer-link-arrow" aria-hidden="true" viewBox="0 0 16 16"><path d="M3 13 13 3M4 3h9v9"/></svg></button><button class="viewer-jump" id="spectrum-see-pair"><span>Spectra</span> <span class="viewer-link-arrow" aria-hidden="true">↓</span></button><button class="viewer-jump" data-open-math><span>Math</span> <svg class="viewer-link-arrow" aria-hidden="true" viewBox="0 0 16 16"><path d="M3 13 13 3M4 3h9v9"/></svg></button></div>
+ <section class="spectrum-view-control-group spectrum-cut-panel" id="spectrum-look-inside" aria-label="Look inside" hidden><div class="segmented" role="group" aria-label="Cut shape"><button id="spectrum-whole-mode" type="button">Whole</button><button id="spectrum-hemisphere-mode" type="button">Hemisphere</button><button id="spectrum-slice-mode" type="button">Slice</button></div><div class="segmented slice-direction" role="group" aria-label="Viewing direction"><button id="spectrum-view-front" type="button">Front</button><button id="spectrum-view-angled" type="button" title="25° view">Angled</button><button id="spectrum-view-top" type="button">Top down</button></div><div class="slice-height-controls" id="spectrum-slice-height-controls" hidden><div class="slice-height-heading"><label for="spectrum-slice-height">Height</label><output id="spectrum-slice-height-value">0%</output><button type="button" id="spectrum-slice-play" aria-label="Play slice sweep" aria-pressed="false">Play</button></div><input id="spectrum-slice-height" type="range" min="-100" max="100" step="1" value="0" aria-label="Slice height"><div class="slice-height-ends"><span id="spectrum-slice-start">Front</span><span id="spectrum-slice-end">Back</span></div></div></section><div class="viewer-links spectrum-viewer-links"><button class="viewer-jump" id="spectrum-see-orbit"><span>Orbit</span> <svg class="viewer-link-arrow" aria-hidden="true" viewBox="0 0 16 16"><path d="M3 13 13 3M4 3h9v9"/></svg></button><button class="viewer-jump" id="spectrum-see-pair"><span>Spectra</span> <span class="viewer-link-arrow" aria-hidden="true">↓</span></button><button class="viewer-jump" data-open-math><span>Math</span> <svg class="viewer-link-arrow" aria-hidden="true" viewBox="0 0 16 16"><path d="M3 13 13 3M4 3h9v9"/></svg></button></div>
  <details class="viewer-settings cut-more-options" id="spectrum-viewer-settings"><summary hidden>Settings</summary><div class="viewer-settings-content">
-<section class="settings-group preset-settings"><label class="slider-label">Preset<select class="view-preset" aria-label="View preset"><option value="">Choose a preset</option></select></label></section>
+
 <div class="spectrum-rate-control"><label for="spectrum-rate">TRANSITION SPEED</label><div class="spectrum-rate-buttons" hidden><output id="spectrum-rate-value" for="spectrum-rate" hidden>1×</output></div><input id="spectrum-rate" type="range" min="0" max="4" step="1" value="2" aria-label="Transition speed"><div class="speed-ticks" aria-hidden="true"><span>¼</span><span>½</span><span>1</span><span>2</span><span>4</span></div><p id="spectrum-rate-period" hidden>2.5 seconds per cycle</p></div>
 <section class="spectrum-view-control-group spectrum-flow-control" id="spectrum-flow-control" aria-label="Flow speed" hidden>
  <div class="flow-speed-heading"><label class="section-label" for="spectrum-speed">FLOW SPEED</label><output id="spectrum-speed-value" for="spectrum-speed" hidden>½×</output></div>
@@ -1096,7 +1114,7 @@ body select:focus-visible,.color-map-picker>summary:focus-visible{outline:2px so
 </section>
 
 <section class="settings-group"><h3>Appearance</h3><div class="appearance-choices"><div class="segmented" role="group" aria-label="Transition rendering style"><button class="selected" data-spectrum-view-render-style="cloud" aria-pressed="true">Cloud</button><button data-spectrum-view-render-style="granular" aria-pressed="false">Granular</button></div><label class="color-metric-field" for="spectrum-color-metric"><span class="slider-label">Color by</span><select id="spectrum-color-metric"><option value="density">Probability density</option><option value="phase">Wavefunction phase</option><option value="current">Probability current</option><option value="radial-probability">Radial probability</option><option value="gradient">Density gradient</option><option value="contribution">State contribution</option><option value="density-change">Density change</option></select></label><label class="toggle-line" for="spectrum-log-scale"><span>Log scale</span><input id="spectrum-log-scale" type="checkbox" role="switch"></label></div><div class="color-map-field"><span class="slider-label">Color map</span><details class="color-map-picker" data-color-map-picker="spectra"><summary aria-label="Choose color map"><span class="color-map-name">Blue</span><span class="color-map-swatch color-map-current" aria-hidden="true"></span></summary><div class="color-map-options" role="group" aria-label="Color maps"></div></details></div><div class="tracer-controls"><label class="toggle-line" for="spectrum-tracers-enabled"><span>Tracers</span><input type="checkbox" id="spectrum-tracers-enabled" role="switch" checked></label><label class="slider-label" for="spectrum-particle-amount">Tracer amount <output id="spectrum-particle-amount-value" hidden>2×</output></label><input id="spectrum-particle-amount" type="range" min="0" max="4" value="2" step="1" aria-label="Tracer amount"><div class="speed-ticks" aria-hidden="true"><span>¼</span><span>½</span><span>1</span><span>2</span><span>4</span></div><p class="tracer-limit-note" id="spectrum-tracer-status" hidden></p></div><label class="slider-label" for="spectrum-density">Intensity <output id="spectrum-density-value" hidden>1×</output></label><input id="spectrum-density" type="range" min="0" max="4" step="1" value="2"><div class="speed-ticks" aria-hidden="true"><span>¼</span><span>½</span><span>1</span><span>2</span><span>4</span></div></section>
-<section class="settings-group view-adjustments"><h3>View adjustments</h3><label class="toggle-line" for="spectrum-auto-rotate"><span>Auto rotate</span><input id="spectrum-auto-rotate" type="checkbox" role="switch"></label><label class="toggle-line" for="spectrum-show-axes"><span>Coordinate axes</span><input id="spectrum-show-axes" type="checkbox" role="switch"></label></section>
+<section class="settings-group view-adjustments"><h3>View adjustments</h3><label class="toggle-line" for="spectrum-auto-rotate"><span>Auto rotate</span><input id="spectrum-auto-rotate" type="checkbox" role="switch"></label><label class="toggle-line" for="spectrum-random-rotate"><span>Random rotation</span><input id="spectrum-random-rotate" type="checkbox" role="switch"></label><label class="toggle-line" for="spectrum-show-axes"><span>Coordinate axes</span><input id="spectrum-show-axes" type="checkbox" role="switch"></label></section>
 </div></details>
 
 </aside>
@@ -1827,7 +1845,7 @@ M834 80h400000v40h-400000z"/></svg></span></span></span><span class="vlist-s">�
 <p><strong>Transition-only metrics.</strong> State contribution is Pρ_upper / [(1−P)ρ_lower + Pρ_upper], with a fixed 0–1 range and no log transform. Density change is (dP/dt)(ρ_upper−ρ_lower), per display second of the eased animation. It vanishes at endpoints and when paused, and changes sign between absorption and emission. Its fixed symmetric limits use a density-weighted percentile of the absolute endpoint-density difference multiplied by the maximum population slope at the selected transition speed. Zero is at the midpoint of the selected palette. Changing the color metric preserves the selected colormap. Log scaling is disabled for this signed metric. Pair-card thumbnails retain ordinary density for both transition-only modes; the four other new metrics also apply to individual thumbnails. None of these color choices alters opacity or particle sampling.</p>
 <p><strong>Density-weighted color ranges.</strong> Scalar color limits use the 1st and 99th percentiles weighted by probability density and spherical volume. Deterministic quadrature samples each endpoint; transition endpoints contribute equal total probability mass. Limits are cached by quantum numbers, basis and metric, independent of population, camera, cuts and animation speed. Linear color maps clamp to these limits. Log mode uses 1 − log(x/x_max) / log(x_min/x_max), after clamping. Low values map to 0 and high values to 1, matching the direction of the linear color scale. If the lower percentile is zero, a floor of one millionth of the upper limit prevents log(0); a constant-valued field maps to the first color. Phase keeps its fixed angular range with no logarithmic transform. Thumbnails use density-weighted percentiles of their own cross sections. These are display ranges; they do not alter density, opacity, sampling or coupling strength.</p>
 <p><strong>Color by.</strong> Probability density colors the display-normalized density. Wavefunction magnitude colors its square root; in the optical-cycle-averaged transition this is the square root of the population-weighted density, not the magnitude of a coherent superposition. Distance from nucleus colors the radius divided by the rendering extent (the same extent for both states of a pair). Cylindrical radius colors sqrt(x² + y²), the distance from the orbital z axis divided by the rendering extent. It is independent of z and camera rotation and uses the same density-weighted limits and optional log scaling. Polar angle colors the angle from the orbital positive z axis, from 0 to 180 degrees. At the origin the angle is assigned zero. These choices change only color, not opacity, particle sampling, or transition strength. Thumbnail phase is a time-zero complex-state cross section; thumbnail density and radius scales remain independent for each orbital.</p>
- <p>Each output pixel defines a camera ray. Intersecting that ray with the finite bounding sphere gives its entry and exit distances. The fragment shader divides this segment into steps, evaluates density and color along it, and accumulates them front to back. A small per-pixel offset reduces regular banding. Whole retains the complete orbital; Front and Top down still align the camera without applying a cut. Hemisphere removes the half facing the camera to expose the interior. Slice evaluates the density directly on the plane through the nucleus, using a ray–plane intersection per pixel. Like the atlas thumbnails, it uses a density power of 0.38 and opacity proportional to that transformed density to reveal faint lobes. Cloud keeps a smooth cross-section with optional moving tracers. Granular instead importance-samples the density within a 1%-thick slab using a stratified spatial grid and cumulative distribution. Complex-state samples circulate with the azimuthal current. For cuts crossing the current, short trajectory segments recycle through the slab to retain sampling coverage; Top down permits continuous circulation. Real states and m = 0 remain stationary. Transitions blend the endpoint particle populations. Slice color limits use density-weighted 1st–99th percentiles sampled on the visible cross-section (through the thin slab for Granular). Both transition endpoints contribute equal normalized weight to one cached range, independent of animation population. Bright granular highlights preserve RGB proportions rather than clipping channels independently. These are display adjustments, not changes to physical density; the selected color metric, palette, and intensity still apply. Whole and Hemisphere retain their volumetric and particle rendering. Front, Angled, and Top down orient both the cut and camera at elevations of 0°, 45°, and 90° respectively. Dragging can subsequently rotate the camera. Cut shape and viewing direction are retained for each page and rendering style. Samples outside the chosen cutaway and negligible-density samples are skipped; almost-opaque rays terminate work early.</p>
+ <p>Each output pixel defines a camera ray. Intersecting that ray with the finite bounding sphere gives its entry and exit distances. The fragment shader divides this segment into steps, evaluates density and color along it, and accumulates them front to back. A small per-pixel offset reduces regular banding. Whole retains the complete orbital; Front and Top down still align the camera without applying a cut. Hemisphere removes the half facing the camera to expose the interior. Slice evaluates the density directly on the plane through the nucleus, using a ray–plane intersection per pixel. Like the atlas thumbnails, it uses a density power of 0.38 and opacity proportional to that transformed density to reveal faint lobes. Cloud keeps a smooth cross-section with optional moving tracers. Granular instead importance-samples the density within a 1%-thick slab using a stratified spatial grid and cumulative distribution. Complex-state samples circulate with the azimuthal current. For cuts crossing the current, short trajectory segments recycle through the slab to retain sampling coverage; Top down permits continuous circulation. Real states and m = 0 remain stationary. Transitions blend the endpoint particle populations. Slice color limits use density-weighted 1st–99th percentiles sampled on the visible cross-section (through the thin slab for Granular). Both transition endpoints contribute equal normalized weight to one cached range, independent of animation population. Bright granular highlights preserve RGB proportions rather than clipping channels independently. These are display adjustments, not changes to physical density; the selected color metric, palette, and intensity still apply. Whole and Hemisphere retain their volumetric and particle rendering. Front uses a vertical cut with a front-facing camera. Angled and Top down both use the horizontal cut; their camera elevations are 25° and 90° respectively. Dragging can subsequently rotate the camera. Cut shape and viewing direction are retained for each page and rendering style. Samples outside the chosen cutaway and negligible-density samples are skipped; almost-opaque rays terminate work early.</p>
  <p>The equations above are emission–absorption compositing. <span class="inline-math"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>T</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">T_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">T</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span> is accumulated transmission and <span class="inline-math"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="bold">c</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">\mathbf c_i</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5944em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathbf">c</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span> is the display color. The opacity coefficient is an artistic transfer function, roughly proportional to the displayed density raised to <span class="inline-math"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0.78</mn></mrow><annotation encoding="application/x-tex">0.78</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.78</span></span></span></span></span>, multiplied by intensity and a scale constant. It is not a calculation of visible light scattered by a real isolated electron. Directional density differences add depth cues; exponential tone mapping and a power-law color adjustment produce the final image.</p>
  <p>Quality tiers use 70–240 ray steps in Orbits and 64–240 in Spectra. Cloud can also overlay additive, softly edged point sprites. Reducing those tracers does not remove the ray-marching cost. Image dimensions, samples per ray, shader evaluation, transparency and changes to the scene all affect frame time.</p>
  <h3>5. Granular: draw analytic sphere impostors</h3>
@@ -2270,6 +2288,85 @@ function orbitalDisplayReference(n,l,m){
  return Math.max(1e-20,peakR*peakA)/Math.max(1,.3*peakR/Math.max(1e-30,densityAtMass));
 }
 
+
+// Conditional inverse CDFs allocate the tracer budget to the current slice.
+// Precomputed once per orbital/orientation; no particle rebuild during playback.
+function sliceSamplingTable(state,extent){
+ const grid=128,levels=41,width=256,rows=129,data=new Float32Array(1024*Math.ceil(rows*levels/4)),top=(state.slicePolar??90)<45;
+ function inverseRow(weights,offset){
+  let total=0,cell=0;const cdf=new Float64Array(grid+1);
+  for(let i=0;i<grid;i++)cdf[i+1]=total+=weights[i];
+  for(let q=0;q<width;q++){
+   // Concentrate quantile knots in both tails; uniform knots clipped 0.2% at each edge.
+   const t=q/(width-1),prob=t<.5?.5*Math.pow(2*t,4):1-.5*Math.pow(2*(1-t),4),target=prob*total;
+   while(cell<grid-1&&cdf[cell+1]<=target)cell++;
+   data[offset+q]=total>0?2*(cell+(target-cdf[cell])/Math.max(1e-300,cdf[cell+1]-cdf[cell]))/grid-1:2*(q+.5)/width-1;
+  }
+ }
+ for(let level=0;level<levels;level++){
+  const h=-1+2*level/40,radius=2,marginal=new Float64Array(grid);
+  for(let row=0;row<grid;row++){
+   const v=2*(row+.5)/grid-1,weights=new Float64Array(grid);
+   for(let col=0;col<grid;col++){
+    const u=2*(col+.5)/grid-1;
+    weights[col]=densityAt(u*radius*extent,(top?v*radius:h)*extent,(top?h:v*radius)*extent,state.n,state.l,state.m,state.basis);
+    marginal[row]+=weights[col];
+   }
+   inverseRow(weights,(level*rows+1+row)*width);
+  }
+  inverseRow(marginal,level*rows*width);
+ }
+ return {data,width:1024,height:Math.ceil(rows*levels/4)};
+}
+const sliceSamplingTextures=new WeakMap();
+function bindSliceSampling(gl,program,states,view,extent){
+ if(gl.getUniformLocation(program,'uSliceSamples0')===null)return;
+ let cache=sliceSamplingTextures.get(gl);if(!cache){cache=new Map();sliceSamplingTextures.set(gl,cache);}
+ for(let i=0;i<states.length;i++){
+  const state={...states[i],basis:view.basis,slicePolar:view.slicePolar},key=[state.n,state.l,state.m,state.basis,state.slicePolar,extent].join('|');
+  let texture=cache.get(key);gl.activeTexture(gl.TEXTURE3+i);
+  if(!texture||!gl.isTexture(texture)){
+   const table=sliceSamplingTable(state,extent);texture=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,texture);
+   gl.texImage2D(gl.TEXTURE_2D,0,gl.R32F,table.width,table.height,0,gl.RED,gl.FLOAT,table.data);
+   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);
+   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+   cache.set(key,texture);
+   if(cache.size>4){const oldest=cache.keys().next().value;gl.deleteTexture(cache.get(oldest));cache.delete(oldest);}
+  }else gl.bindTexture(gl.TEXTURE_2D,texture);
+  gl.uniform1i(gl.getUniformLocation(program,'uSliceSamples'+i),3+i);
+ }
+ gl.activeTexture(gl.TEXTURE0);
+}
+function clearSliceSampling(gl){
+ const cache=sliceSamplingTextures.get(gl);if(cache)for(const texture of cache.values())gl.deleteTexture(texture);
+ sliceSamplingTextures.delete(gl);
+}
+function sliceRandomSeeds(count){
+ const data=new Float32Array(count*4);let seed=761;
+ for(let i=0;i<data.length;i++){seed=(Math.imul(seed,1664525)+1013904223)|0;data[i]=(seed>>>0)/4294967296;}
+ return data;
+}
+const sliceSamplingGLSL=`
+uniform highp sampler2D uSliceSamples0,uSliceSamples1;
+float sliceInverse(sampler2D table,int row,float q){
+ float t=q<.5?.5*pow(2.*q,.25):1.-.5*pow(2.*(1.-q),.25);
+ float x=clamp(t*255.,0.,255.);int lo=int(floor(x));
+ return mix(texelFetch(table,ivec2(lo+(row%4)*256,row/4),0).r,texelFetch(table,ivec2(min(255,lo+1)+(row%4)*256,row/4),0).r,fract(x));
+}
+vec2 sliceLayer(sampler2D table,int layer,vec2 q){
+ float v=sliceInverse(table,layer*129,q.y),row=clamp((v+1.)*64.-.5,0.,127.);int lo=int(floor(row));
+ float x=mix(sliceInverse(table,layer*129+1+lo,q.x),sliceInverse(table,layer*129+1+min(127,lo+1),q.x),fract(row));
+ return vec2(x,v);
+}
+vec3 sampledSlicePosition(sampler2D table,vec4 seed){
+ float level=clamp((uSliceHeight+1.)*.5*40.,0.,40.);int lo=int(floor(level));
+ vec2 uv=mix(sliceLayer(table,lo,seed.xy),sliceLayer(table,min(40,lo+1),seed.xy),fract(level));
+ // Sample the low-density tails beyond the old unit-sphere boundary.
+ uv*=2.;
+ return abs(uSliceNormal.z)>.5?vec3(uv,uSliceHeight):vec3(uv.x,uSliceHeight,uv.y);
+}
+`;
+
 // All renderers evaluate the same normalized wavefunction. Optical transfer is artistic.
 const common = `
 precision highp float;
@@ -2324,7 +2421,9 @@ vec3 densityColor(float d){
 }
 vec3 rainbowColor(float t){return densityColor(t);}
 vec3 phaseColor(vec3 p){float a=amplitude(p);if(uBasis==0&&uM<0&&abs(uM)%2==1)a=-a;float ph=float(uM)*atan(p.y,p.x);if(uBasis==1){if(uM>0)a*=cos(float(uM)*atan(p.y,p.x));if(uM<0)a*=sin(float(-uM)*atan(p.y,p.x));ph=0.;}if(a<0.)ph+=3.14159265;ph+=uTime*.115*float(uN*uN);return rainbowColor(fract(ph/6.28318530+.5));}
+${sliceSamplingGLSL}
 vec3 particlePosition(vec4 seed,float current){
+ if(uSliceAxis>0){vec3 pos=sampledSlicePosition(uSliceSamples0,seed);if(dens(pos)<=1.e-30)return vec3(3.);float rr=length(pos);seed.xyz=vec3(rr,rr>0.?pos.z/rr:0.,atan(pos.y,pos.x));}
   float r=seed.x,c=seed.y,s=sqrt(max(0.,1.-c*c));
   float omega=float(uM)*pow(float(uN),4.)*.23/max(.001,pow(r*uExtent*s,2.));
   float turn=uTime*omega*current;
@@ -2335,7 +2434,9 @@ vec3 particlePosition(vec4 seed,float current){
   if(abs(omega*current)<1.e-10)turn=0.;
  }
  float phi=seed.z+turn;
-  return vec3(r*s*cos(phi),r*s*sin(phi),r*c);
+  vec3 result=vec3(r*s*cos(phi),r*s*sin(phi),r*c);
+  if(uSliceAxis>0)result+=uSliceNormal*(uSliceHeight-dot(result,uSliceNormal));
+  return result;
 }
 `;
 const volumeVertex=`#version 300 es
@@ -2503,8 +2604,21 @@ function cutDegrees(state){
  const legacy={none:0,wedge:90,half:180,slice:345,sector15:345};
  return ['custom','slab','radius'].includes(state.cut)?Math.max(0,Math.min(345,Math.round((Number.isFinite(state.cutDegrees)?state.cutDegrees:0)/15)*15)):(legacy[state.cut]??0);
 }
+// Smooth random camera drift, independent of orbital flow speed.
+function advanceRandomCamera(camera,motion,elapsed){
+ const dt=Math.min(.05,Math.max(0,elapsed));
+ motion??={remaining:0,yawVelocity:0,pitchVelocity:0};
+ motion.remaining-=dt;
+ if(motion.remaining<=0){motion.remaining=5+Math.random()*5;motion.yawTarget=(Math.random()<.5?-1:1)*(.07+Math.random()*.12);motion.pitchTarget=(Math.random()*2-1)*1.05;}
+ const blend=1-Math.exp(-dt/1.5);
+ motion.yawVelocity+=(motion.yawTarget-motion.yawVelocity)*blend;
+ const desiredPitch=Math.max(-.12,Math.min(.12,(motion.pitchTarget-camera.pitch)*.22));
+ motion.pitchVelocity+=(desiredPitch-motion.pitchVelocity)*blend;
+ camera.yaw+=motion.yawVelocity*dt;camera.pitch+=motion.pitchVelocity*dt;
+ return motion;
+}
 function startingViewOrientation(state,yaw,pitch){
- if(state.cutView)return {yaw:0,pitch:state.cutView==='top'?Math.PI/2:state.cutView==='angled'?Math.PI/4:0};
+ if(state.cutView)return {yaw:0,pitch:state.cutView==='top'?Math.PI/2:state.cutView==='angled'?25*Math.PI/180:0};
  // The removed wedge points along (-sin(angle), cos(angle), 0).
  // Look directly into its bisector, with the orbital z axis upright.
  if(state.cut==='slab'&&state.sliceAxis==='top')return {yaw:0,pitch:Math.PI/2};
@@ -2574,13 +2688,15 @@ class OrbitalRenderer {
   }
   zoomBy(factor){this.camera.distance=clamp(this.camera.distance*factor,1.25,6.5);}
   setState(partial){
-    const old=this.state;this.state={...old,...partial};const s=this.state;
+    const old=this.state;if(partial.randomRotate!==undefined&&partial.randomRotate!==old.randomRotate)this.randomMotion=null;this.state={...old,...partial};const s=this.state;
   if(s.cutView!==old.cutView||!!s.frontView!==!!old.frontView||(['wedge','sector15','custom','slab','radius'].includes(s.cut)&&old.cut!==s.cut)||(s.cut==='slab'&&s.sliceAxis!==old.sliceAxis))Object.assign(this.camera,startingViewOrientation(s,INTRO_CAMERA.yaw,INTRO_CAMERA.pitch));
     s.n=clamp(Math.round(s.n),1,6);s.l=clamp(Math.round(s.l),0,s.n-1);s.m=clamp(Math.round(s.m),-s.l,s.l);
     s.density=clamp(s.density,.1,4);s.particleAmount=clamp(Number.isFinite(+s.particleAmount)?+s.particleAmount:old.particleAmount,0,4);s.speed=clamp(s.speed,.25,4);
     s.renderStyle=['sculpted','granular'].includes(s.renderStyle)?'granular':'cloud';
     delete s.autoTracers;delete s.targetFps;delete s.quality;
     s.particleAmount=Math.min(s.renderStyle==='cloud'?.08:4,s.particleAmount);this.updateTracerCeiling(old.particleAmount,s.particleAmount);
+    // A moving thin slice retains the requested sample population.
+    if(s.renderStyle==='granular'&&s.cut==='slab')this.activeParticleAmount=s.particleAmount;
     if(old.renderStyle!==s.renderStyle){
       this.styleTiers[old.renderStyle]=this.tier;
       const nextTier=this.styleTiers[s.renderStyle];
@@ -2605,12 +2721,12 @@ class OrbitalRenderer {
     for(let i=1;i<ac.length;i++)ac[i]=ac[i-1]+angular(l,m,2*i/(ac.length-1)-1)**2;
     const radialSum=rc[rc.length-1],angularSum=ac[ac.length-1];
     for(let i=1;i<rc.length;i++)rc[i]/=radialSum;for(let i=1;i<ac.length;i++)ac[i]/=angularSum;
-    const cacheKey=[n,l,basis,basis==='real'?m:q,this.state.cut==='slab'?this.state.cutView:'volume'].join('|');this.particleCache??=new Map();
+    const cacheKey=[n,l,basis,basis==='real'?m:q,this.state.cut==='slab'?'slice-seeds':'volume'].join('|');this.particleCache??=new Map();
     let data=this.particleCache.get(cacheKey);
     if(!data){data=new Float32Array(MAX_PARTICLES*8*4);let seed=761+n*919+l*313+q*51;
     const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)|0;return(seed>>>0)/4294967296;};
     for(let i=0;i<MAX_PARTICLES*8;i++){const r=inverseCDF(rc,random()),c=inverseCDF(ac,random())*2-1;let ph=random()*TAU;if(basis==='real'&&m){for(let k=0;k<80;k++){ph=random()*TAU;const f=m>0?Math.cos(m*ph):Math.sin(-m*ph);if(random()<f*f)break;}}const index=i*4;data[index]=r;data[index+1]=c;data[index+2]=ph;data[index+3]=random();}
-    if(this.state.cut==='slab')data=sliceParticleSamples(this.state,extent,MAX_PARTICLES*8);
+    if(this.state.cut==='slab')data=sliceRandomSeeds(MAX_PARTICLES*8);
     this.particleCache.set(cacheKey,data);if(this.particleCache.size>3)this.particleCache.delete(this.particleCache.keys().next().value);}
     const gl=this.gl;gl.bindBuffer(gl.ARRAY_BUFFER,this.particleBuffer);gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);this.time=0;this.volumeKey='';this.lastDrawSignature='';this.resetPerformance(performance.now());
   }
@@ -2642,6 +2758,7 @@ class OrbitalRenderer {
   }
   sharedUniforms(p){
     bindColorMapTexture(this.gl,p);
+    if(this.state.cut==='slab')bindSliceSampling(this.gl,p,[this.state],this.state,this.extent);
     this.uniform(p,'uColorBounds','uniform2f',...(this.state.cut==='slab'?sliceColorBounds([this.state],this.state.basis,this.state.mode,this.state.slicePolar??90,this.state.renderStyle):orbitalColorBounds([this.state],this.state.basis,this.state.mode)).map(x=>this.state.cut==='slab'&&this.state.renderStyle!=='granular'&&this.state.mode==='density'?Math.pow(Math.max(0,x),.38):x));
     const s=this.state;
     this.uniform(p,'uSliceDisplay','uniform1i',s.cut==='slab'?1:0);
@@ -2650,7 +2767,7 @@ class OrbitalRenderer {
     this.uniform(p,'uCutDegrees','uniform1f',cutDegrees(s));
     this.uniform(p,'uSliceAxis','uniform1i',s.cut==='slab'?(s.sliceAxis==='top'?2:1):0);
     this.uniform(p,'uSliceThickness','uniform1f',.01);
-    this.uniform(p,'uSliceHeight','uniform1f',0);
+    this.uniform(p,'uSliceHeight','uniform1f',-(this.state.sliceHeight||0));
     this.uniform(p,'uWedgePolar','uniform1f',(s.wedgePolar??90)*Math.PI/180);
     this.uniform(p,'uSliceNormal','uniform3f',...planeCutNormal({planeAzimuth:s.sliceAzimuth??90,planePolar:s.slicePolar??(s.sliceAxis==='top'?0:90)}));
     this.uniform(p,'uRadialNorm','uniform1f',Math.sqrt((2/s.n)**3*FACT[s.n-s.l-1]/(2*s.n*FACT[s.n+s.l])));
@@ -2722,6 +2839,14 @@ class OrbitalRenderer {
     if(requested===0)this.activeParticleAmount=0;
   }
   adaptTracers(now,fps,gpu90){
+    // Avoid progressively erasing a slice to chase an FPS target. Its conditional
+    // sampling cost can remain high even after count reductions, and an idle
+    // paused scene provides no recovery measurements.
+    if(this.state.renderStyle==='granular'&&this.state.cut==='slab'){
+      this.activeParticleAmount=this.state.particleAmount;
+      this.healthySince=null;this.slowSince=null;this.limiterRecoveryUntil=0;
+      return;
+    }
     const ceiling=this.state.particleAmount;
     this.activeParticleAmount=Math.min(ceiling,this.activeParticleAmount??ceiling);
     const granular=this.state.renderStyle==='granular';
@@ -2764,7 +2889,7 @@ class OrbitalRenderer {
     if(this.contextLost||document.hidden||this.suspended){this.lastFrame=null;return;}
     const elapsed=this.lastFrame===null?0:Math.max(0,now-this.lastFrame);this.lastFrame=now;
     const dt=elapsed/1000,s=this.state,gl=this.gl;
-    if(s.animate)this.time+=dt*s.speed;if(s.animate&&s.autoRotate&&!this.dragging)this.camera.yaw+=dt*.14;
+    if(s.animate)this.time+=dt*s.speed;if(s.animate&&!this.points.size){if(s.randomRotate)this.randomMotion=advanceRandomCamera(this.camera,this.randomMotion,dt);else if(s.autoRotate)this.camera.yaw+=dt*.14;}else this.randomMotion=null;
     const tier=TIERS[this.tier],granular=s.renderStyle==='granular',sculpted=granular;
     const count=Math.round(MAX_PARTICLES*this.activeParticleAmount*(s.cut==='slab'?(s.renderStyle==='granular'?1.5:2):1));
     const visualKey=this.visualSignature(),idle=visualKey===this.lastDrawSignature;
@@ -2802,12 +2927,60 @@ class OrbitalRenderer {
     for(const [name,fn] of Object.entries(this.handlers||{}))this.canvas.removeEventListener(name,fn);
     document.removeEventListener('visibilitychange',this.visibilityHandler);
     const gl=this.gl;if(gl){
+      clearSliceSampling(gl);
       for(const p of [this.volume,this.copy,this.particle,this.sphere,this.axis])if(p)gl.deleteProgram(p);
       for(const b of [this.quadBuffer,this.particleBuffer,this.axisBuffer])if(b)gl.deleteBuffer(b);
       for(const v of [this.quad,this.copyVAO,this.particleVAO,this.sphereVAO,this.axisVAO])if(v)gl.deleteVertexArray(v);
       if(this.volumeTexture)gl.deleteTexture(this.volumeTexture);if(this.volumeFBO)gl.deleteFramebuffer(this.volumeFBO);for(const query of this.gpuQueries||[])gl.deleteQuery(query);
     }
   }
+}
+
+// One full sweep takes 16 seconds; reflection preserves constant speed at each end.
+function sliceSweepPosition(phase){
+ const t=((phase%4)+4)%4;return t<=2?t-1:3-t;
+}
+function bindSliceHeightControls(element,getState,apply,isVisible){
+ const slider=element('slice-height'),button=element('slice-play');
+ let playing=false,phase=0,last=null,raf=0;
+ function sync(){
+  const state=getState(),shown=state.cut==='slab';
+  if(!shown){playing=false;phase=0;}
+  element('slice-height-controls').hidden=!shown;
+  slider.value=Math.round((state.sliceHeight||0)*100);
+  element('slice-height-value').value=slider.value+'%';
+  const front=state.cutView==='front';
+  element('slice-start').textContent=front?'Front':'Top';
+  element('slice-end').textContent=front?'Back':'Bottom';
+  button.textContent=playing?'Pause':'Play';
+  button.setAttribute('aria-label',playing?'Pause slice sweep':'Play slice sweep');
+  button.setAttribute('aria-pressed',String(playing));
+ }
+ function frame(now){
+  raf=0;
+  if(!playing)return;
+  if(document.hidden||!isVisible()){last=null;raf=requestAnimationFrame(frame);return;}
+  if(last!==null)phase+=(now-last)/1000*.25;
+  last=now;
+  apply({sliceHeight:sliceSweepPosition(phase),sliceSweep:true});
+  sync();if(playing)raf=requestAnimationFrame(frame);
+ }
+ // A small center detent for mouse/touch; arrow keys retain precise 1% steps.
+ let keyboardAdjust=false;
+ slider.addEventListener('keydown',()=>{keyboardAdjust=true;});
+ slider.addEventListener('keyup',()=>{keyboardAdjust=false;});
+ slider.addEventListener('pointerdown',()=>{keyboardAdjust=false;});
+ slider.addEventListener('input',()=>{
+  const raw=Number(slider.value),height=(!keyboardAdjust&&Math.abs(raw)<=3?0:raw)/100;
+  playing=false;last=null;phase=height+1;
+  apply({sliceHeight:height,sliceSweep:false});sync();
+ });
+ button.addEventListener('click',()=>{
+  playing=!playing;last=null;
+  if(playing){if(!raf)raf=requestAnimationFrame(frame);}
+  apply({sliceSweep:playing,...(playing?{sliceHeight:sliceSweepPosition(phase)}:{})});sync();
+ });
+ return sync;
 }
 
 /** Spin-free, fixed-proton hydrogen E1 channels through n = 6.
@@ -3135,7 +3308,9 @@ precision highp float;in vec2 vUv;uniform sampler2D uTexture;out vec4 outColor;v
 const spectrumParticleCommon=`
 uniform int uComponent;
 uniform float uCurrent,uVisibleCount;
+${sliceSamplingGLSL}
 vec3 particlePosition(vec4 seed){
+ if(uSliceAxis>0){vec3 pos=uComponent==0?sampledSlicePosition(uSliceSamples0,seed):sampledSlicePosition(uSliceSamples1,seed);vec2 a=amplitudes(pos);float value=uComponent==0?a.x:a.y;if(value*value*uExposure<=1.e-30)return vec3(3.);float rr=length(pos);seed.xyz=vec3(rr,rr>0.?pos.z/rr:0.,atan(pos.y,pos.x));}
  float r=seed.x,c=seed.y,s=sqrt(max(0.,1.-c*c));
  int m=uComponent==0?uMagnetic.x:uMagnetic.y,n=uComponent==0?uShells.x:uShells.y;
  float omega=float(m)*pow(float(max(uShells.x,uShells.y)),4.)*.23/max(.001,pow(r*uExtent*s,2.));
@@ -3146,7 +3321,9 @@ vec3 particlePosition(vec4 seed){
   turn=(fract(turn/span+seed.w)-.5)*span;
   if(abs(omega*uCurrent)<1.e-10)turn=0.;
  }
- float ph=seed.z+turn;return vec3(r*s*cos(ph),r*s*sin(ph),r*c);
+ float ph=seed.z+turn;vec3 result=vec3(r*s*cos(ph),r*s*sin(ph),r*c);
+ if(uSliceAxis>0)result+=uSliceNormal*(uSliceHeight-dot(result,uSliceNormal));
+ return result;
 }
 vec3 particleColor(vec3 p,float d){vec2 a=amplitudes(p);return uMode==1?componentPhase(p,uComponent==0?a.x:a.y,uComponent):(uSeparateColors&&uMode==0?componentColor(uComponent):densityColor(colorMetricValue(d,p)));}
 `;
@@ -3378,13 +3555,15 @@ class SpectrumRenderer {
   this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(this.canvas);
  }
  setState(partial){
-  const old=this.state,s={...old,...partial};
+  const old=this.state,s={...old,...partial};if(s.randomRotate!==old.randomRotate)this.randomMotion=null;
   if(s.cutView!==old.cutView||!!s.frontView!==!!old.frontView||(['wedge','sector15','custom','slab','radius'].includes(s.cut)&&old.cut!==s.cut)||(s.cut==='slab'&&s.sliceAxis!==old.sliceAxis))Object.assign(this.camera,startingViewOrientation(s,.58,.34));
   s.basis=s.basis==='real'?'real':'complex';s.mode=colorMetrics[colorMetricIndex(s.mode)].id;s.renderStyle=['sculpted','granular'].includes(s.renderStyle)?'granular':'cloud';
   s.separateColors=false;
   s.cut=['none','half','wedge','slice','sector15','custom','slab','radius'].includes(s.cut)?s.cut:'none';delete s.targetFps;delete s.autoTracers;delete s.quality;
   for(const [name,min,max] of [['density',.1,4],['particleAmount',0,4],['speed',.25,4],['cutAngle',0,360],['cutOffset',-.8,.8]])s[name]=spectrumClamp(Number.isFinite(+s[name])?+s[name]:old[name],min,max);
-  for(const name of ['animate','autoRotate','axes','separateColors'])s[name]=!!s[name];this.state=s;s.particleAmount=Math.min(s.renderStyle==='cloud'?.08:4,s.particleAmount);this.updateTracerCeiling(old.particleAmount,s.particleAmount);
+  for(const name of ['animate','autoRotate','randomRotate','axes','separateColors'])s[name]=!!s[name];this.state=s;s.particleAmount=Math.min(s.renderStyle==='cloud'?.08:4,s.particleAmount);this.updateTracerCeiling(old.particleAmount,s.particleAmount);
+    // A moving thin slice retains the requested sample population.
+    if(s.renderStyle==='granular'&&s.cut==='slab')this.activeParticleAmount=s.particleAmount;
   // Each rendering style keeps its own raster quality and tracer ceiling.
   if(s.renderStyle!==old.renderStyle){
    this.styleTiers[old.renderStyle]=this.tier;
@@ -3393,7 +3572,7 @@ class SpectrumRenderer {
    this.activeParticleAmount=s.particleAmount;this.lastTracerAdjustment=0;this.limiterRecoveryUntil=0;
   }
   if((s.basis!==old.basis||s.cut!==old.cut||s.cutView!==old.cutView||s.renderStyle!==old.renderStyle)&&this.radialData)this.prepareParticles();
-  if(['animate','mode','renderStyle','basis','particleAmount','autoRotate','separateColors'].some(key=>old[key]!==s[key]))this.resetTiming();
+  if(['animate','mode','renderStyle','basis','particleAmount','autoRotate','randomRotate','separateColors'].some(key=>old[key]!==s[key]))this.resetTiming();
   this.requestDraw();
  }
  setPair(lower,upper){
@@ -3422,7 +3601,7 @@ class SpectrumRenderer {
  prepareParticles(){
   this.particleData=[];this.particleCache??=new Map();
   for(const [component,state] of [this.lower,this.upper].entries()){
-   const key=[state.n,state.l,this.state.basis,this.state.basis==='real'?state.m:Math.abs(state.m),this.extent,this.state.cut==='slab'?this.state.cutView:'volume'].join('|');
+   const key=[state.n,state.l,this.state.basis,this.state.basis==='real'?state.m:Math.abs(state.m),this.extent,this.state.cut==='slab'?'slice-seeds':'volume'].join('|');
    const cached=this.particleCache.get(key);if(cached){this.particleData.push(cached);continue;}
    const radialCDF=new Float64Array(spectrumTableSize),angularCDF=new Float64Array(1025),q=Math.abs(state.m);
    let previous=0;
@@ -3438,7 +3617,7 @@ class SpectrumRenderer {
     if(this.state.basis==='real'&&state.m){do{phi=random()*Math.PI*2;}while(random()>(state.m>0?Math.cos(state.m*phi):Math.sin(-state.m*phi))**2);}
     const index=i*4;data[index]=r;data[index+1]=c;data[index+2]=phi;data[index+3]=random();
    }
-   if(this.state.cut==='slab')data=sliceParticleSamples({...state,...{basis:this.state.basis,slicePolar:this.state.slicePolar}},this.extent,spectrumMaxParticles*8);
+   if(this.state.cut==='slab')data=sliceRandomSeeds(spectrumMaxParticles*8);
    this.particleData.push(data);this.particleCache.set(key,data);if(this.particleCache.size>4)this.particleCache.delete(this.particleCache.keys().next().value);
   }
   this.uploadParticles();
@@ -3488,6 +3667,7 @@ class SpectrumRenderer {
  }
  sharedUniforms(program){
   bindColorMapTexture(this.gl,program);
+  if(this.state.cut==='slab')bindSliceSampling(this.gl,program,[this.lower,this.upper],this.state,this.extent);
   const bounds=this.state.cut==='slab'?sliceColorBounds([this.lower,this.upper],this.state.basis,this.state.mode,this.state.slicePolar??90,this.state.renderStyle):orbitalColorBounds([this.lower,this.upper],this.state.basis,this.state.mode);
   this.uniform(program,'uColorBounds','uniform2f',...bounds.map(x=>this.state.mode==='density-change'?x*(this.maxPopulationRate||1):this.state.cut==='slab'&&this.state.renderStyle!=='granular'&&this.state.mode==='density'?Math.pow(Math.max(0,x),.38):x));
   this.uniform(program,'uPopulationRate','uniform1f',this.populationRate||0);
@@ -3501,7 +3681,7 @@ class SpectrumRenderer {
     this.uniform(program,'uCutDegrees','uniform1f',cutDegrees(s));
   this.uniform(program,'uSliceAxis','uniform1i',s.cut==='slab'?(s.sliceAxis==='top'?2:1):0);
   this.uniform(program,'uSliceThickness','uniform1f',.01);
-  this.uniform(program,'uSliceHeight','uniform1f',0);
+  this.uniform(program,'uSliceHeight','uniform1f',-(s.sliceHeight||0));
     this.uniform(program,'uWedgePolar','uniform1f',(s.wedgePolar??90)*Math.PI/180);
     this.uniform(program,'uSliceNormal','uniform3f',...planeCutNormal({planeAzimuth:s.sliceAzimuth??90,planePolar:s.slicePolar??(s.sliceAxis==='top'?0:90)}));
   const refs=this.references.map((value,i)=>value*(s.basis==='real'&&[this.lower,this.upper][i].m?2:1));
@@ -3545,12 +3725,12 @@ class SpectrumRenderer {
  }
  hasAnimatedView(){
   const s=this.state;if(!s.animate)return false;
-  return s.autoRotate||s.mode==='phase'||(s.particleAmount>0&&s.basis==='complex'&&((this.population<1&&this.lower.m!==0)||(this.population>0&&this.upper.m!==0)));
+  return s.autoRotate||s.randomRotate||s.mode==='phase'||(s.particleAmount>0&&s.basis==='complex'&&((this.population<1&&this.lower.m!==0)||(this.population>0&&this.upper.m!==0)));
  }
  draw(now){
   if(this.dead||this.error||this.contextLost||!this.visible||document.hidden||!this.dirty)return;this.dirty=false;
   const elapsed=this.lastDraw?Math.max(0,now-this.lastDraw):0,dt=Math.min(elapsed/1000,.1),s=this.state,gl=this.gl,tier=spectrumTiers[this.tier];
-  if(s.animate)this.time+=dt*s.speed;if(s.animate&&s.autoRotate&&!this.pointers.size)this.camera.yaw+=dt*.14;
+  if(s.animate)this.time+=dt*s.speed;if(s.animate&&!this.pointers.size){if(s.randomRotate)this.randomMotion=advanceRandomCamera(this.camera,this.randomMotion,dt);else if(s.autoRotate)this.camera.yaw+=dt*.14;}else this.randomMotion=null;
   const cameraSignature=[this.camera.yaw,this.camera.pitch,this.camera.distance].join('|');
   const cameraMoves=this.lastCameraSignature!==null&&cameraSignature!==this.lastCameraSignature;
   const viewMoves=this.hasAnimatedView(),populationMoves=this.lastDrawPopulation!==null&&this.population!==this.lastDrawPopulation;
@@ -3604,6 +3784,14 @@ class SpectrumRenderer {
     if(requested===0)this.activeParticleAmount=0;
   }
   adaptTracers(now,fps,gpu90){
+    // Avoid progressively erasing a slice to chase an FPS target. Its conditional
+    // sampling cost can remain high even after count reductions, and an idle
+    // paused scene provides no recovery measurements.
+    if(this.state.renderStyle==='granular'&&this.state.cut==='slab'){
+      this.activeParticleAmount=this.state.particleAmount;
+      this.healthySince=null;this.slowSince=null;this.limiterRecoveryUntil=0;
+      return;
+    }
     const ceiling=this.state.particleAmount;
     this.activeParticleAmount=Math.min(ceiling,this.activeParticleAmount??ceiling);
     const granular=this.state.renderStyle==='granular';
@@ -3641,6 +3829,7 @@ class SpectrumRenderer {
   this.dead=true;cancelAnimationFrame(this.raf);this.raf=0;this.resizeObserver?.disconnect();
   for(const [name,handler] of this.handlers||[])this.canvas.removeEventListener(name,handler);if(this.visibilityHandler)document.removeEventListener('visibilitychange',this.visibilityHandler);
   const gl=this.gl;if(gl&&!this.contextLost){
+   clearSliceSampling(gl);
    for(const program of [this.program,this.copy,this.particle,this.sphere,this.spherePoint,this.axis])if(program)gl.deleteProgram(program);
    for(const buffer of [this.buffer,this.axisBuffer,...(this.particleBuffers||[])])if(buffer)gl.deleteBuffer(buffer);
    for(const vao of [this.vao,this.copyVAO,this.axisVAO,...(this.particleVAOs||[]),...(this.sphereVAOs||[]),...(this.spherePointVAOs||[])])if(vao)gl.deleteVertexArray(vao);
@@ -3671,11 +3860,11 @@ function initSpectrum(){
  let transitionRate=1,sigma=1,filterOrbital=null;
  let series=0,cycle=0,playing=true,visible=false,previousTime=null,raf=0,renderer=null;
  let currentLine=null,currentSubshell=null,currentChannel=null,stateFilter=null,qFilter='all',lastUiTime=0,engineFailed=false;
- const view={basis:'complex',mode:'density',logScale:false,colorMap:'atlas',renderStyle:'granular',cut:'custom',cutDegrees:180,wedgePolar:90,cutView:'front',frontView:true,cutAngle:0,cutOffset:0,density:2,particleAmount:4,speed:.25,animate:true,autoRotate:false,axes:false};
+ const view={basis:'complex',mode:'density',logScale:false,colorMap:'atlas',renderStyle:'granular',cut:'custom',cutDegrees:180,wedgePolar:0,cutView:'angled',frontView:true,cutAngle:0,cutOffset:0,density:2,particleAmount:4,speed:.25,animate:true,autoRotate:false,randomRotate:false,axes:false};
  // Basis and color mode are shared; Cloud and Granular retain their other presets.
- const modeSettingKeys=['cut','cutView','cutDegrees','sliceThickness','sliceHeight','sliceAxis','wedgePolar','sliceAzimuth','slicePolar','radiusLimit','planeAzimuth','planePolar','density','particleAmount','speed','autoRotate','axes'];
- const defaultModeSettings={cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:0,speed:.5,animate:true,autoRotate:false,axes:false};
- const modeSettings={cloud:{...defaultModeSettings},granular:{...defaultModeSettings,cut:'custom',cutDegrees:180,wedgePolar:90,cutView:'front',frontView:true,density:2,particleAmount:4,speed:.25}};
+ const modeSettingKeys=['cut','cutView','cutDegrees','sliceThickness','sliceHeight','sliceAxis','wedgePolar','sliceAzimuth','slicePolar','radiusLimit','planeAzimuth','planePolar','density','particleAmount','speed','autoRotate','randomRotate','axes'];
+ const defaultModeSettings={cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:0,speed:.5,animate:true,autoRotate:false,randomRotate:false,axes:false};
+ const modeSettings={cloud:{...defaultModeSettings},granular:{...defaultModeSettings,cut:'custom',cutDegrees:180,wedgePolar:0,cutView:'angled',frontView:true,density:2,particleAmount:4,speed:.25}};
  const lastPositiveTracers={cloud:.02,granular:4};
  const flowSpeeds=[.25,.5,1,2,4],flowSpeedLabels=['¼×','½×','1×','2×','4×'];
  const nearestFlowSpeed=value=>flowSpeeds.reduce((best,speed)=>Math.abs(speed-value)<Math.abs(best-value)?speed:best,flowSpeeds[0]);
@@ -3796,6 +3985,7 @@ function initSpectrum(){
   element('view-label').textContent=(real?'REAL-BASIS PREVIEW':'COMPLEX')+' · '+(phase?'COMPONENT PHASE':granular?'GRANULAR DENSITY':'DENSITY CLOUD');
   element('density').min=0;element('density').max=4;element('density').step=1;element('density').value=flowSpeeds.indexOf(view.density);element('density').setAttribute('aria-valuetext',view.density+'×');element('density-value').value=flowSpeedLabels[flowSpeeds.indexOf(view.density)];
   element('look-inside').hidden=false;
+ view.syncSliceHeight?.();
  const isWhole=view.cut==='none',isSlice=view.cut==='slab',isTop=view.cutView==='top';
  for(const [id,active] of [['whole-mode',isWhole],['hemisphere-mode',!isSlice&&!isWhole],['slice-mode',isSlice],['view-front',!isTop&&view.cutView!=='angled'],['view-angled',view.cutView==='angled'],['view-top',isTop]]){element(id).classList.toggle('selected',active);element(id).setAttribute('aria-pressed',String(active));}
 
@@ -3804,7 +3994,7 @@ function initSpectrum(){
   const speedIndex=flowSpeeds.indexOf(view.speed);
   element('speed').min=0;element('speed').max=4;element('speed').step=1;element('speed').value=speedIndex;element('speed-value').value=flowSpeedLabels[speedIndex];
   element('speed').setAttribute('aria-valuetext',view.speed+' times speed');
-  element('auto-rotate').checked=view.autoRotate;element('show-axes').checked=view.axes;
+  element('auto-rotate').checked=view.autoRotate;element('random-rotate').checked=!!view.randomRotate;element('show-axes').checked=view.axes;
   const metric=colorMetrics[colorMetricIndex(view.mode)];
   element('log-scale').disabled=['phase','contribution','density-change'].includes(view.mode);element('log-scale').checked=!!view.logScale&&!['phase','contribution','density-change'].includes(view.mode);element('color-metric').value=metric.id;
   element('legend-title').textContent=metric.name.toUpperCase()+((view.logScale&&!['phase','contribution','density-change'].includes(view.mode))?' · LOG':'');element('legend-low').textContent=metric.id==='phase'?metric.low:'1% mass';element('legend-high').textContent=metric.id==='phase'?metric.high:'99% mass';
@@ -3821,10 +4011,11 @@ function initSpectrum(){
   if('colorMap' in partial)next.colorMap=colorMaps[colorMapIndex(partial.colorMap)].id;
   const paletteChanged=('logScale' in partial&&partial.logScale!==view.logScale)||('mode' in partial&&partial.mode!==view.mode)||('colorMap' in next&&next.colorMap!==view.colorMap);
   for(const [key,values] of Object.entries({basis:['complex','real'],mode:colorMetrics.map(m=>m.id),renderStyle:['cloud','granular'],cut:['none','half','wedge','slice','sector15','custom','slab','radius']}))if(values.includes(partial[key]))next[key]=partial[key];
+  if(typeof partial.sliceSweep==='boolean')next.sliceSweep=partial.sliceSweep;
   for(const [key,range] of Object.entries({density:[.25,4],sliceThickness:[.01,1],sliceHeight:[-1,1],radiusLimit:[0,1],planeAzimuth:[0,360],planePolar:[0,90],wedgePolar:[0,90],slicePolar:[0,90],sliceAzimuth:[0,360],cutDegrees:[0,345],cutAngle:[0,360],cutOffset:[-.8,.8],particleAmount:[0,4],speed:[.25,4]}))if(typeof partial[key]==='number'&&Number.isFinite(partial[key]))next[key]=Math.max(range[0],Math.min(range[1],partial[key]));
   if('speed' in next)next.speed=nearestFlowSpeed(next.speed);
   if('cutAngle' in next)next.cutAngle=Math.round(next.cutAngle);
-  for(const key of ['logScale','autoRotate','axes','frontView'])if(typeof partial[key]==='boolean')next[key]=partial[key];
+  for(const key of ['logScale','autoRotate','randomRotate','axes','frontView'])if(typeof partial[key]==='boolean')next[key]=partial[key];
   const nextStyle=next.renderStyle||view.renderStyle;
    if(nextStyle!==view.renderStyle){
    for(const key of modeSettingKeys)modeSettings[view.renderStyle][key]=view[key];
@@ -3838,7 +4029,7 @@ function initSpectrum(){
    lastPerformance=null;
   }
   if(Number.isFinite(next.density))next.density=Math.max(.2,Math.min(4,next.density));
- Object.assign(view,next,{animate:true});view.cutView=['top','angled'].includes(view.cutView)?view.cutView:'front';view.cut=['none','slab'].includes(view.cut)?view.cut:'custom';view.cutDegrees=180;view.sliceThickness=.01;view.sliceHeight=0;view.cutAngle=0;view.wedgePolar=view.cutView==='top'?0:view.cutView==='angled'?45:90;view.slicePolar=view.wedgePolar;view.sliceAzimuth=90;view.planePolar=Math.max(0,Math.min(90,Number.isFinite(view.planePolar)?view.planePolar:90));basisStyles[view.basis]=view.renderStyle;renderer?.setState({...view});syncView();if(paletteChanged&&currentChannel)drawShapes();window.orbitalSharedSettings?.publish('spectra',view);return {...view};
+ Object.assign(view,next,{animate:true});view.cutView=['top','angled'].includes(view.cutView)?view.cutView:'front';view.cut=['none','slab'].includes(view.cut)?view.cut:'custom';view.cutDegrees=180;view.sliceThickness=.01;view.sliceHeight=Math.max(-1,Math.min(1,view.sliceHeight||0));if(view.cut!=='slab')view.sliceSweep=false;view.cutAngle=0;view.wedgePolar=view.cutView==='front'?90:0;view.slicePolar=view.wedgePolar;view.sliceAzimuth=90;view.planePolar=Math.max(0,Math.min(90,Number.isFinite(view.planePolar)?view.planePolar:90));basisStyles[view.basis]=view.renderStyle;renderer?.setState({...view});syncView();if(paletteChanged&&currentChannel)drawShapes();window.orbitalSharedSettings?.publish('spectra',view);return {...view};
  }
  function reportViewStats(info={}){
   element('status').hidden=true;
@@ -4060,8 +4251,10 @@ function initSpectrum(){
   window.orbitalPages?.go('spectra',{scroll:false});selectLine(chosen.line.lowerN,chosen.line.upperN,chosen.channel.id);window.orbitalPages?.revealViewer('spectra');return true;
  }
  function clearStateFilter(){finishLineDrag();stateFilter=null;updateStateFilter();selectLine(currentLine.lowerN,currentLine.upperN,currentChannel.id);}
+const syncSliceHeight=bindSliceHeightControls(element,()=>view,setView,()=>visible);
+view.syncSliceHeight=syncSliceHeight;syncSliceHeight();
 function chooseCutView(shape,direction){
- const top=direction==='top',polar=top?0:direction==='angled'?45:90;
+ const top=direction!=='front',polar=top?0:90;
  setView({cut:shape==='whole'?'none':shape==='slice'?'slab':'custom',cutDegrees:180,cutView:direction,cutAngle:0,wedgePolar:polar,sliceAxis:top?'top':'side',sliceAzimuth:90,slicePolar:polar,frontView:true});
  renderer?.alignCutView();
 }
@@ -4078,7 +4271,8 @@ element('color-metric').addEventListener('change',event=>setView({mode:event.tar
  element('speed').addEventListener('input',event=>setView({speed:flowSpeeds[+event.target.value]}));
  element('tracers-enabled').addEventListener('change',event=>setView({particleAmount:event.target.checked?lastPositiveTracers[view.renderStyle]:0}));
 element('particle-amount').addEventListener('input',event=>setView({particleAmount:flowSpeeds[+event.target.value]/(view.renderStyle==='cloud'?50:1)}));
- element('auto-rotate').addEventListener('change',event=>setView({autoRotate:event.target.checked}));
+ element('auto-rotate').addEventListener('change',event=>setView({autoRotate:event.target.checked,randomRotate:false}));
+element('random-rotate').addEventListener('change',e=>setView({randomRotate:e.target.checked,autoRotate:false}));
  element('show-axes').addEventListener('change',event=>setView({axes:event.target.checked}));
  element('fullscreen').addEventListener('click',async()=>{
   try{
@@ -4175,11 +4369,11 @@ const mathFragments = window.OrbitalMathFragments || {};
 const mathHTML = key => mathFragments[key] || key;
 document.querySelectorAll('[data-math]').forEach(element => { element.innerHTML = mathHTML(element.dataset.math); });
 const family = ['s','p','d','f','g','h'];
-const state = {n:6,l:3,m:1,basis:'complex',mode:'density',logScale:false,colorMap:'atlas',renderStyle:'granular',cut:'custom',cutDegrees:180,wedgePolar:90,cutView:'front',frontView:true,cutAngle:0,cutOffset:0,density:2,particleAmount:4,speed:.25,animate:true,autoRotate:false,axes:false};
+const state = {n:6,l:3,m:1,basis:'complex',mode:'density',logScale:false,colorMap:'atlas',renderStyle:'granular',cut:'custom',cutDegrees:180,wedgePolar:0,cutView:'angled',frontView:true,cutAngle:0,cutOffset:0,density:2,particleAmount:4,speed:.25,animate:true,autoRotate:false,randomRotate:false,axes:false};
 // Basis and color are shared across Cloud and Granular; scene controls retain their presets.
-const modeSettingKeys=['cut','cutView','cutDegrees','sliceThickness','sliceHeight','sliceAxis','wedgePolar','sliceAzimuth','slicePolar','radiusLimit','planeAzimuth','planePolar','density','particleAmount','speed','autoRotate','axes'];
- const defaultModeSettings={basis:'complex',mode:'density',cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:.02,speed:.5,animate:true,autoRotate:false,axes:false};
- const modeSettings={cloud:{...defaultModeSettings},granular:{...defaultModeSettings,cut:'custom',cutDegrees:180,wedgePolar:90,cutView:'front',frontView:true,density:2,particleAmount:4,speed:.25}};
+const modeSettingKeys=['cut','cutView','cutDegrees','sliceThickness','sliceHeight','sliceAxis','wedgePolar','sliceAzimuth','slicePolar','radiusLimit','planeAzimuth','planePolar','density','particleAmount','speed','autoRotate','randomRotate','axes'];
+ const defaultModeSettings={basis:'complex',mode:'density',cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:.02,speed:.5,animate:true,autoRotate:false,randomRotate:false,axes:false};
+ const modeSettings={cloud:{...defaultModeSettings},granular:{...defaultModeSettings,cut:'custom',cutDegrees:180,wedgePolar:0,cutView:'angled',frontView:true,density:2,particleAmount:4,speed:.25}};
  const lastPositiveTracers={cloud:.02,granular:4};
  const basisStyles={real:'granular',complex:'granular'};
  const initializedBases=new Set([state.basis]);
@@ -4258,7 +4452,7 @@ function update(partial){
   lastPerformance=null;
  }
   if(Number.isFinite(partial.density))partial.density=Math.max(.2,Math.min(4,partial.density));
- Object.assign(state,partial,{animate:true});state.cutView=['top','angled'].includes(state.cutView)?state.cutView:'front';state.cut=['none','slab'].includes(state.cut)?state.cut:'custom';state.cutDegrees=180;state.sliceThickness=.01;state.sliceHeight=0;state.cutAngle=0;state.wedgePolar=state.cutView==='top'?0:state.cutView==='angled'?45:90;state.slicePolar=state.wedgePolar;state.sliceAzimuth=90;state.planePolar=Math.max(0,Math.min(90,Number.isFinite(state.planePolar)?state.planePolar:90));basisStyles[state.basis]=state.renderStyle;state.n=Math.round(Math.max(1,Math.min(6,state.n)));state.l=Math.round(Math.max(0,Math.min(state.n-1,state.l)));state.m=Math.round(Math.max(-state.l,Math.min(state.l,state.m)));
+ Object.assign(state,partial,{animate:true});state.cutView=['top','angled'].includes(state.cutView)?state.cutView:'front';state.cut=['none','slab'].includes(state.cut)?state.cut:'custom';state.cutDegrees=180;state.sliceThickness=.01;state.sliceHeight=Math.max(-1,Math.min(1,state.sliceHeight||0));if(state.cut!=='slab')state.sliceSweep=false;state.cutAngle=0;state.wedgePolar=state.cutView==='front'?90:0;state.slicePolar=state.wedgePolar;state.sliceAzimuth=90;state.planePolar=Math.max(0,Math.min(90,Number.isFinite(state.planePolar)?state.planePolar:90));basisStyles[state.basis]=state.renderStyle;state.n=Math.round(Math.max(1,Math.min(6,state.n)));state.l=Math.round(Math.max(0,Math.min(state.n-1,state.l)));state.m=Math.round(Math.max(-state.l,Math.min(state.l,state.m)));
  if(!renderer?.error)renderer?.setState(state);
  sync();
  if(paletteChanged){thumbs.clear();document.querySelectorAll('.atlas-card').forEach(card=>{const [n,l,m]=card.dataset.state.split(',').map(Number);card.querySelector('img').src=thumbnail(n,l,m);});}
@@ -4296,14 +4490,14 @@ function sync(){
  else description=m?'A wave wrapped around the axis.<br>Probability flows through a steady cloud.':'A standing wave along the axis.<br>A cloud with zero probability current.';
  $('energy').textContent=`−${(13.605693/(n*n)).toFixed(3)} eV`;$('radial-nodes').textContent=radial;
  setSelected('[data-basis]','basis');setSelected('[data-mode]','mode');setSelected('[data-cut]','cut');setSelected('[data-render-style]','renderStyle');
- $('look-inside').hidden=false;
+ $('look-inside').hidden=false;state.syncSliceHeight?.();
  const isWhole=state.cut==='none',isSlice=state.cut==='slab',isTop=state.cutView==='top';
  for(const [id,active] of [['whole-mode',isWhole],['hemisphere-mode',!isSlice&&!isWhole],['slice-mode',isSlice],['view-front',!isTop&&state.cutView!=='angled'],['view-angled',state.cutView==='angled'],['view-top',isTop]]){$(id).classList.toggle('selected',active);$(id).setAttribute('aria-pressed',String(active));}
  $('density').min=0;$('density').max=4;$('density').step=1;$('density').value=flowSpeeds.indexOf(state.density);$('density').setAttribute('aria-valuetext',state.density+'×');$('density-value').value=flowLabels[flowSpeeds.indexOf(state.density)];
  $('flow-control').hidden=basis==='real';$('flow-control').parentElement.dataset.flowVisible=String(basis==='complex');
  const flowIndex=flowSpeeds.indexOf(state.speed);$('speed').value=flowIndex;$('speed-value').value=flowLabels[flowIndex];$('speed').setAttribute('aria-valuetext',flowLabels[flowIndex]+' flow speed');
  syncPerformance();
- $('auto-rotate').checked=state.autoRotate;$('show-axes').checked=state.axes;
+ $('auto-rotate').checked=state.autoRotate;$('random-rotate').checked=!!state.randomRotate;$('show-axes').checked=state.axes;
  const metric=colorMetrics[colorMetricIndex(state.mode)];
  $('log-scale').disabled=state.mode==='phase';$('log-scale').checked=!!state.logScale&&state.mode!=='phase';$('color-metric').value=metric.id;
  $('legend-title').textContent=metric.name.toUpperCase()+((state.logScale&&state.mode!=='phase')?' · LOG':'');$('legend-low').textContent=metric.id==='phase'?metric.low:'1% mass';$('legend-high').textContent=metric.id==='phase'?metric.high:'99% mass';
@@ -4311,8 +4505,10 @@ function sync(){
 }
 for(const name of ['n','l','m'])$(name+'-select').addEventListener('change',e=>update({[name]:+e.target.value}));
 document.querySelectorAll('[data-render-style]').forEach(b=>b.addEventListener('click',()=>update({renderStyle:b.dataset.renderStyle})));
+const syncSliceHeight=bindSliceHeightControls($,()=>state,update,()=>!!renderer&&!renderer.suspended);
+state.syncSliceHeight=syncSliceHeight;syncSliceHeight();
 function chooseCutView(shape,direction){
- const top=direction==='top',polar=top?0:direction==='angled'?45:90;
+ const top=direction!=='front',polar=top?0:90;
  update({cut:shape==='whole'?'none':shape==='slice'?'slab':'custom',cutDegrees:180,cutView:direction,cutAngle:0,wedgePolar:polar,sliceAxis:top?'top':'side',sliceAzimuth:90,slicePolar:polar,frontView:true});
  renderer?.alignCutView();
 }
@@ -4328,7 +4524,8 @@ for(const key of ['basis','mode','cut'])document.querySelectorAll(`[data-${key}]
 for(const [id,key] of [['density','density']])$(id).addEventListener('input',e=>update({[key]:key==='density'?flowSpeeds[+e.target.value]:+e.target.value}));
 $('tracers-enabled').addEventListener('change',e=>update({particleAmount:e.target.checked?lastPositiveTracers[state.renderStyle]:0}));
 $('particle-amount').addEventListener('input',e=>update({particleAmount:flowSpeeds[+e.target.value]/(state.renderStyle==='cloud'?50:1)}));
-$('auto-rotate').addEventListener('change',e=>update({autoRotate:e.target.checked}));
+$('auto-rotate').addEventListener('change',e=>update({autoRotate:e.target.checked,randomRotate:false}));
+$('random-rotate').addEventListener('change',e=>update({randomRotate:e.target.checked,autoRotate:false}));
 $('show-axes').addEventListener('change',e=>update({axes:e.target.checked}));
 $('zoom-in').addEventListener('click',()=>renderer?.zoomBy(.86));$('zoom-out').addEventListener('click',()=>renderer?.zoomBy(1.16));
 $('speed').addEventListener('input',e=>update({speed:flowSpeeds[Math.max(0,Math.min(4,Math.round(+e.target.value)))]}));
@@ -4420,7 +4617,7 @@ document.querySelectorAll('[data-settings-target]').forEach(button=>{
 
 // Gear values are shared; basis, cutaway preset and selected states remain local.
 {
- const keys=['logScale','renderStyle','mode','colorMap','density','particleAmount','speed','cutAngle','cutOffset','autoRotate','axes'];
+ const keys=['logScale','renderStyle','mode','colorMap','density','particleAmount','speed','cutAngle','cutOffset','autoRotate','randomRotate','axes'];
  let applying=false;const lastModes={};
  window.orbitalSharedSettings={publish(source,values){
   if(applying)return;
@@ -4462,15 +4659,15 @@ initColorMapPickers();
 
 // Presets are explicit actions; subsequent manual changes remain editable.
 const viewPresets=[
- ['Blue sculpture · default',{basis:'complex',renderStyle:'granular',colorMap:'atlas',cut:'custom',cutDegrees:180,wedgePolar:90,cutView:'front',frontView:true,particleAmount:4,density:2,speed:.25}],
- ['Geo currents',{basis:'complex',renderStyle:'cloud',mode:'density',logScale:false,colorMap:'geo',cut:'none',cutDegrees:180,wedgePolar:45,cutView:'angled',frontView:true,particleAmount:.08,density:4,speed:4,autoRotate:false,axes:false},1],
+ ['Blue Granular · default',{basis:'complex',renderStyle:'granular',mode:'density',logScale:false,colorMap:'atlas',cut:'custom',cutDegrees:180,wedgePolar:0,cutView:'angled',frontView:true,particleAmount:4,density:2,speed:.25}],
+ ['Geo Cloud',{basis:'complex',renderStyle:'cloud',mode:'density',logScale:false,colorMap:'geo',cut:'custom',cutDegrees:180,wedgePolar:0,cutView:'angled',frontView:true,particleAmount:.08,density:4,speed:4,autoRotate:false,randomRotate:false,axes:false},1],
 ];
 document.querySelectorAll('.view-preset').forEach(select=>{
  viewPresets.forEach(([name],index)=>select.append(option(index,name)));
  select.addEventListener('change',()=>{
   if(select.value==='')return;
   const [,values,rate=1]=viewPresets[+select.value];
-  const settings={cutView:'front',slicePolar:90,sliceAzimuth:90,mode:'density',speed:1,cutAngle:0,cutOffset:0,autoRotate:false,axes:false,frontView:false,...values};
+  const settings={cutView:'angled',slicePolar:0,sliceAzimuth:90,mode:'density',logScale:false,speed:1,cutAngle:0,cutOffset:0,autoRotate:false,randomRotate:false,axes:false,frontView:false,...values};
   // A preset establishes the same starting view on both pages, including
   // basis and cut. Later manual view changes can still be page-specific.
   update(settings);

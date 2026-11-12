@@ -292,6 +292,85 @@ export function orbitalDisplayReference(n,l,m){
  return Math.max(1e-20,peakR*peakA)/Math.max(1,.3*peakR/Math.max(1e-30,densityAtMass));
 }
 
+
+// Conditional inverse CDFs allocate the tracer budget to the current slice.
+// Precomputed once per orbital/orientation; no particle rebuild during playback.
+export function sliceSamplingTable(state,extent){
+ const grid=128,levels=41,width=256,rows=129,data=new Float32Array(1024*Math.ceil(rows*levels/4)),top=(state.slicePolar??90)<45;
+ function inverseRow(weights,offset){
+  let total=0,cell=0;const cdf=new Float64Array(grid+1);
+  for(let i=0;i<grid;i++)cdf[i+1]=total+=weights[i];
+  for(let q=0;q<width;q++){
+   // Concentrate quantile knots in both tails; uniform knots clipped 0.2% at each edge.
+   const t=q/(width-1),prob=t<.5?.5*Math.pow(2*t,4):1-.5*Math.pow(2*(1-t),4),target=prob*total;
+   while(cell<grid-1&&cdf[cell+1]<=target)cell++;
+   data[offset+q]=total>0?2*(cell+(target-cdf[cell])/Math.max(1e-300,cdf[cell+1]-cdf[cell]))/grid-1:2*(q+.5)/width-1;
+  }
+ }
+ for(let level=0;level<levels;level++){
+  const h=-1+2*level/40,radius=2,marginal=new Float64Array(grid);
+  for(let row=0;row<grid;row++){
+   const v=2*(row+.5)/grid-1,weights=new Float64Array(grid);
+   for(let col=0;col<grid;col++){
+    const u=2*(col+.5)/grid-1;
+    weights[col]=densityAt(u*radius*extent,(top?v*radius:h)*extent,(top?h:v*radius)*extent,state.n,state.l,state.m,state.basis);
+    marginal[row]+=weights[col];
+   }
+   inverseRow(weights,(level*rows+1+row)*width);
+  }
+  inverseRow(marginal,level*rows*width);
+ }
+ return {data,width:1024,height:Math.ceil(rows*levels/4)};
+}
+const sliceSamplingTextures=new WeakMap();
+export function bindSliceSampling(gl,program,states,view,extent){
+ if(gl.getUniformLocation(program,'uSliceSamples0')===null)return;
+ let cache=sliceSamplingTextures.get(gl);if(!cache){cache=new Map();sliceSamplingTextures.set(gl,cache);}
+ for(let i=0;i<states.length;i++){
+  const state={...states[i],basis:view.basis,slicePolar:view.slicePolar},key=[state.n,state.l,state.m,state.basis,state.slicePolar,extent].join('|');
+  let texture=cache.get(key);gl.activeTexture(gl.TEXTURE3+i);
+  if(!texture||!gl.isTexture(texture)){
+   const table=sliceSamplingTable(state,extent);texture=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,texture);
+   gl.texImage2D(gl.TEXTURE_2D,0,gl.R32F,table.width,table.height,0,gl.RED,gl.FLOAT,table.data);
+   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);
+   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+   cache.set(key,texture);
+   if(cache.size>4){const oldest=cache.keys().next().value;gl.deleteTexture(cache.get(oldest));cache.delete(oldest);}
+  }else gl.bindTexture(gl.TEXTURE_2D,texture);
+  gl.uniform1i(gl.getUniformLocation(program,'uSliceSamples'+i),3+i);
+ }
+ gl.activeTexture(gl.TEXTURE0);
+}
+export function clearSliceSampling(gl){
+ const cache=sliceSamplingTextures.get(gl);if(cache)for(const texture of cache.values())gl.deleteTexture(texture);
+ sliceSamplingTextures.delete(gl);
+}
+export function sliceRandomSeeds(count){
+ const data=new Float32Array(count*4);let seed=761;
+ for(let i=0;i<data.length;i++){seed=(Math.imul(seed,1664525)+1013904223)|0;data[i]=(seed>>>0)/4294967296;}
+ return data;
+}
+export const sliceSamplingGLSL=`
+uniform highp sampler2D uSliceSamples0,uSliceSamples1;
+float sliceInverse(sampler2D table,int row,float q){
+ float t=q<.5?.5*pow(2.*q,.25):1.-.5*pow(2.*(1.-q),.25);
+ float x=clamp(t*255.,0.,255.);int lo=int(floor(x));
+ return mix(texelFetch(table,ivec2(lo+(row%4)*256,row/4),0).r,texelFetch(table,ivec2(min(255,lo+1)+(row%4)*256,row/4),0).r,fract(x));
+}
+vec2 sliceLayer(sampler2D table,int layer,vec2 q){
+ float v=sliceInverse(table,layer*129,q.y),row=clamp((v+1.)*64.-.5,0.,127.);int lo=int(floor(row));
+ float x=mix(sliceInverse(table,layer*129+1+lo,q.x),sliceInverse(table,layer*129+1+min(127,lo+1),q.x),fract(row));
+ return vec2(x,v);
+}
+vec3 sampledSlicePosition(sampler2D table,vec4 seed){
+ float level=clamp((uSliceHeight+1.)*.5*40.,0.,40.);int lo=int(floor(level));
+ vec2 uv=mix(sliceLayer(table,lo,seed.xy),sliceLayer(table,min(40,lo+1),seed.xy),fract(level));
+ // Sample the low-density tails beyond the old unit-sphere boundary.
+ uv*=2.;
+ return abs(uSliceNormal.z)>.5?vec3(uv,uSliceHeight):vec3(uv.x,uSliceHeight,uv.y);
+}
+`;
+
 // All renderers evaluate the same normalized wavefunction. Optical transfer is artistic.
 const common = `
 precision highp float;
@@ -346,7 +425,9 @@ vec3 densityColor(float d){
 }
 vec3 rainbowColor(float t){return densityColor(t);}
 vec3 phaseColor(vec3 p){float a=amplitude(p);if(uBasis==0&&uM<0&&abs(uM)%2==1)a=-a;float ph=float(uM)*atan(p.y,p.x);if(uBasis==1){if(uM>0)a*=cos(float(uM)*atan(p.y,p.x));if(uM<0)a*=sin(float(-uM)*atan(p.y,p.x));ph=0.;}if(a<0.)ph+=3.14159265;ph+=uTime*.115*float(uN*uN);return rainbowColor(fract(ph/6.28318530+.5));}
+${sliceSamplingGLSL}
 vec3 particlePosition(vec4 seed,float current){
+ if(uSliceAxis>0){vec3 pos=sampledSlicePosition(uSliceSamples0,seed);if(dens(pos)<=1.e-30)return vec3(3.);float rr=length(pos);seed.xyz=vec3(rr,rr>0.?pos.z/rr:0.,atan(pos.y,pos.x));}
   float r=seed.x,c=seed.y,s=sqrt(max(0.,1.-c*c));
   float omega=float(uM)*pow(float(uN),4.)*.23/max(.001,pow(r*uExtent*s,2.));
   float turn=uTime*omega*current;
@@ -357,7 +438,9 @@ vec3 particlePosition(vec4 seed,float current){
   if(abs(omega*current)<1.e-10)turn=0.;
  }
  float phi=seed.z+turn;
-  return vec3(r*s*cos(phi),r*s*sin(phi),r*c);
+  vec3 result=vec3(r*s*cos(phi),r*s*sin(phi),r*c);
+  if(uSliceAxis>0)result+=uSliceNormal*(uSliceHeight-dot(result,uSliceNormal));
+  return result;
 }
 `;
 const volumeVertex=`#version 300 es
@@ -525,8 +608,21 @@ export function cutDegrees(state){
  const legacy={none:0,wedge:90,half:180,slice:345,sector15:345};
  return ['custom','slab','radius'].includes(state.cut)?Math.max(0,Math.min(345,Math.round((Number.isFinite(state.cutDegrees)?state.cutDegrees:0)/15)*15)):(legacy[state.cut]??0);
 }
+// Smooth random camera drift, independent of orbital flow speed.
+export function advanceRandomCamera(camera,motion,elapsed){
+ const dt=Math.min(.05,Math.max(0,elapsed));
+ motion??={remaining:0,yawVelocity:0,pitchVelocity:0};
+ motion.remaining-=dt;
+ if(motion.remaining<=0){motion.remaining=5+Math.random()*5;motion.yawTarget=(Math.random()<.5?-1:1)*(.07+Math.random()*.12);motion.pitchTarget=(Math.random()*2-1)*1.05;}
+ const blend=1-Math.exp(-dt/1.5);
+ motion.yawVelocity+=(motion.yawTarget-motion.yawVelocity)*blend;
+ const desiredPitch=Math.max(-.12,Math.min(.12,(motion.pitchTarget-camera.pitch)*.22));
+ motion.pitchVelocity+=(desiredPitch-motion.pitchVelocity)*blend;
+ camera.yaw+=motion.yawVelocity*dt;camera.pitch+=motion.pitchVelocity*dt;
+ return motion;
+}
 export function startingViewOrientation(state,yaw,pitch){
- if(state.cutView)return {yaw:0,pitch:state.cutView==='top'?Math.PI/2:state.cutView==='angled'?Math.PI/4:0};
+ if(state.cutView)return {yaw:0,pitch:state.cutView==='top'?Math.PI/2:state.cutView==='angled'?25*Math.PI/180:0};
  // The removed wedge points along (-sin(angle), cos(angle), 0).
  // Look directly into its bisector, with the orbital z axis upright.
  if(state.cut==='slab'&&state.sliceAxis==='top')return {yaw:0,pitch:Math.PI/2};
@@ -596,13 +692,15 @@ export class OrbitalRenderer {
   }
   zoomBy(factor){this.camera.distance=clamp(this.camera.distance*factor,1.25,6.5);}
   setState(partial){
-    const old=this.state;this.state={...old,...partial};const s=this.state;
+    const old=this.state;if(partial.randomRotate!==undefined&&partial.randomRotate!==old.randomRotate)this.randomMotion=null;this.state={...old,...partial};const s=this.state;
   if(s.cutView!==old.cutView||!!s.frontView!==!!old.frontView||(['wedge','sector15','custom','slab','radius'].includes(s.cut)&&old.cut!==s.cut)||(s.cut==='slab'&&s.sliceAxis!==old.sliceAxis))Object.assign(this.camera,startingViewOrientation(s,INTRO_CAMERA.yaw,INTRO_CAMERA.pitch));
     s.n=clamp(Math.round(s.n),1,6);s.l=clamp(Math.round(s.l),0,s.n-1);s.m=clamp(Math.round(s.m),-s.l,s.l);
     s.density=clamp(s.density,.1,4);s.particleAmount=clamp(Number.isFinite(+s.particleAmount)?+s.particleAmount:old.particleAmount,0,4);s.speed=clamp(s.speed,.25,4);
     s.renderStyle=['sculpted','granular'].includes(s.renderStyle)?'granular':'cloud';
     delete s.autoTracers;delete s.targetFps;delete s.quality;
     s.particleAmount=Math.min(s.renderStyle==='cloud'?.08:4,s.particleAmount);this.updateTracerCeiling(old.particleAmount,s.particleAmount);
+    // A moving thin slice retains the requested sample population.
+    if(s.renderStyle==='granular'&&s.cut==='slab')this.activeParticleAmount=s.particleAmount;
     if(old.renderStyle!==s.renderStyle){
       this.styleTiers[old.renderStyle]=this.tier;
       const nextTier=this.styleTiers[s.renderStyle];
@@ -627,12 +725,12 @@ export class OrbitalRenderer {
     for(let i=1;i<ac.length;i++)ac[i]=ac[i-1]+angular(l,m,2*i/(ac.length-1)-1)**2;
     const radialSum=rc[rc.length-1],angularSum=ac[ac.length-1];
     for(let i=1;i<rc.length;i++)rc[i]/=radialSum;for(let i=1;i<ac.length;i++)ac[i]/=angularSum;
-    const cacheKey=[n,l,basis,basis==='real'?m:q,this.state.cut==='slab'?this.state.cutView:'volume'].join('|');this.particleCache??=new Map();
+    const cacheKey=[n,l,basis,basis==='real'?m:q,this.state.cut==='slab'?'slice-seeds':'volume'].join('|');this.particleCache??=new Map();
     let data=this.particleCache.get(cacheKey);
     if(!data){data=new Float32Array(MAX_PARTICLES*8*4);let seed=761+n*919+l*313+q*51;
     const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)|0;return(seed>>>0)/4294967296;};
     for(let i=0;i<MAX_PARTICLES*8;i++){const r=inverseCDF(rc,random()),c=inverseCDF(ac,random())*2-1;let ph=random()*TAU;if(basis==='real'&&m){for(let k=0;k<80;k++){ph=random()*TAU;const f=m>0?Math.cos(m*ph):Math.sin(-m*ph);if(random()<f*f)break;}}const index=i*4;data[index]=r;data[index+1]=c;data[index+2]=ph;data[index+3]=random();}
-    if(this.state.cut==='slab')data=sliceParticleSamples(this.state,extent,MAX_PARTICLES*8);
+    if(this.state.cut==='slab')data=sliceRandomSeeds(MAX_PARTICLES*8);
     this.particleCache.set(cacheKey,data);if(this.particleCache.size>3)this.particleCache.delete(this.particleCache.keys().next().value);}
     const gl=this.gl;gl.bindBuffer(gl.ARRAY_BUFFER,this.particleBuffer);gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);this.time=0;this.volumeKey='';this.lastDrawSignature='';this.resetPerformance(performance.now());
   }
@@ -664,6 +762,7 @@ export class OrbitalRenderer {
   }
   sharedUniforms(p){
     bindColorMapTexture(this.gl,p);
+    if(this.state.cut==='slab')bindSliceSampling(this.gl,p,[this.state],this.state,this.extent);
     this.uniform(p,'uColorBounds','uniform2f',...(this.state.cut==='slab'?sliceColorBounds([this.state],this.state.basis,this.state.mode,this.state.slicePolar??90,this.state.renderStyle):orbitalColorBounds([this.state],this.state.basis,this.state.mode)).map(x=>this.state.cut==='slab'&&this.state.renderStyle!=='granular'&&this.state.mode==='density'?Math.pow(Math.max(0,x),.38):x));
     const s=this.state;
     this.uniform(p,'uSliceDisplay','uniform1i',s.cut==='slab'?1:0);
@@ -672,7 +771,7 @@ export class OrbitalRenderer {
     this.uniform(p,'uCutDegrees','uniform1f',cutDegrees(s));
     this.uniform(p,'uSliceAxis','uniform1i',s.cut==='slab'?(s.sliceAxis==='top'?2:1):0);
     this.uniform(p,'uSliceThickness','uniform1f',.01);
-    this.uniform(p,'uSliceHeight','uniform1f',0);
+    this.uniform(p,'uSliceHeight','uniform1f',-(this.state.sliceHeight||0));
     this.uniform(p,'uWedgePolar','uniform1f',(s.wedgePolar??90)*Math.PI/180);
     this.uniform(p,'uSliceNormal','uniform3f',...planeCutNormal({planeAzimuth:s.sliceAzimuth??90,planePolar:s.slicePolar??(s.sliceAxis==='top'?0:90)}));
     this.uniform(p,'uRadialNorm','uniform1f',Math.sqrt((2/s.n)**3*FACT[s.n-s.l-1]/(2*s.n*FACT[s.n+s.l])));
@@ -744,6 +843,14 @@ export class OrbitalRenderer {
     if(requested===0)this.activeParticleAmount=0;
   }
   adaptTracers(now,fps,gpu90){
+    // Avoid progressively erasing a slice to chase an FPS target. Its conditional
+    // sampling cost can remain high even after count reductions, and an idle
+    // paused scene provides no recovery measurements.
+    if(this.state.renderStyle==='granular'&&this.state.cut==='slab'){
+      this.activeParticleAmount=this.state.particleAmount;
+      this.healthySince=null;this.slowSince=null;this.limiterRecoveryUntil=0;
+      return;
+    }
     const ceiling=this.state.particleAmount;
     this.activeParticleAmount=Math.min(ceiling,this.activeParticleAmount??ceiling);
     const granular=this.state.renderStyle==='granular';
@@ -786,7 +893,7 @@ export class OrbitalRenderer {
     if(this.contextLost||document.hidden||this.suspended){this.lastFrame=null;return;}
     const elapsed=this.lastFrame===null?0:Math.max(0,now-this.lastFrame);this.lastFrame=now;
     const dt=elapsed/1000,s=this.state,gl=this.gl;
-    if(s.animate)this.time+=dt*s.speed;if(s.animate&&s.autoRotate&&!this.dragging)this.camera.yaw+=dt*.14;
+    if(s.animate)this.time+=dt*s.speed;if(s.animate&&!this.points.size){if(s.randomRotate)this.randomMotion=advanceRandomCamera(this.camera,this.randomMotion,dt);else if(s.autoRotate)this.camera.yaw+=dt*.14;}else this.randomMotion=null;
     const tier=TIERS[this.tier],granular=s.renderStyle==='granular',sculpted=granular;
     const count=Math.round(MAX_PARTICLES*this.activeParticleAmount*(s.cut==='slab'?(s.renderStyle==='granular'?1.5:2):1));
     const visualKey=this.visualSignature(),idle=visualKey===this.lastDrawSignature;
@@ -824,10 +931,58 @@ export class OrbitalRenderer {
     for(const [name,fn] of Object.entries(this.handlers||{}))this.canvas.removeEventListener(name,fn);
     document.removeEventListener('visibilitychange',this.visibilityHandler);
     const gl=this.gl;if(gl){
+      clearSliceSampling(gl);
       for(const p of [this.volume,this.copy,this.particle,this.sphere,this.axis])if(p)gl.deleteProgram(p);
       for(const b of [this.quadBuffer,this.particleBuffer,this.axisBuffer])if(b)gl.deleteBuffer(b);
       for(const v of [this.quad,this.copyVAO,this.particleVAO,this.sphereVAO,this.axisVAO])if(v)gl.deleteVertexArray(v);
       if(this.volumeTexture)gl.deleteTexture(this.volumeTexture);if(this.volumeFBO)gl.deleteFramebuffer(this.volumeFBO);for(const query of this.gpuQueries||[])gl.deleteQuery(query);
     }
   }
+}
+
+// One full sweep takes 16 seconds; reflection preserves constant speed at each end.
+export function sliceSweepPosition(phase){
+ const t=((phase%4)+4)%4;return t<=2?t-1:3-t;
+}
+export function bindSliceHeightControls(element,getState,apply,isVisible){
+ const slider=element('slice-height'),button=element('slice-play');
+ let playing=false,phase=0,last=null,raf=0;
+ function sync(){
+  const state=getState(),shown=state.cut==='slab';
+  if(!shown){playing=false;phase=0;}
+  element('slice-height-controls').hidden=!shown;
+  slider.value=Math.round((state.sliceHeight||0)*100);
+  element('slice-height-value').value=slider.value+'%';
+  const front=state.cutView==='front';
+  element('slice-start').textContent=front?'Front':'Top';
+  element('slice-end').textContent=front?'Back':'Bottom';
+  button.textContent=playing?'Pause':'Play';
+  button.setAttribute('aria-label',playing?'Pause slice sweep':'Play slice sweep');
+  button.setAttribute('aria-pressed',String(playing));
+ }
+ function frame(now){
+  raf=0;
+  if(!playing)return;
+  if(document.hidden||!isVisible()){last=null;raf=requestAnimationFrame(frame);return;}
+  if(last!==null)phase+=(now-last)/1000*.25;
+  last=now;
+  apply({sliceHeight:sliceSweepPosition(phase),sliceSweep:true});
+  sync();if(playing)raf=requestAnimationFrame(frame);
+ }
+ // A small center detent for mouse/touch; arrow keys retain precise 1% steps.
+ let keyboardAdjust=false;
+ slider.addEventListener('keydown',()=>{keyboardAdjust=true;});
+ slider.addEventListener('keyup',()=>{keyboardAdjust=false;});
+ slider.addEventListener('pointerdown',()=>{keyboardAdjust=false;});
+ slider.addEventListener('input',()=>{
+  const raw=Number(slider.value),height=(!keyboardAdjust&&Math.abs(raw)<=3?0:raw)/100;
+  playing=false;last=null;phase=height+1;
+  apply({sliceHeight:height,sliceSweep:false});sync();
+ });
+ button.addEventListener('click',()=>{
+  playing=!playing;last=null;
+  if(playing){if(!raf)raf=requestAnimationFrame(frame);}
+  apply({sliceSweep:playing,...(playing?{sliceHeight:sliceSweepPosition(phase)}:{})});sync();
+ });
+ return sync;
 }
