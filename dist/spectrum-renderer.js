@@ -318,7 +318,7 @@ export class SpectrumRenderer {
   this.state={basis:'complex',mode:'density',renderStyle:'cloud',separateColors:false,cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:.02,speed:.5,animate:true,autoRotate:false,axes:false};
   this.activeParticleAmount=this.state.particleAmount;
   this.population=0;this.time=0;this.visible=false;this.dead=false;this.contextLost=false;this.dirty=true;this.raf=0;
-  this.camera={yaw:.58,pitch:.34,distance:3};this.pointers=new Map();
+  this.camera={yaw:.58,pitch:.34,distance:2.8};this.pointers=new Map();
   const touch=typeof matchMedia==='function'&&matchMedia('(pointer: coarse)').matches;
   this.tier=touch||(typeof navigator!=='undefined'&&navigator.hardwareConcurrency<6)?1:2;
   // Cloud may adapt its raster tier; Granular always returns to this fixed tier.
@@ -473,7 +473,7 @@ export class SpectrumRenderer {
   Object.assign(this.camera,startingViewOrientation(this.state,0,0));
   this.volumeKey='';this.lastCameraSignature='';this.requestDraw();
  }
- resetView(){this.camera={distance:3,...startingViewOrientation(this.state,.58,.34)};this.requestDraw();}
+ resetView(){this.camera={distance:2.8,...startingViewOrientation(this.state,.58,.34)};this.requestDraw();}
  zoomBy(factor){if(Number.isFinite(factor)&&factor>0){this.camera.distance=spectrumClamp(this.camera.distance*factor,.15,6);this.requestDraw();}}
  resetTiming(){
   this.lastDraw=0;this.lastDrawPopulation=null;this.lastCameraSignature=null;this.frames=[];this.gpuTimes=[];this.healthySince=null;this.slowSince=null;this.longFrames=0;this.warmUntil=performance.now()+500;this.decreaseCount=0;this.decreaseBaseline=0;

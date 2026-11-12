@@ -25,11 +25,11 @@ export function initSpectrum(){
  let transitionRate=1,sigma=1,filterOrbital=null;
  let series=0,cycle=0,playing=true,visible=false,previousTime=null,raf=0,renderer=null;
  let currentLine=null,currentSubshell=null,currentChannel=null,stateFilter=null,qFilter='all',lastUiTime=0,engineFailed=false;
- const view={basis:'complex',mode:'density',logScale:false,colorMap:'atlas',renderStyle:'granular',cut:'custom',cutDegrees:180,wedgePolar:0,cutView:'angled',frontView:true,cutAngle:0,cutOffset:0,density:2,particleAmount:4,speed:.25,animate:true,autoRotate:false,randomRotate:false,axes:false};
+ const view={basis:'complex',mode:'density',logScale:false,colorMap:'atlas',renderStyle:'granular',cut:'custom',cutDegrees:180,wedgePolar:90,cutView:'front',frontView:true,cutAngle:0,cutOffset:0,density:2,particleAmount:4,speed:.25,animate:true,autoRotate:false,randomRotate:false,axes:false};
  // Basis and color mode are shared; Cloud and Granular retain their other presets.
  const modeSettingKeys=['cut','cutView','cutDegrees','sliceThickness','sliceHeight','sliceAxis','wedgePolar','sliceAzimuth','slicePolar','radiusLimit','planeAzimuth','planePolar','density','particleAmount','speed','autoRotate','randomRotate','axes'];
  const defaultModeSettings={cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:0,speed:.5,animate:true,autoRotate:false,randomRotate:false,axes:false};
- const modeSettings={cloud:{...defaultModeSettings},granular:{...defaultModeSettings,cut:'custom',cutDegrees:180,wedgePolar:0,cutView:'angled',frontView:true,density:2,particleAmount:4,speed:.25}};
+ const modeSettings={cloud:{...defaultModeSettings},granular:{...defaultModeSettings,cut:'custom',cutDegrees:180,wedgePolar:90,cutView:'front',frontView:true,density:2,particleAmount:4,speed:.25}};
  const lastPositiveTracers={cloud:.02,granular:4};
  const flowSpeeds=[.25,.5,1,2,4],flowSpeedLabels=['¼×','½×','1×','2×','4×'];
  const nearestFlowSpeed=value=>flowSpeeds.reduce((best,speed)=>Math.abs(speed-value)<Math.abs(best-value)?speed:best,flowSpeeds[0]);
@@ -214,6 +214,8 @@ export function initSpectrum(){
   element('direction').textContent=!playing?'Transition paused':cycle<.5?'Absorbing energy':'Stimulated emission';
   renderer?.setPopulation(population,populationRate(),maximumPopulationRate());
  }
+ let pendingCamera=null;
+ function setCamera(camera){pendingCamera={...camera};if(renderer){Object.assign(renderer.camera,pendingCamera);renderer.requestDraw();}}
  function ensureRenderer(){
   if(renderer||engineFailed)return;
   try{
@@ -221,7 +223,7 @@ export function initSpectrum(){
     onError(message){element('status').hidden=!message;element('status').dataset.error=String(!!message);if(message)element('status').textContent=message;},
     onStats:reportViewStats
    });
-   renderer.setState({...view});renderer.setPair(currentChannel.lower,currentChannel.upper);renderer.setPopulation(displayPopulation(cycle),populationRate(),maximumPopulationRate());renderer.setVisible(visible&&!document.hidden);
+   renderer.setState({...view});renderer.setPair(currentChannel.lower,currentChannel.upper);renderer.setPopulation(displayPopulation(cycle),populationRate(),maximumPopulationRate());renderer.setVisible(visible&&!document.hidden);if(pendingCamera)setCamera(pendingCamera);
   }catch(error){engineFailed=true;element('status').hidden=false;element('status').dataset.error='true';element('status').textContent='The orbital view needs WebGL 2. Spectral lines, energies, allowed pairs and state populations remain available.';}
  }
  function drawBand(){
@@ -481,6 +483,6 @@ element('random-rotate').addEventListener('change',e=>setView({randomRotate:e.ta
  const showAllForCurrent=()=>{const id=currentChannel.id;finishLineDrag();series=0;stateFilter=null;updateStateFilter();selectLine(currentLine.lowerN,currentLine.upperN,id);};
  element('see-pair').addEventListener('click',()=>{showAllForCurrent();const card=element('shapes').querySelector('.selected');if(card){card.scrollIntoView({behavior:'smooth',block:'center'});pulse(card);}});
  element('see-line')?.addEventListener('click',()=>{showAllForCurrent();element('track').scrollIntoView({behavior:'smooth',block:'center'});pulse(selectionHandle,'dot-pulse');pulse(element('shapes').querySelector('.selected'));});
- const api={setPageActive,get view(){return {...view};},setView,get state(){return {view:{...view},sigma,transitionRate,series,lower:currentLine.lowerN,upper:currentLine.upperN,cycle,population:displayPopulation(cycle),playing,visible,wavelength:currentLine.wavelength,energy:currentLine.gap,line:{...currentLine},subshell:{...currentSubshell},channel:{...currentChannel,lower:{...currentChannel.lower},upper:{...currentChannel.upper}},qFilter,stateFilter:stateFilter?{...stateFilter}:null,availableChannelIds:visibleChannels().map(channel=>channel.id)};},setSigma,setTransitionRate,selectLine,selectSubshell,selectChannel,setSeries,setPolarization,setPlaying,exploreState,clearStateFilter,nextPair:()=>movePair(1),previousPair:()=>movePair(-1),get renderer(){return renderer;}};
+ const api={setPageActive,setCamera,get view(){return {...view};},setView,get state(){return {view:{...view},sigma,transitionRate,series,lower:currentLine.lowerN,upper:currentLine.upperN,cycle,population:displayPopulation(cycle),playing,visible,wavelength:currentLine.wavelength,energy:currentLine.gap,line:{...currentLine},subshell:{...currentSubshell},channel:{...currentChannel,lower:{...currentChannel.lower},upper:{...currentChannel.upper}},qFilter,stateFilter:stateFilter?{...stateFilter}:null,availableChannelIds:visibleChannels().map(channel=>channel.id)};},setSigma,setTransitionRate,selectLine,selectSubshell,selectChannel,setSeries,setPolarization,setPlaying,exploreState,clearStateFilter,nextPair:()=>movePair(1),previousPair:()=>movePair(-1),get renderer(){return renderer;}};
  window.spectrumApp=api;return api;
 }

@@ -2946,7 +2946,7 @@ function bindSliceHeightControls(element,getState,apply,isVisible,allowPlayback=
  let playing=false,phase=0,last=null,raf=0;
  function sync(){
   const state=getState(),shown=state.cut==='slab';
-  if(!shown){playing=false;phase=0;}
+  if(!shown){playing=false;phase=0;}else if(state.sliceSweep===false)playing=false;
   element('slice-height-controls').hidden=!shown;
   slider.value=Math.round((state.sliceHeight||0)*100);
   element('slice-height-value').value=slider.value+'%';
@@ -3486,7 +3486,7 @@ class SpectrumRenderer {
   this.state={basis:'complex',mode:'density',renderStyle:'cloud',separateColors:false,cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:.02,speed:.5,animate:true,autoRotate:false,axes:false};
   this.activeParticleAmount=this.state.particleAmount;
   this.population=0;this.time=0;this.visible=false;this.dead=false;this.contextLost=false;this.dirty=true;this.raf=0;
-  this.camera={yaw:.58,pitch:.34,distance:3};this.pointers=new Map();
+  this.camera={yaw:.58,pitch:.34,distance:2.8};this.pointers=new Map();
   const touch=typeof matchMedia==='function'&&matchMedia('(pointer: coarse)').matches;
   this.tier=touch||(typeof navigator!=='undefined'&&navigator.hardwareConcurrency<6)?1:2;
   // Cloud may adapt its raster tier; Granular always returns to this fixed tier.
@@ -3641,7 +3641,7 @@ class SpectrumRenderer {
   Object.assign(this.camera,startingViewOrientation(this.state,0,0));
   this.volumeKey='';this.lastCameraSignature='';this.requestDraw();
  }
- resetView(){this.camera={distance:3,...startingViewOrientation(this.state,.58,.34)};this.requestDraw();}
+ resetView(){this.camera={distance:2.8,...startingViewOrientation(this.state,.58,.34)};this.requestDraw();}
  zoomBy(factor){if(Number.isFinite(factor)&&factor>0){this.camera.distance=spectrumClamp(this.camera.distance*factor,.15,6);this.requestDraw();}}
  resetTiming(){
   this.lastDraw=0;this.lastDrawPopulation=null;this.lastCameraSignature=null;this.frames=[];this.gpuTimes=[];this.healthySince=null;this.slowSince=null;this.longFrames=0;this.warmUntil=performance.now()+500;this.decreaseCount=0;this.decreaseBaseline=0;
@@ -3865,11 +3865,11 @@ function initSpectrum(){
  let transitionRate=1,sigma=1,filterOrbital=null;
  let series=0,cycle=0,playing=true,visible=false,previousTime=null,raf=0,renderer=null;
  let currentLine=null,currentSubshell=null,currentChannel=null,stateFilter=null,qFilter='all',lastUiTime=0,engineFailed=false;
- const view={basis:'complex',mode:'density',logScale:false,colorMap:'atlas',renderStyle:'granular',cut:'custom',cutDegrees:180,wedgePolar:0,cutView:'angled',frontView:true,cutAngle:0,cutOffset:0,density:2,particleAmount:4,speed:.25,animate:true,autoRotate:false,randomRotate:false,axes:false};
+ const view={basis:'complex',mode:'density',logScale:false,colorMap:'atlas',renderStyle:'granular',cut:'custom',cutDegrees:180,wedgePolar:90,cutView:'front',frontView:true,cutAngle:0,cutOffset:0,density:2,particleAmount:4,speed:.25,animate:true,autoRotate:false,randomRotate:false,axes:false};
  // Basis and color mode are shared; Cloud and Granular retain their other presets.
  const modeSettingKeys=['cut','cutView','cutDegrees','sliceThickness','sliceHeight','sliceAxis','wedgePolar','sliceAzimuth','slicePolar','radiusLimit','planeAzimuth','planePolar','density','particleAmount','speed','autoRotate','randomRotate','axes'];
  const defaultModeSettings={cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:0,speed:.5,animate:true,autoRotate:false,randomRotate:false,axes:false};
- const modeSettings={cloud:{...defaultModeSettings},granular:{...defaultModeSettings,cut:'custom',cutDegrees:180,wedgePolar:0,cutView:'angled',frontView:true,density:2,particleAmount:4,speed:.25}};
+ const modeSettings={cloud:{...defaultModeSettings},granular:{...defaultModeSettings,cut:'custom',cutDegrees:180,wedgePolar:90,cutView:'front',frontView:true,density:2,particleAmount:4,speed:.25}};
  const lastPositiveTracers={cloud:.02,granular:4};
  const flowSpeeds=[.25,.5,1,2,4],flowSpeedLabels=['¼×','½×','1×','2×','4×'];
  const nearestFlowSpeed=value=>flowSpeeds.reduce((best,speed)=>Math.abs(speed-value)<Math.abs(best-value)?speed:best,flowSpeeds[0]);
@@ -4054,6 +4054,8 @@ function initSpectrum(){
   element('direction').textContent=!playing?'Transition paused':cycle<.5?'Absorbing energy':'Stimulated emission';
   renderer?.setPopulation(population,populationRate(),maximumPopulationRate());
  }
+ let pendingCamera=null;
+ function setCamera(camera){pendingCamera={...camera};if(renderer){Object.assign(renderer.camera,pendingCamera);renderer.requestDraw();}}
  function ensureRenderer(){
   if(renderer||engineFailed)return;
   try{
@@ -4061,7 +4063,7 @@ function initSpectrum(){
     onError(message){element('status').hidden=!message;element('status').dataset.error=String(!!message);if(message)element('status').textContent=message;},
     onStats:reportViewStats
    });
-   renderer.setState({...view});renderer.setPair(currentChannel.lower,currentChannel.upper);renderer.setPopulation(displayPopulation(cycle),populationRate(),maximumPopulationRate());renderer.setVisible(visible&&!document.hidden);
+   renderer.setState({...view});renderer.setPair(currentChannel.lower,currentChannel.upper);renderer.setPopulation(displayPopulation(cycle),populationRate(),maximumPopulationRate());renderer.setVisible(visible&&!document.hidden);if(pendingCamera)setCamera(pendingCamera);
   }catch(error){engineFailed=true;element('status').hidden=false;element('status').dataset.error='true';element('status').textContent='The orbital view needs WebGL 2. Spectral lines, energies, allowed pairs and state populations remain available.';}
  }
  function drawBand(){
@@ -4321,7 +4323,7 @@ element('random-rotate').addEventListener('change',e=>setView({randomRotate:e.ta
  const showAllForCurrent=()=>{const id=currentChannel.id;finishLineDrag();series=0;stateFilter=null;updateStateFilter();selectLine(currentLine.lowerN,currentLine.upperN,id);};
  element('see-pair').addEventListener('click',()=>{showAllForCurrent();const card=element('shapes').querySelector('.selected');if(card){card.scrollIntoView({behavior:'smooth',block:'center'});pulse(card);}});
  element('see-line')?.addEventListener('click',()=>{showAllForCurrent();element('track').scrollIntoView({behavior:'smooth',block:'center'});pulse(selectionHandle,'dot-pulse');pulse(element('shapes').querySelector('.selected'));});
- const api={setPageActive,get view(){return {...view};},setView,get state(){return {view:{...view},sigma,transitionRate,series,lower:currentLine.lowerN,upper:currentLine.upperN,cycle,population:displayPopulation(cycle),playing,visible,wavelength:currentLine.wavelength,energy:currentLine.gap,line:{...currentLine},subshell:{...currentSubshell},channel:{...currentChannel,lower:{...currentChannel.lower},upper:{...currentChannel.upper}},qFilter,stateFilter:stateFilter?{...stateFilter}:null,availableChannelIds:visibleChannels().map(channel=>channel.id)};},setSigma,setTransitionRate,selectLine,selectSubshell,selectChannel,setSeries,setPolarization,setPlaying,exploreState,clearStateFilter,nextPair:()=>movePair(1),previousPair:()=>movePair(-1),get renderer(){return renderer;}};
+ const api={setPageActive,setCamera,get view(){return {...view};},setView,get state(){return {view:{...view},sigma,transitionRate,series,lower:currentLine.lowerN,upper:currentLine.upperN,cycle,population:displayPopulation(cycle),playing,visible,wavelength:currentLine.wavelength,energy:currentLine.gap,line:{...currentLine},subshell:{...currentSubshell},channel:{...currentChannel,lower:{...currentChannel.lower},upper:{...currentChannel.upper}},qFilter,stateFilter:stateFilter?{...stateFilter}:null,availableChannelIds:visibleChannels().map(channel=>channel.id)};},setSigma,setTransitionRate,selectLine,selectSubshell,selectChannel,setSeries,setPolarization,setPlaying,exploreState,clearStateFilter,nextPair:()=>movePair(1),previousPair:()=>movePair(-1),get renderer(){return renderer;}};
  window.spectrumApp=api;return api;
 }
 
@@ -4338,6 +4340,9 @@ function revealViewer(page,behavior='smooth'){
 }
 function showSitePage(page,{hash='',scroll=true,replace=false,historyUpdate=true,focus=true}={}){
  if(!pageNames[page])return false;
+ const previousPage=document.body.dataset.page;
+ const source=previousPage==='orbits'?window.orbitalApp:previousPage==='spectra'?window.spectrumApp:null;
+ if(previousPage!==page&&source?.renderer)window.orbitalNavigationCamera={...source.renderer.camera};
  document.body.dataset.page=page;
  document.querySelectorAll('[data-site-page]').forEach(panel=>{panel.hidden=panel.dataset.sitePage!==page;});
  document.querySelectorAll('[data-page-link]').forEach(link=>{
@@ -4347,6 +4352,11 @@ function showSitePage(page,{hash='',scroll=true,replace=false,historyUpdate=true
  if(historyUpdate){try{history[replace?'replaceState':'pushState']({page},'',page+'.html'+hash);}catch{/* Local file viewers may restrict history; the page remains usable. */}}
  window.orbitalApp?.setPageActive(page==='orbits');
  window.spectrumApp?.setPageActive(page==='spectra');
+ if(previousPage!==page&&window.orbitalNavigationCamera){
+  const camera=window.orbitalNavigationCamera;
+  if(page==='orbits'&&window.orbitalApp?.renderer){Object.assign(window.orbitalApp.renderer.camera,camera);window.orbitalApp.renderer.lastDrawSignature='';}
+  if(page==='spectra')window.spectrumApp?.setCamera(camera);
+ }
  if(scroll)window.scrollTo({top:0,behavior:'instant'});
  if(focus){const heading=document.getElementById(page==='orbits'?'orbits-title':page==='spectra'?'spectrum-title':'math-title');heading?.focus({preventScroll:true});}
  if(page==='math'&&/^#math-topic-\d+$/.test(hash)){
@@ -4362,7 +4372,7 @@ window.orbitalPages={go:showSitePage,revealViewer,get page(){return document.bod
 function initPageNavigation(){
  document.querySelectorAll('[data-page-link]').forEach(link=>link.addEventListener('click',event=>{
   if(event.button>0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
-  event.preventDefault();showSitePage(link.dataset.pageLink);
+  event.preventDefault();if(link.classList.contains('brand')){window.resetOrbitalPageView?.();return;}showSitePage(link.dataset.pageLink);
  }));
  window.addEventListener('popstate',()=>showSitePage(pageFromLocation(),{historyUpdate:false,hash:location.hash}));
  window.addEventListener('hashchange',()=>{if(pageFromLocation()==='math')showSitePage('math',{historyUpdate:false,hash:location.hash,scroll:false});});
@@ -4374,11 +4384,11 @@ const mathFragments = window.OrbitalMathFragments || {};
 const mathHTML = key => mathFragments[key] || key;
 document.querySelectorAll('[data-math]').forEach(element => { element.innerHTML = mathHTML(element.dataset.math); });
 const family = ['s','p','d','f','g','h'];
-const state = {n:6,l:3,m:1,basis:'complex',mode:'density',logScale:false,colorMap:'atlas',renderStyle:'granular',cut:'custom',cutDegrees:180,wedgePolar:0,cutView:'angled',frontView:true,cutAngle:0,cutOffset:0,density:2,particleAmount:4,speed:.25,animate:true,autoRotate:false,randomRotate:false,axes:false};
+const state = {n:6,l:3,m:1,basis:'complex',mode:'density',logScale:false,colorMap:'atlas',renderStyle:'granular',cut:'custom',cutDegrees:180,wedgePolar:90,cutView:'front',frontView:true,cutAngle:0,cutOffset:0,density:2,particleAmount:4,speed:.25,animate:true,autoRotate:false,randomRotate:false,axes:false};
 // Basis and color are shared across Cloud and Granular; scene controls retain their presets.
 const modeSettingKeys=['cut','cutView','cutDegrees','sliceThickness','sliceHeight','sliceAxis','wedgePolar','sliceAzimuth','slicePolar','radiusLimit','planeAzimuth','planePolar','density','particleAmount','speed','autoRotate','randomRotate','axes'];
  const defaultModeSettings={basis:'complex',mode:'density',cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:.02,speed:.5,animate:true,autoRotate:false,randomRotate:false,axes:false};
- const modeSettings={cloud:{...defaultModeSettings},granular:{...defaultModeSettings,cut:'custom',cutDegrees:180,wedgePolar:0,cutView:'angled',frontView:true,density:2,particleAmount:4,speed:.25}};
+ const modeSettings={cloud:{...defaultModeSettings},granular:{...defaultModeSettings,cut:'custom',cutDegrees:180,wedgePolar:90,cutView:'front',frontView:true,density:2,particleAmount:4,speed:.25}};
  const lastPositiveTracers={cloud:.02,granular:4};
  const basisStyles={real:'granular',complex:'granular'};
  const initializedBases=new Set([state.basis]);
@@ -4620,9 +4630,9 @@ document.querySelectorAll('[data-settings-target]').forEach(button=>{
  panel.addEventListener('toggle',()=>button.setAttribute('aria-expanded',String(panel.open)));
 });
 
-// Gear values are shared; basis, cutaway preset and selected states remain local.
+// View configuration is shared; the selected orbital/transition remains local.
 {
- const keys=['logScale','renderStyle','mode','colorMap','density','particleAmount','speed','cutAngle','cutOffset','autoRotate','randomRotate','axes'];
+ const keys=['basis','cut','cutView','cutDegrees','wedgePolar','slicePolar','sliceAzimuth','sliceAxis','sliceThickness','sliceHeight','frontView','logScale','renderStyle','mode','colorMap','density','particleAmount','speed','cutAngle','cutOffset','autoRotate','randomRotate','axes'];
  let applying=false;const lastModes={};
  window.orbitalSharedSettings={publish(source,values){
   if(applying)return;
@@ -4664,23 +4674,28 @@ initColorMapPickers();
 
 // Presets are explicit actions; subsequent manual changes remain editable.
 const viewPresets=[
- ['Blue Granular · default',{basis:'complex',renderStyle:'granular',mode:'density',logScale:false,colorMap:'atlas',cut:'custom',cutDegrees:180,wedgePolar:0,cutView:'angled',frontView:true,particleAmount:4,density:2,speed:.25}],
- ['Geo Cloud',{basis:'complex',renderStyle:'cloud',mode:'density',logScale:false,colorMap:'geo',cut:'custom',cutDegrees:180,wedgePolar:0,cutView:'angled',frontView:true,particleAmount:.08,density:4,speed:4,autoRotate:false,randomRotate:false,axes:false},1],
+ ['Blue Granular · default',{basis:'complex',renderStyle:'granular',mode:'density',logScale:false,colorMap:'atlas',cut:'custom',cutDegrees:180,wedgePolar:90,cutView:'front',frontView:true,particleAmount:4,density:2,speed:.25}],
+ ['Geo Cloud',{basis:'complex',renderStyle:'cloud',mode:'density',logScale:false,colorMap:'geo',cut:'none',cutDegrees:180,wedgePolar:0,cutView:'angled',frontView:true,particleAmount:.08,density:4,speed:4,autoRotate:false,randomRotate:false,axes:false},1],
 ];
+function applyViewPreset(index){
+ const [,values,rate=1]=viewPresets[index];
+ const settings={cutView:'front',slicePolar:90,sliceAzimuth:90,sliceHeight:0,sliceSweep:false,mode:'density',logScale:false,speed:1,cutAngle:0,cutOffset:0,autoRotate:false,randomRotate:false,axes:false,frontView:true,...values};
+ update(settings);
+ window.spectrumApp.setView(settings);
+ window.spectrumApp.setTransitionRate(rate);
+ window.orbitalApp.renderer?.resetView();
+ window.spectrumApp.renderer?.resetView();
+ if(window.orbitalApp.renderer)window.spectrumApp.setCamera(window.orbitalApp.renderer.camera);
+}
+window.resetOrbitalPageView=()=>{
+ if(document.body.dataset.page!=='math')applyViewPreset(0);
+ window.scrollTo({top:0,behavior:'instant'});
+};
 document.querySelectorAll('.view-preset').forEach(select=>{
  viewPresets.forEach(([name],index)=>select.append(option(index,name)));
  select.addEventListener('change',()=>{
   if(select.value==='')return;
-  const [,values,rate=1]=viewPresets[+select.value];
-  const settings={cutView:'angled',slicePolar:0,sliceAzimuth:90,mode:'density',logScale:false,speed:1,cutAngle:0,cutOffset:0,autoRotate:false,randomRotate:false,axes:false,frontView:false,...values};
-  // A preset establishes the same starting view on both pages, including
-  // basis and cut. Later manual view changes can still be page-specific.
-  update(settings);
-  window.spectrumApp.setView(settings);
-  window.spectrumApp.setTransitionRate(rate);
-  window.orbitalApp.renderer?.resetView();
-  window.spectrumApp.renderer?.resetView();
-  select.value='';
+  applyViewPreset(+select.value);select.value='';
  });
 });
 

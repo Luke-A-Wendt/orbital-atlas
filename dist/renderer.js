@@ -950,7 +950,7 @@ export function bindSliceHeightControls(element,getState,apply,isVisible,allowPl
  let playing=false,phase=0,last=null,raf=0;
  function sync(){
   const state=getState(),shown=state.cut==='slab';
-  if(!shown){playing=false;phase=0;}
+  if(!shown){playing=false;phase=0;}else if(state.sliceSweep===false)playing=false;
   element('slice-height-controls').hidden=!shown;
   slider.value=Math.round((state.sliceHeight||0)*100);
   element('slice-height-value').value=slider.value+'%';

@@ -11,6 +11,9 @@ function revealViewer(page,behavior='smooth'){
 }
 function showSitePage(page,{hash='',scroll=true,replace=false,historyUpdate=true,focus=true}={}){
  if(!pageNames[page])return false;
+ const previousPage=document.body.dataset.page;
+ const source=previousPage==='orbits'?window.orbitalApp:previousPage==='spectra'?window.spectrumApp:null;
+ if(previousPage!==page&&source?.renderer)window.orbitalNavigationCamera={...source.renderer.camera};
  document.body.dataset.page=page;
  document.querySelectorAll('[data-site-page]').forEach(panel=>{panel.hidden=panel.dataset.sitePage!==page;});
  document.querySelectorAll('[data-page-link]').forEach(link=>{
@@ -20,6 +23,11 @@ function showSitePage(page,{hash='',scroll=true,replace=false,historyUpdate=true
  if(historyUpdate){try{history[replace?'replaceState':'pushState']({page},'',page+'.html'+hash);}catch{/* Local file viewers may restrict history; the page remains usable. */}}
  window.orbitalApp?.setPageActive(page==='orbits');
  window.spectrumApp?.setPageActive(page==='spectra');
+ if(previousPage!==page&&window.orbitalNavigationCamera){
+  const camera=window.orbitalNavigationCamera;
+  if(page==='orbits'&&window.orbitalApp?.renderer){Object.assign(window.orbitalApp.renderer.camera,camera);window.orbitalApp.renderer.lastDrawSignature='';}
+  if(page==='spectra')window.spectrumApp?.setCamera(camera);
+ }
  if(scroll)window.scrollTo({top:0,behavior:'instant'});
  if(focus){const heading=document.getElementById(page==='orbits'?'orbits-title':page==='spectra'?'spectrum-title':'math-title');heading?.focus({preventScroll:true});}
  if(page==='math'&&/^#math-topic-\d+$/.test(hash)){
@@ -35,7 +43,7 @@ window.orbitalPages={go:showSitePage,revealViewer,get page(){return document.bod
 export function initPageNavigation(){
  document.querySelectorAll('[data-page-link]').forEach(link=>link.addEventListener('click',event=>{
   if(event.button>0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
-  event.preventDefault();showSitePage(link.dataset.pageLink);
+  event.preventDefault();if(link.classList.contains('brand')){window.resetOrbitalPageView?.();return;}showSitePage(link.dataset.pageLink);
  }));
  window.addEventListener('popstate',()=>showSitePage(pageFromLocation(),{historyUpdate:false,hash:location.hash}));
  window.addEventListener('hashchange',()=>{if(pageFromLocation()==='math')showSitePage('math',{historyUpdate:false,hash:location.hash,scroll:false});});

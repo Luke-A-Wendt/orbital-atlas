@@ -7,11 +7,11 @@ const mathFragments = window.OrbitalMathFragments || {};
 const mathHTML = key => mathFragments[key] || key;
 document.querySelectorAll('[data-math]').forEach(element => { element.innerHTML = mathHTML(element.dataset.math); });
 const family = ['s','p','d','f','g','h'];
-const state = {n:6,l:3,m:1,basis:'complex',mode:'density',logScale:false,colorMap:'atlas',renderStyle:'granular',cut:'custom',cutDegrees:180,wedgePolar:0,cutView:'angled',frontView:true,cutAngle:0,cutOffset:0,density:2,particleAmount:4,speed:.25,animate:true,autoRotate:false,randomRotate:false,axes:false};
+const state = {n:6,l:3,m:1,basis:'complex',mode:'density',logScale:false,colorMap:'atlas',renderStyle:'granular',cut:'custom',cutDegrees:180,wedgePolar:90,cutView:'front',frontView:true,cutAngle:0,cutOffset:0,density:2,particleAmount:4,speed:.25,animate:true,autoRotate:false,randomRotate:false,axes:false};
 // Basis and color are shared across Cloud and Granular; scene controls retain their presets.
 const modeSettingKeys=['cut','cutView','cutDegrees','sliceThickness','sliceHeight','sliceAxis','wedgePolar','sliceAzimuth','slicePolar','radiusLimit','planeAzimuth','planePolar','density','particleAmount','speed','autoRotate','randomRotate','axes'];
  const defaultModeSettings={basis:'complex',mode:'density',cut:'none',cutAngle:0,cutOffset:0,density:1,particleAmount:.02,speed:.5,animate:true,autoRotate:false,randomRotate:false,axes:false};
- const modeSettings={cloud:{...defaultModeSettings},granular:{...defaultModeSettings,cut:'custom',cutDegrees:180,wedgePolar:0,cutView:'angled',frontView:true,density:2,particleAmount:4,speed:.25}};
+ const modeSettings={cloud:{...defaultModeSettings},granular:{...defaultModeSettings,cut:'custom',cutDegrees:180,wedgePolar:90,cutView:'front',frontView:true,density:2,particleAmount:4,speed:.25}};
  const lastPositiveTracers={cloud:.02,granular:4};
  const basisStyles={real:'granular',complex:'granular'};
  const initializedBases=new Set([state.basis]);
@@ -253,9 +253,9 @@ document.querySelectorAll('[data-settings-target]').forEach(button=>{
  panel.addEventListener('toggle',()=>button.setAttribute('aria-expanded',String(panel.open)));
 });
 
-// Gear values are shared; basis, cutaway preset and selected states remain local.
+// View configuration is shared; the selected orbital/transition remains local.
 {
- const keys=['logScale','renderStyle','mode','colorMap','density','particleAmount','speed','cutAngle','cutOffset','autoRotate','randomRotate','axes'];
+ const keys=['basis','cut','cutView','cutDegrees','wedgePolar','slicePolar','sliceAzimuth','sliceAxis','sliceThickness','sliceHeight','frontView','logScale','renderStyle','mode','colorMap','density','particleAmount','speed','cutAngle','cutOffset','autoRotate','randomRotate','axes'];
  let applying=false;const lastModes={};
  window.orbitalSharedSettings={publish(source,values){
   if(applying)return;
@@ -297,22 +297,27 @@ initColorMapPickers();
 
 // Presets are explicit actions; subsequent manual changes remain editable.
 const viewPresets=[
- ['Blue Granular · default',{basis:'complex',renderStyle:'granular',mode:'density',logScale:false,colorMap:'atlas',cut:'custom',cutDegrees:180,wedgePolar:0,cutView:'angled',frontView:true,particleAmount:4,density:2,speed:.25}],
- ['Geo Cloud',{basis:'complex',renderStyle:'cloud',mode:'density',logScale:false,colorMap:'geo',cut:'custom',cutDegrees:180,wedgePolar:0,cutView:'angled',frontView:true,particleAmount:.08,density:4,speed:4,autoRotate:false,randomRotate:false,axes:false},1],
+ ['Blue Granular · default',{basis:'complex',renderStyle:'granular',mode:'density',logScale:false,colorMap:'atlas',cut:'custom',cutDegrees:180,wedgePolar:90,cutView:'front',frontView:true,particleAmount:4,density:2,speed:.25}],
+ ['Geo Cloud',{basis:'complex',renderStyle:'cloud',mode:'density',logScale:false,colorMap:'geo',cut:'none',cutDegrees:180,wedgePolar:0,cutView:'angled',frontView:true,particleAmount:.08,density:4,speed:4,autoRotate:false,randomRotate:false,axes:false},1],
 ];
+function applyViewPreset(index){
+ const [,values,rate=1]=viewPresets[index];
+ const settings={cutView:'front',slicePolar:90,sliceAzimuth:90,sliceHeight:0,sliceSweep:false,mode:'density',logScale:false,speed:1,cutAngle:0,cutOffset:0,autoRotate:false,randomRotate:false,axes:false,frontView:true,...values};
+ update(settings);
+ window.spectrumApp.setView(settings);
+ window.spectrumApp.setTransitionRate(rate);
+ window.orbitalApp.renderer?.resetView();
+ window.spectrumApp.renderer?.resetView();
+ if(window.orbitalApp.renderer)window.spectrumApp.setCamera(window.orbitalApp.renderer.camera);
+}
+window.resetOrbitalPageView=()=>{
+ if(document.body.dataset.page!=='math')applyViewPreset(0);
+ window.scrollTo({top:0,behavior:'instant'});
+};
 document.querySelectorAll('.view-preset').forEach(select=>{
  viewPresets.forEach(([name],index)=>select.append(option(index,name)));
  select.addEventListener('change',()=>{
   if(select.value==='')return;
-  const [,values,rate=1]=viewPresets[+select.value];
-  const settings={cutView:'angled',slicePolar:0,sliceAzimuth:90,mode:'density',logScale:false,speed:1,cutAngle:0,cutOffset:0,autoRotate:false,randomRotate:false,axes:false,frontView:false,...values};
-  // A preset establishes the same starting view on both pages, including
-  // basis and cut. Later manual view changes can still be page-specific.
-  update(settings);
-  window.spectrumApp.setView(settings);
-  window.spectrumApp.setTransitionRate(rate);
-  window.orbitalApp.renderer?.resetView();
-  window.spectrumApp.renderer?.resetView();
-  select.value='';
+  applyViewPreset(+select.value);select.value='';
  });
 });
