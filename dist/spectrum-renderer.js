@@ -1,4 +1,4 @@
-import { sliceSamplingGLSL, sliceRandomSeeds, bindSliceSampling, clearSliceSampling, advanceCameraTour, sliceColorBounds, sliceParticleSamples, planeCutNormal, cutDegrees, startingViewOrientation, orbitalColorBounds, colorMetricIndex, colorMetrics, metricGLSL, bindColorMapTexture, colorMapGLSL, colorMapIndex, orbitalDisplayReference, orbitalExtent } from './renderer.js';
+import { cloudTracerViewportScale, cloudTracerGLSL, sliceSamplingGLSL, sliceRandomSeeds, bindSliceSampling, clearSliceSampling, advanceCameraTour, sliceColorBounds, sliceParticleSamples, planeCutNormal, cutDegrees, startingViewOrientation, orbitalColorBounds, colorMetricIndex, colorMetrics, metricGLSL, bindColorMapTexture, colorMapGLSL, colorMapIndex, orbitalDisplayReference, orbitalExtent } from './renderer.js';
 /** Two-state hydrogen renderer. Optical-cycle-averaged densities share one scale.
  * Phase color and tracers display the individual components, not a phase or
  * electron trajectory assigned to the mixed density. All distances are in a0.
@@ -166,6 +166,7 @@ vec3 particleColor(vec3 p,float d){vec2 a=amplitudes(p);return uMode==1?componen
 `;
 const spectrumParticleVertex=`#version 300 es
 ${spectrumCommon}
+${cloudTracerGLSL}
 ${spectrumParticleCommon}
 in vec4 aParticle;uniform vec3 uCamera,uRight,uUp,uForward;uniform vec2 uResolution;uniform float uFocal,uPointScale;out vec4 vColor;
 void main(){
@@ -173,8 +174,9 @@ void main(){
  if(clipped(p)||fraction<=0.){gl_Position=vec4(2.,2.,2.,1.);gl_PointSize=0.;vColor=vec4(0.);return;}
  vec3 d=p-uCamera;float z=dot(d,uForward);if(z<=.015){gl_Position=vec4(2.,2.,2.,1.);gl_PointSize=0.;vColor=vec4(0.);return;}
  gl_Position=vec4(dot(d,uRight)*uFocal*uResolution.y/uResolution.x,dot(d,uUp)*uFocal,0.,z);
- gl_PointSize=clamp((2.3+aParticle.w*1.6)*uPointScale*2.6/z,.9,7.);
- float den=clamp(density(p),0.,1.);vColor=vec4(particleColor(p,den),(.27+.43*aParticle.w)*fraction*sqrt(uDensity));
+ vec2 footprint=cloudTracerFootprint(clamp((2.3+aParticle.w*1.6)*uPointScale*2.6/z,.9,7.));
+ gl_PointSize=footprint.x;
+ float den=clamp(density(p),0.,1.);vColor=vec4(particleColor(p,den),(.27+.43*aParticle.w)*fraction*sqrt(uDensity)*footprint.y);
 }`;
 const spectrumParticleFragment=`#version 300 es
 precision highp float;in vec4 vColor;out vec4 outColor;void main(){float r=length(gl_PointCoord*2.-1.);if(r>1.)discard;outColor=vec4(vColor.rgb,vColor.a*exp(-r*r*3.5));}`;
@@ -481,6 +483,8 @@ export class SpectrumRenderer {
  }
  resize(){
   if(this.dead||!this.gl||this.contextLost)return;const rect=this.canvas.getBoundingClientRect(),tier=spectrumTiers[this.tier];
+  const tracerScale=cloudTracerViewportScale(rect.width,rect.height);
+  if(tracerScale!==this.tracerViewportScale){this.tracerViewportScale=tracerScale;this.requestDraw();}
   const area=Math.max(1,rect.width*rect.height),scale=Math.min(window.devicePixelRatio||1,tier.scale,Math.sqrt(tier.pixels/area));
   const width=Math.max(1,Math.round(rect.width*scale)),height=Math.max(1,Math.round(rect.height*scale));
   if(this.canvas.width!==width||this.canvas.height!==height){this.canvas.width=width;this.canvas.height=height;}
@@ -576,7 +580,7 @@ export class SpectrumRenderer {
   if(budget){
    const program=sculpted?(pointSpheres?this.spherePoint:this.sphere):this.particle;gl.useProgram(program);this.sharedUniforms(program);
    if(sculpted){gl.depthMask(true);gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LESS);gl.disable(gl.BLEND);gl.clear(gl.DEPTH_BUFFER_BIT);this.uniform(program,'uSphereRadius','uniform1f',tier.radius*(granular?.95:1));}
-   else{gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE);this.uniform(program,'uPointScale','uniform1f',Math.min(1.7,this.canvas.width/Math.max(1,this.canvas.clientWidth)));}
+   else{gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE);this.uniform(program,'uPointScale','uniform1f',Math.min(1.7,this.canvas.width/Math.max(1,this.canvas.clientWidth)));this.uniform(program,'uTracerViewportScale','uniform1f',this.tracerViewportScale??1);}
    const lowerCount=Math.round(budget*(1-this.population));
    for(let component=0;component<2;component++){
     const count=granular?(component?budget-lowerCount:lowerCount):budget*(component?this.population:1-this.population);if(count<=0)continue;

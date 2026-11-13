@@ -489,19 +489,37 @@ void main(){
 const copyVertex=volumeVertex;
 const copyFragment=`#version 300 es
 precision highp float;in vec2 vUv;uniform sampler2D uTexture;out vec4 outColor;void main(){outColor=texture(uTexture,vUv);}`;
+// Match cloud-tracer coverage to the desktop's 900 CSS-pixel viewer.
+// CSS size determines visual scale; framebuffer/device pixels are handled separately.
+export function cloudTracerViewportScale(width,height){
+ const side=Math.min(width,height);
+ return Number.isFinite(side)&&side>0?Math.min(1,side/900):1;
+}
+export const cloudTracerGLSL=`
+uniform float uTracerViewportScale;
+vec2 cloudTracerFootprint(float desktopDiameter){
+ float diameter=desktopDiameter*uTracerViewportScale;
+ // A rasterized point cannot reliably be smaller than one framebuffer pixel.
+ // Preserve its intended light contribution instead of brightening that pixel.
+ float rasterDiameter=uTracerViewportScale<1.?max(1.,diameter):diameter;
+ return vec2(rasterDiameter,pow(diameter/rasterDiameter,2.));
+}
+`;
 const particleVertex=`#version 300 es
 ${common}
+${cloudTracerGLSL}
 in vec4 aParticle;uniform vec3 uCamera,uRight,uUp,uForward;uniform vec2 uResolution;uniform float uFocal,uPointScale,uCurrent;out vec4 vColor;
 void main(){
   vec3 p=particlePosition(aParticle,uCurrent);
   if(clipped(p)){gl_Position=vec4(2.,2.,2.,1.);gl_PointSize=0.;vColor=vec4(0.);return;}
   vec3 d=p-uCamera;float z=dot(d,uForward),x=dot(d,uRight),y=dot(d,uUp);
   gl_Position=vec4(x*uFocal*uResolution.y/uResolution.x,y*uFocal,0.,z);
-  // Size in CSS pixels is preserved when the adaptive framebuffer is downscaled.
-  gl_PointSize=clamp((2.3+aParticle.w*1.6)*uPointScale*2.6/z,.9,7.);
+  // Scale with the viewer, retaining the existing framebuffer/DPI correction.
+  vec2 footprint=cloudTracerFootprint(clamp((2.3+aParticle.w*1.6)*uPointScale*2.6/z,.9,7.));
+  gl_PointSize=footprint.x;
   float den=clamp(dens(p)*uDisplayGain,0.,1.);
   vec3 color=uMode==1?phaseColor(p):densityColor(colorMetricValue(den,p));
-  vColor=vec4(color,.27+.43*aParticle.w);
+  vColor=vec4(color,(.27+.43*aParticle.w)*footprint.y);
 }`;
 const particleFragment=`#version 300 es
 precision highp float;in vec4 vColor;out vec4 outColor;void main(){float r=length(gl_PointCoord*2.-1.);if(r>1.)discard;outColor=vec4(vColor.rgb,vColor.a*exp(-r*r*3.5));}`;
@@ -739,6 +757,8 @@ export class OrbitalRenderer {
   resize(force=false){
     if(!this.gl)return;
     const b=this.canvas.getBoundingClientRect(),tier=TIERS[this.tier],dpr=Math.min(window.devicePixelRatio||1,2);
+    const tracerScale=cloudTracerViewportScale(b.width,b.height);
+    if(tracerScale!==this.tracerViewportScale){this.tracerViewportScale=tracerScale;this.lastDrawSignature='';}
     let scale=Math.min(dpr,tier.scale);const maxPixels=this.tier===3?2400000:this.tier===2?1400000:800000;
     scale=Math.min(scale,Math.sqrt(maxPixels/Math.max(1,b.width*b.height)));
     const w=Math.max(1,Math.round(b.width*scale)),h=Math.max(1,Math.round(b.height*scale));
@@ -916,6 +936,7 @@ export class OrbitalRenderer {
           gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE);gl.useProgram(this.particle);this.sharedUniforms(this.particle);
           this.uniform(this.particle,'uCurrent','uniform1f',s.basis==='complex'?1:0);
           this.uniform(this.particle,'uPointScale','uniform1f',Math.min(1.7,this.canvas.width/Math.max(1,this.canvas.clientWidth)));
+          this.uniform(this.particle,'uTracerViewportScale','uniform1f',this.tracerViewportScale??1);
           gl.bindVertexArray(this.particleVAO);gl.drawArrays(gl.POINTS,0,count);
         }
       }
@@ -942,7 +963,7 @@ export class OrbitalRenderer {
   }
 }
 
-// One full sweep takes 16 seconds; reflection preserves constant speed at each end.
+// One full sweep takes 8 seconds; reflection preserves constant speed at each end.
 export function sliceSweepPosition(phase){
  const t=((phase%4)+4)%4;return t<=2?t-1:3-t;
 }
@@ -967,7 +988,7 @@ export function bindSliceHeightControls(element,getState,apply,isVisible,allowPl
   raf=0;
   if(!playing)return;
   if(document.hidden||!isVisible()){last=null;raf=requestAnimationFrame(frame);return;}
-  if(last!==null)phase+=(now-last)/1000*.25;
+  if(last!==null)phase+=(now-last)/1000*.5;
   last=now;
   const height=Math.round(sliceSweepPosition(phase)*100)/100;
   if(height!==getState().sliceHeight)apply({sliceHeight:height,sliceSweep:true});
